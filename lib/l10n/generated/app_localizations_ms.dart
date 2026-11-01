@@ -335,7 +335,7 @@ class AppLocalizationsMs extends AppLocalizations {
   }
 
   @override
-  String get discovery_button_sendInterest => 'Hantar Faedah';
+  String get discovery_button_sendInterest => 'Hantar Minat';
 
   @override
   String get discovery_completeness_button => 'Profil Lengkap';
@@ -379,7 +379,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get discovery_header_title => 'Silarah';
 
   @override
-  String get discovery_label_interestSent => 'Faedah Dihantar ✓';
+  String get discovery_label_interestSent => 'Minat Dihantar ✓';
 
   @override
   String get discovery_label_outsidePrefs =>
@@ -2006,11 +2006,11 @@ class AppLocalizationsMs extends AppLocalizations {
       'Ingatkan apabila rangsangan mingguan anda sudah sedia';
 
   @override
-  String get settings_notify_interestAccepted => 'Faedah Diterima';
+  String get settings_notify_interestAccepted => 'Minat Diterima';
 
   @override
   String get settings_notify_interestExpiring =>
-      'Faedah Akan Luput Tidak Lama Lagi';
+      'Minat Akan Luput Tidak Lama Lagi';
 
   @override
   String get settings_notify_newInterest => 'Minat Baru';

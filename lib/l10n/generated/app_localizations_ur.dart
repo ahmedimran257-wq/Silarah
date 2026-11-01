@@ -376,7 +376,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get discovery_header_title => 'Silarah';
 
   @override
-  String get discovery_label_interestSent => 'سود بھیجا گیا ✓';
+  String get discovery_label_interestSent => 'دلچسپی بھیجی گئی ✓';
 
   @override
   String get discovery_label_outsidePrefs =>
@@ -1989,7 +1989,7 @@ class AppLocalizationsUr extends AppLocalizations {
       'یاد دلائیں جب آپ کا ہفتہ وار فروغ تیار ہو۔';
 
   @override
-  String get settings_notify_interestAccepted => 'سود قبول ہے۔';
+  String get settings_notify_interestAccepted => 'دلچسپی قبول کر لی گئی';
 
   @override
   String get settings_notify_interestExpiring =>

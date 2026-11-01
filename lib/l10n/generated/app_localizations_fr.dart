@@ -336,7 +336,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get discovery_button_sendInterest => 'Envoyer des intérêts';
+  String get discovery_button_sendInterest => 'Envoyer un intérêt';
 
   @override
   String get discovery_completeness_button => 'Profil complet';
@@ -376,10 +376,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get discovery_handoff_open_interests => 'Ouvrir les intérêts';
 
   @override
-  String get discovery_header_title => '<marque0/>';
+  String get discovery_header_title => 'Silarah';
 
   @override
-  String get discovery_label_interestSent => 'Intérêts envoyés ✓';
+  String get discovery_label_interestSent => 'Intérêt envoyé ✓';
 
   @override
   String get discovery_label_outsidePrefs =>
@@ -1961,7 +1961,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_label_photoPrivacy => 'Confidentialité des photos';
 
   @override
-  String get settings_label_rate => 'Notez <marque0/>';
+  String get settings_label_rate => 'Notez Silarah';
 
   @override
   String get settings_label_rate_snackbar =>
@@ -2003,7 +2003,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Rappelez-vous quand votre boost hebdomadaire est prêt';
 
   @override
-  String get settings_notify_interestAccepted => 'Intérêts acceptés';
+  String get settings_notify_interestAccepted => 'Intérêt accepté';
 
   @override
   String get settings_notify_interestExpiring => 'Intérêt expirant bientôt';

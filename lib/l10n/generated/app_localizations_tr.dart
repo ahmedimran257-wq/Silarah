@@ -334,7 +334,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get discovery_button_sendInterest => 'Faiz Gönder';
+  String get discovery_button_sendInterest => 'İlgi Gönder';
 
   @override
   String get discovery_completeness_button => 'Profili Tamamla';
@@ -374,10 +374,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get discovery_handoff_open_interests => 'İlgileri aç';
 
   @override
-  String get discovery_header_title => '<marka0/>';
+  String get discovery_header_title => 'Silarah';
 
   @override
-  String get discovery_label_interestSent => 'Gönderilen Faiz ✓';
+  String get discovery_label_interestSent => 'İlgi Gönderildi ✓';
 
   @override
   String get discovery_label_outsidePrefs => 'Bağlantı kurabileceğiniz biri';
@@ -1986,10 +1986,11 @@ class AppLocalizationsTr extends AppLocalizations {
       'Haftalık takviyeniz hazır olduğunda hatırlatın';
 
   @override
-  String get settings_notify_interestAccepted => 'Faiz Kabul Edildi';
+  String get settings_notify_interestAccepted => 'İlgi Kabul Edildi';
 
   @override
-  String get settings_notify_interestExpiring => 'Faiz Yakında Sona Erecek';
+  String get settings_notify_interestExpiring =>
+      'İlginin Süresi Yakında Doluyor';
 
   @override
   String get settings_notify_newInterest => 'Yeni İlgi Alanları';
@@ -2156,7 +2157,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get splash_referral_button => 'Kodu Uygula';
 
   @override
-  String get splash_referral_hint => 'örneğin MİTHAQXX';
+  String get splash_referral_hint => 'örneğin SILARAHXX';
 
   @override
   String get splash_referral_invalid =>

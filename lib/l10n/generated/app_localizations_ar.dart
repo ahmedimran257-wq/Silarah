@@ -210,21 +210,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chat_closure_4 =>
-      'السلام عليكم. لقد فكرت في محادثاتنا وأشعر أنه من الأفضل إغلاق هذه المباراة في هذا الوقت. ليس لدي سوى الاحترام لك وأدعو الله أن يجزيك الأفضل.';
+      'السلام عليكم. لقد فكرت في محادثاتنا وأشعر أنه من الأفضل إنهاء هذا التوافق في الوقت الحالي. ليس لدي سوى الاحترام لك وأدعو الله أن يجزيك الأفضل.';
 
   @override
   String get chat_closure_5 =>
       'السلام عليكم. أردت أن أكون شفافًا معك بدلاً من التلاشي. لا أرى أن هذا يتقدم أكثر من ذلك، لكنني أقدر حقًا وقتك وأتمنى لك كل السعادة. بارك الله فيكم.';
 
   @override
-  String get chat_endMatch_button => 'إرسال وإنهاء المباراة';
+  String get chat_endMatch_button => 'إرسال وإنهاء التوافق';
 
   @override
   String get chat_endMatch_subtitle =>
       'اختر رسالة محترمة لإغلاق هذه المحادثة. سيتم إخطار الشخص الآخر.';
 
   @override
-  String get chat_endMatch_title => 'إنهاء هذه المباراة';
+  String get chat_endMatch_title => 'إنهاء هذا التوافق';
 
   @override
   String chat_label_probation(int hours) {
@@ -236,7 +236,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'اشترك لفتح الرسائل. تراسل النساء دائمًا مجانًا على سيلارا.';
 
   @override
-  String get chat_matchClosed_banner => 'لقد تم إغلاق هذه المباراة بكل احترام.';
+  String get chat_matchClosed_banner => 'تم إنهاء هذا التوافق باحترام.';
 
   @override
   String get chat_opener_1 =>
@@ -328,7 +328,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get discovery_button_sendInterest => 'أرسل الفائدة';
+  String get discovery_button_sendInterest => 'أرسل اهتمامًا';
 
   @override
   String get discovery_completeness_button => 'الملف الشخصي الكامل';
@@ -371,7 +371,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get discovery_header_title => '<العلامة التجارية0/>';
 
   @override
-  String get discovery_label_interestSent => 'تم إرسال الفائدة ✓';
+  String get discovery_label_interestSent => 'تم إرسال الاهتمام ✓';
 
   @override
   String get discovery_label_outsidePrefs => 'شخص قد تتواصل معه';
@@ -594,7 +594,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get guardian_details_name_hint => 'الاسم الكامل';
 
   @override
-  String get guardian_details_name_subtitle => 'اسمك كوصي. يظهر هذا للمباريات.';
+  String get guardian_details_name_subtitle =>
+      'اسمك بصفتك وليًّا. يظهر هذا لمن تتوافق معهم.';
 
   @override
   String guardian_details_notice(Object relation) {
@@ -1965,10 +1966,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'ذكّر عندما يكون التعزيز الأسبوعي الخاص بك جاهزًا';
 
   @override
-  String get settings_notify_interestAccepted => 'الفائدة مقبولة';
+  String get settings_notify_interestAccepted => 'تم قبول الاهتمام';
 
   @override
-  String get settings_notify_interestExpiring => 'تنتهي الفائدة قريبًا';
+  String get settings_notify_interestExpiring => 'ينتهي الاهتمام قريبًا';
 
   @override
   String get settings_notify_newInterest => 'اهتمامات جديدة';
@@ -2133,7 +2134,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get splash_referral_button => 'تطبيق الكود';
 
   @override
-  String get splash_referral_hint => 'على سبيل المثال سيلاراXX';
+  String get splash_referral_hint => 'على سبيل المثال SILARAHXX';
 
   @override
   String get splash_referral_invalid => 'الرجاء إدخال رمز صالح مكون من 6 أحرف.';

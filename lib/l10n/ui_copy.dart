@@ -143,7 +143,7 @@ class UiCopy {
       'Assalamu Alaikum. I believe we share similar values. Would you be open to getting to know each other?':
           'السلام عليكم. أعتقد أننا نتقاسم قيمًا مماثلة. هل ستكون منفتحًا للتعرف على بعضكما البعض؟',
       'Assalamu Alaikum. I have reflected on our conversations and feel it is best to close this match at this time. I have nothing but respect for you and I make dua that Allah blesses you with the best.':
-          'السلام عليكم. لقد فكرت في محادثاتنا وأشعر أنه من الأفضل إغلاق هذه المباراة في هذا الوقت. ليس لدي سوى الاحترام لك وأدعو الله أن يجزيك الأفضل.',
+          'السلام عليكم. لقد فكرت في محادثاتنا وأشعر أنه من الأفضل إنهاء هذا التوافق في الوقت الحالي. ليس لدي سوى الاحترام لك وأدعو الله أن يجزيك الأفضل.',
       'Assalamu Alaikum. I wanted to be honest and respectful with you. I do not think we are the right match, but I pray that Allah opens better doors for you. Wishing you all the best.':
           'السلام عليكم. أردت أن أكون صادقًا ومحترمًا معك. لا أعتقد أننا الشخص المناسب، ولكن أدعو الله أن يفتح لك أبوابًا أفضل. أتمنى لكم كل التوفيق.',
       'Assalamu Alaikum. I wanted to be transparent with you rather than fade away. I do not see this progressing further, but I truly appreciate your time and wish you every happiness. May Allah bless you.':
@@ -310,8 +310,8 @@ class UiCopy {
       'Employed': 'موظف',
       'Enable Diaspora Mode': 'تمكين وضع الشتات',
       'Enable Wali oversight for messaging': 'تمكين إشراف الوالي على الرسائل',
-      'End Match': 'نهاية المباراة',
-      'End this match': 'إنهاء هذه المباراة',
+      'End Match': 'إنهاء التوافق',
+      'End this match': 'إنهاء هذا التوافق',
       'English': 'إنجليزي',
       'Enter Referral Code': 'أدخل رمز الإحالة',
       'Enter the 6-digit verification code sent to':
@@ -459,10 +459,10 @@ class UiCopy {
       'Independent checks that strengthen your profile':
           'الشيكات المستقلة التي تعزز ملفك الشخصي',
       'Indonesian': 'الاندونيسية',
-      'Interest accepted': 'الفائدة مقبولة',
-      'Interest expiring soon': 'تنتهي الفائدة قريبًا',
-      'Interest Sent': 'تم إرسال الفائدة',
-      'Interest Sent ✓': 'تم إرسال الفائدة ✓',
+      'Interest accepted': 'تم قبول الاهتمام',
+      'Interest expiring soon': 'ينتهي الاهتمام قريبًا',
+      'Interest Sent': 'تم إرسال الاهتمام',
+      'Interest Sent ✓': 'تم إرسال الاهتمام ✓',
       'Interests': 'الاهتمامات',
       'Interests (up to 6)': 'الاهتمامات (حتى 6)',
       'Invite your friends to SILARAH. When any eligible friend completes onboarding using your code, you both get 3 days of FREE Premium!':
@@ -777,7 +777,7 @@ class UiCopy {
       'Retry scan': 'أعد محاولة الفحص',
       'Revert': 'يرجع',
       'Revert / Convert (Optional)': 'العودة / التحويل (اختياري)',
-      'Review Interest': 'مراجعة الفائدة',
+      'Review Interest': 'مراجعة الاهتمام',
       'Revoke': 'إبطال',
       'Revoke access': 'إبطال الوصول',
       'Revoke photo access?': 'هل تريد إلغاء الوصول إلى الصور؟',
@@ -834,8 +834,8 @@ class UiCopy {
       'Self-Taught': 'العصاميين',
       'Self-employed': 'العاملون لحسابهم الخاص',
       'Selfie Challenge': 'تحدي السيلفي',
-      'Send & End Match': 'إرسال وإنهاء المباراة',
-      'Send Interest': 'أرسل الفائدة',
+      'Send & End Match': 'إرسال وإنهاء التوافق',
+      'Send Interest': 'أرسل اهتمامًا',
       'Send Verification Code': 'إرسال رمز التحقق',
       'Send copies of all messages to guardian':
           'إرسال نسخ من جميع الرسائل إلى ولي الأمر',
@@ -928,7 +928,7 @@ class UiCopy {
       'The camera could not be opened. Please try again.':
           'تعذر فتح الكاميرا. حاول مرة أخرى.',
       'The interest could not be accepted. Please retry.':
-          'لا يمكن قبول الفائدة. يرجى إعادة المحاولة.',
+          'تعذّر قبول الاهتمام. يرجى إعادة المحاولة.',
       'Their background': 'خلفيتهم',
       'Their city': 'مدينتهم',
       'Their community / biradari': 'مجتمعهم / بيراداري',
@@ -955,7 +955,7 @@ class UiCopy {
       'This is what others will see on your profile.':
           'هذا ما سيراه الآخرون في ملفك الشخصي.',
       'This match has been respectfully closed.':
-          'لقد تم إغلاق هذه المباراة بكل احترام.',
+          'تم إنهاء هذا التوافق باحترام.',
       'This platform is for marriage intentions only. Dignity is the standard.':
           'هذه المنصة مخصصة لنوايا الزواج فقط. الكرامة هي المعيار.',
       'This week': 'هذا الاسبوع',
@@ -1039,7 +1039,7 @@ class UiCopy {
       'With Family': 'مع العائلة',
       'With In-Laws': 'مع الأصهار',
       'Withdraw': 'انسحاب',
-      'Withdraw interest?': 'سحب الفائدة؟',
+      'Withdraw interest?': 'سحب الاهتمام؟',
       'Withdrawn': 'انسحبت',
       'Within 6 months': 'في غضون 6 أشهر',
       'Within a year': 'في غضون عام',
@@ -1089,7 +1089,7 @@ class UiCopy {
       'Your height': 'طولك',
       'Your interest is in progress': 'اهتمامك قيد المتابعة',
       'Your name as the guardian. This is shown to matches.':
-          'اسمك كوصي. يظهر هذا للمباريات.',
+          'اسمك بصفتك وليًّا. يظهر هذا لمن تتوافق معهم.',
       'Your number': 'رقمك',
       'Your photo gallery could not be opened. Try again.':
           'لا يمكن فتح معرض الصور الخاص بك. حاول ثانية.',
@@ -1107,7 +1107,7 @@ class UiCopy {
           'لقد تم استلام طلبك! نحن نقوم بتجميع أرشيف البيانات الشخصية الخاصة بك.',
       'Your ward hasn\'t started any conversations yet.\nYou\'ll see their chats here when they do.':
           'جناحك لم يبدأ أية محادثات حتى الآن.\nسترى محادثاتهم هنا عندما يفعلون ذلك.',
-      'e.g. SILARAHXX': 'على سبيل المثال سيلاراXX',
+      'e.g. SILARAHXX': 'على سبيل المثال SILARAHXX',
       'e.g. Software Engineer, Teacher, Doctor':
           'على سبيل المثال مهندس برمجيات، مدرس، دكتور',
       'new': 'جديد',
@@ -1227,9 +1227,9 @@ class UiCopy {
       'Both deceased': 'দুজনেই মৃত',
       'Brother': 'ভাই',
       'Burmese': 'বার্মিজ',
-      'CITY': 'CITY',
+      'CITY': 'শহর',
       'COMMUNITY / BIRADARI': 'কমিউনিটি/বিরাদারি',
-      'COUNTRY': 'COUNTRY',
+      'COUNTRY': 'দেশ',
       'CREATING PROFILE FOR': 'জন্য প্রোফাইল তৈরি করা হচ্ছে',
       'Calligraphy': 'ক্যালিগ্রাফি',
       'Camera': 'ক্যামেরা',
@@ -1295,10 +1295,10 @@ class UiCopy {
       'Cricket': 'ক্রিকেট',
       'Cultural Muslim': 'সাংস্কৃতিক মুসলিম',
       'Cycling': 'সাইক্লিং',
-      'DEEN LEVEL': 'DEEN লেভেল',
+      'DEEN LEVEL': 'দ্বীনের স্তর',
       'DEEN LEVEL PREFERENCE': 'দীন স্তরের পছন্দ',
       'DIASPORA MODE': 'ডায়াসপোরা মোড',
-      'DISTANCE': 'DISTANCE',
+      'DISTANCE': 'দূরত্ব',
       'DO THEY HAVE CHILDREN?': 'তাদের কি সন্তান আছে?',
       'DO YOU HAVE CHILDREN?': 'আপনার কি সন্তান আছে?',
       'DOWNLOAD MY DATA': 'আমার ডেটা ডাউনলোড করুন',
@@ -1419,7 +1419,7 @@ class UiCopy {
       'Fulani': 'ফুলানি',
       'Full Help Center': 'সম্পূর্ণ সাহায্য কেন্দ্র',
       'Full name': 'পুরো নাম',
-      'GENDER PREFERENCE': 'GENDER পছন্দ',
+      'GENDER PREFERENCE': 'লিঙ্গ পছন্দ',
       'GUARDIAN': 'অভিভাবক',
       'GUARDIAN CONTACT INFO': 'অভিভাবক যোগাযোগ তথ্য',
       'GUARDIAN INVOLVEMENT': 'অভিভাবক জড়িত',
@@ -1511,10 +1511,10 @@ class UiCopy {
       'Independent checks that strengthen your profile':
           'স্বাধীন চেক যা আপনার প্রোফাইলকে শক্তিশালী করে',
       'Indonesian': 'ইন্দোনেশিয়ান',
-      'Interest accepted': 'সুদ গৃহীত',
-      'Interest expiring soon': 'সুদের মেয়াদ শীঘ্রই শেষ হচ্ছে',
-      'Interest Sent': 'সুদ পাঠানো হয়েছে',
-      'Interest Sent ✓': 'সুদ পাঠানো হয়েছে ✓',
+      'Interest accepted': 'আগ্রহ গৃহীত',
+      'Interest expiring soon': 'আগ্রহের মেয়াদ শীঘ্রই শেষ হচ্ছে',
+      'Interest Sent': 'আগ্রহ পাঠানো হয়েছে',
+      'Interest Sent ✓': 'আগ্রহ পাঠানো হয়েছে ✓',
       'Interests': 'আগ্রহ',
       'Interests (up to 6)': 'আগ্রহ (6 পর্যন্ত)',
       'Invite your friends to SILARAH. When any eligible friend completes onboarding using your code, you both get 3 days of FREE Premium!':
@@ -1539,7 +1539,7 @@ class UiCopy {
       'Kyrgyz': 'কিরগিজ',
       'LANGUAGES SPOKEN': 'কথ্য ভাষা',
       'LIVING ARRANGEMENT PREFERENCE': 'বসবাসের ব্যবস্থা পছন্দ',
-      'LOCATION': 'LOCATION',
+      'LOCATION': 'অবস্থান',
       'Language': 'ভাষা',
       'Languages': 'ভাষা',
       'Last Name': 'পদবি',
@@ -1835,7 +1835,7 @@ class UiCopy {
       'Retry scan': 'আবার স্ক্যান করার চেষ্টা করুন',
       'Revert': 'প্রত্যাবর্তন',
       'Revert / Convert (Optional)': 'প্রত্যাবর্তন / রূপান্তর (ঐচ্ছিক)',
-      'Review Interest': 'সুদ পর্যালোচনা করুন',
+      'Review Interest': 'আগ্রহ পর্যালোচনা করুন',
       'Revoke': 'প্রত্যাহার করুন',
       'Revoke access': 'অ্যাক্সেস প্রত্যাহার করুন',
       'Revoke photo access?': 'ফটো অ্যাক্সেস প্রত্যাহার করবেন?',
@@ -1843,8 +1843,8 @@ class UiCopy {
       'Rohingya': 'রোহিঙ্গা',
       'Russian': 'রাশিয়ান',
       'SAVED PROFILES': 'সংরক্ষিত প্রোফাইল',
-      'SECT': 'এসইসিটি',
-      'SECT PREFERENCE': 'SECT পছন্দ',
+      'SECT': 'সম্প্রদায়',
+      'SECT PREFERENCE': 'সম্প্রদায়ের পছন্দ',
       'SECURE CONNECTION · WAITING': 'নিরাপদ সংযোগ · অপেক্ষমাণ',
       'SHARED WITH': 'এর সাথে শেয়ার করা হয়েছে',
       'STATE / REGION': 'রাজ্য / অঞ্চল',
@@ -1966,7 +1966,7 @@ class UiCopy {
       'Swedish': 'সুইডিশ',
       'Swimming': 'সাঁতার',
       'TAP SLOTS TO UPLOAD': 'আপলোড করতে স্লট ট্যাপ করুন',
-      'THEIR BIO': 'তাদের BIO',
+      'THEIR BIO': 'তাদের বায়ো',
       'Tagalog': 'তাগালগ',
       'Tahajjud': 'তাহাজ্জুদ',
       'Tajik': 'তাজিক',
@@ -2102,7 +2102,7 @@ class UiCopy {
       'With Family': 'পরিবারের সাথে',
       'With In-Laws': 'শ্বশুরবাড়ির সঙ্গে',
       'Withdraw': 'প্রত্যাহার করুন',
-      'Withdraw interest?': 'সুদ প্রত্যাহার?',
+      'Withdraw interest?': 'আগ্রহ প্রত্যাহার করবেন?',
       'Withdrawn': 'প্রত্যাহার করা হয়েছে',
       'Within 6 months': '৬ মাসের মধ্যে',
       'Within a year': 'এক বছরের মধ্যে',
@@ -2172,7 +2172,7 @@ class UiCopy {
           'আপনার অনুরোধ গৃহীত হয়েছে! আমরা আপনার ব্যক্তিগত তথ্য সংরক্ষণাগার কম্পাইল করছি.',
       'Your ward hasn\'t started any conversations yet.\nYou\'ll see their chats here when they do.':
           'আপনার ওয়ার্ড এখনো কোনো কথোপকথন শুরু করেনি।\nতারা যখন করবে তখন আপনি এখানে তাদের চ্যাট দেখতে পাবেন।',
-      'e.g. SILARAHXX': 'যেমন মিথাএক্সএক্সএক্স',
+      'e.g. SILARAHXX': 'যেমন SILARAHXX',
       'e.g. Software Engineer, Teacher, Doctor':
           'যেমন সফটওয়্যার ইঞ্জিনিয়ার, শিক্ষক, ডাক্তার',
       'new': 'নতুন',
@@ -2580,7 +2580,7 @@ class UiCopy {
           'Unabhängige Checks, die Ihr Profil stärken',
       'Indonesian': 'Indonesisch',
       'Interest accepted': 'Interesse angenommen',
-      'Interest expiring soon': 'Zinsen laufen bald aus',
+      'Interest expiring soon': 'Interesse läuft bald ab',
       'Interest Sent': 'Interesse gesendet',
       'Interest Sent ✓': 'Interesse gesendet ✓',
       'Interests': 'Interessen',
@@ -3174,7 +3174,7 @@ class UiCopy {
       'With Family': 'Mit Familie',
       'With In-Laws': 'Mit Schwiegereltern',
       'Withdraw': 'Zurückziehen',
-      'Withdraw interest?': 'Zinsen abheben?',
+      'Withdraw interest?': 'Interesse zurückziehen?',
       'Withdrawn': 'Zurückgezogen',
       'Within 6 months': 'Innerhalb von 6 Monaten',
       'Within a year': 'Innerhalb eines Jahres',
@@ -3655,10 +3655,10 @@ class UiCopy {
       'Independent checks that strengthen your profile':
           'Des contrôles indépendants qui renforcent votre profil',
       'Indonesian': 'indonésien',
-      'Interest accepted': 'Intérêts acceptés',
+      'Interest accepted': 'Intérêt accepté',
       'Interest expiring soon': 'Intérêt expirant bientôt',
-      'Interest Sent': 'Intérêts envoyés',
-      'Interest Sent ✓': 'Intérêts envoyés ✓',
+      'Interest Sent': 'Intérêt envoyé',
+      'Interest Sent ✓': 'Intérêt envoyé ✓',
       'Interests': 'Intérêts',
       'Interests (up to 6)': 'Intérêts (jusqu\'à 6)',
       'Invite your friends to SILARAH. When any eligible friend completes onboarding using your code, you both get 3 days of FREE Premium!':
@@ -3939,7 +3939,7 @@ class UiCopy {
       'Quran': 'Coran',
       'Quran Memorization': 'Mémorisation du Coran',
       'Quran recitation': 'Récitation du Coran',
-      'Rate Silarah': 'Notez <marque0/>',
+      'Rate Silarah': 'Notez Silarah',
       'Rating will be available once Silarah launches on the app store.':
           'L\'évaluation sera disponible une fois Silarah lancé sur l\'App Store.',
       'Reading': 'En lisant',
@@ -4040,7 +4040,7 @@ class UiCopy {
       'Self-employed': 'Travailleur indépendant',
       'Selfie Challenge': 'Défi selfie',
       'Send & End Match': 'Envoyer et terminer la correspondance',
-      'Send Interest': 'Envoyer des intérêts',
+      'Send Interest': 'Envoyer un intérêt',
       'Send Verification Code': 'Envoyer le code de vérification',
       'Send copies of all messages to guardian':
           'Envoyer des copies de tous les messages au tuteur',
@@ -4067,7 +4067,7 @@ class UiCopy {
       'Sign In': 'Se connecter',
       'Sign Out': 'Se déconnecter',
       'Significant debt': 'Une dette importante',
-      'Silarah': '<marque0/>',
+      'Silarah': 'Silarah',
       'Silarah (سيلارا) · For the sake of Allah':
           'Silarah (سيلارا) · Pour l\'amour d\'Allah',
       'Silarah is for those 18 and older. We\'ve made this requirement to protect everyone in our community.':
@@ -4254,7 +4254,7 @@ class UiCopy {
       'With Family': 'En famille',
       'With In-Laws': 'Avec la belle-famille',
       'Withdraw': 'Se retirer',
-      'Withdraw interest?': 'Retirer les intérêts ?',
+      'Withdraw interest?': 'Retirer votre intérêt ?',
       'Withdrawn': 'Retiré',
       'Within 6 months': 'Dans les 6 mois',
       'Within a year': 'Dans un délai d\'un an',
@@ -4732,9 +4732,9 @@ class UiCopy {
       'Independent checks that strengthen your profile':
           'स्वतंत्र जांच जो आपकी प्रोफ़ाइल को मजबूत करती है',
       'Indonesian': 'इन्डोनेशियाई',
-      'Interest accepted': 'ब्याज स्वीकृत',
-      'Interest expiring soon': 'ब्याज जल्द ही समाप्त हो रहा है',
-      'Interest Sent': 'ब्याज भेजा गया',
+      'Interest accepted': 'रुचि स्वीकार की गई',
+      'Interest expiring soon': 'रुचि जल्द ही समाप्त हो रही है',
+      'Interest Sent': 'रुचि भेजी गई',
       'Interest Sent ✓': 'रुचि भेजी गई ✓',
       'Interests': 'रुचियाँ',
       'Interests (up to 6)': 'रुचियाँ (6 तक)',
@@ -5139,9 +5139,9 @@ class UiCopy {
       'Sign In': 'दाखिल करना',
       'Sign Out': 'साइन आउट करें',
       'Significant debt': 'महत्वपूर्ण ऋण',
-      'Silarah': '<ब्रांड0/>',
+      'Silarah': 'Silarah',
       'Silarah (سيلارا) · For the sake of Allah':
-          '<ब्रांड0/> (سيلارا) · अल्लाह के लिए',
+          'Silarah (سيلارا) · अल्लाह के लिए',
       'Silarah is for those 18 and older. We\'ve made this requirement to protect everyone in our community.':
           'Silarah उन 18 वर्ष और उससे अधिक उम्र वालों के लिए है। हमने अपने समुदाय में हर किसी की सुरक्षा के लिए यह आवश्यकता बनाई है।',
       'Sindhi': 'सिंधी',
@@ -5182,7 +5182,7 @@ class UiCopy {
       'Substance Use': 'पदार्थ का उपयोग',
       'Sundanese': 'सुंडानी',
       'Sunni': 'सुन्नी',
-      'Swahili': 'swahili',
+      'Swahili': 'स्वाहिली',
       'Swedish': 'स्वीडिश',
       'Swimming': 'तैरना',
       'TAP SLOTS TO UPLOAD': 'अपलोड करने के लिए स्लॉट टैप करें',
@@ -5210,7 +5210,7 @@ class UiCopy {
       'The camera could not be opened. Please try again.':
           'कैमरा नहीं खुल सका। फिर कोशिश करें।',
       'The interest could not be accepted. Please retry.':
-          'ब्याज स्वीकार नहीं किया जा सका. कृपया फिर से कोशिश करें।',
+          'रुचि स्वीकार नहीं की जा सकी. कृपया फिर से कोशिश करें।',
       'Their background': 'उनकी पृष्ठभूमि',
       'Their city': 'उनका शहर',
       'Their community / biradari': 'उनका समुदाय/बिरादरी',
@@ -5280,7 +5280,7 @@ class UiCopy {
       'VERIFYING CONNECTION': 'कनेक्शन जाँचा जा रहा है',
       'Values Islamic principles, prays regularly but not always, culturally Muslim':
           'इस्लामी सिद्धांतों को महत्व देता है, नियमित रूप से प्रार्थना करता है लेकिन हमेशा नहीं, सांस्कृतिक रूप से मुस्लिम है',
-      'Vaping': 'vaping',
+      'Vaping': 'वेपिंग',
       'Vaping / E-Cigarettes': 'वेपिंग/ई-सिगरेट',
       'Vegan': 'शाकाहारी',
       'Vegetarian': 'शाकाहारी',
@@ -5324,7 +5324,7 @@ class UiCopy {
       'With Family': 'परिवार के साथ',
       'With In-Laws': 'ससुराल वालों के साथ',
       'Withdraw': 'वापस लेना',
-      'Withdraw interest?': 'ब्याज वापस लें?',
+      'Withdraw interest?': 'रुचि वापस लें?',
       'Withdrawn': 'वापस ले लिया गया',
       'Within 6 months': '6 महीने के अंदर',
       'Within a year': 'एक साल के अंदर',
@@ -5393,7 +5393,7 @@ class UiCopy {
           'आपका अनुरोध प्राप्त हो गया है! हम आपका व्यक्तिगत डेटा संग्रह संकलित कर रहे हैं।',
       'Your ward hasn\'t started any conversations yet.\nYou\'ll see their chats here when they do.':
           'आपके वार्ड ने अभी तक कोई बातचीत शुरू नहीं की है.\nजब वे ऐसा करेंगे तो आप उनकी चैट यहां देखेंगे।',
-      'e.g. SILARAHXX': 'जैसे मिथाकएक्सएक्स',
+      'e.g. SILARAHXX': 'जैसे SILARAHXX',
       'e.g. Software Engineer, Teacher, Doctor':
           'जैसे सॉफ्टवेयर इंजीनियर, शिक्षक, डॉक्टर',
       'new': 'नया',
@@ -6082,7 +6082,7 @@ class UiCopy {
       'Quran': 'Alquran',
       'Quran Memorization': 'Hafalan Alquran',
       'Quran recitation': 'Pembacaan Alquran',
-      'Rate Silarah': 'Nilai <merek0/>',
+      'Rate Silarah': 'Nilai Silarah',
       'Rating will be available once Silarah launches on the app store.':
           'Peringkat akan tersedia setelah Silarah diluncurkan di app store.',
       'Reading': 'Membaca',
@@ -6208,7 +6208,7 @@ class UiCopy {
       'Sign In': 'Masuk',
       'Sign Out': 'Keluar',
       'Significant debt': 'Hutang yang signifikan',
-      'Silarah': '<merek0/>',
+      'Silarah': 'Silarah',
       'Silarah (سيلارا) · For the sake of Allah':
           'Silarah (سيلارا) · Demi Allah',
       'Silarah is for those 18 and older. We\'ve made this requirement to protect everyone in our community.':
@@ -6874,10 +6874,10 @@ class UiCopy {
       'Independent checks that strengthen your profile':
           'Pemeriksaan bebas yang mengukuhkan profil anda',
       'Indonesian': 'Indonesia',
-      'Interest accepted': 'Faedah Diterima',
-      'Interest expiring soon': 'Faedah Akan Luput Tidak Lama Lagi',
-      'Interest Sent': 'Faedah Dihantar',
-      'Interest Sent ✓': 'Faedah Dihantar ✓',
+      'Interest accepted': 'Minat Diterima',
+      'Interest expiring soon': 'Minat Akan Luput Tidak Lama Lagi',
+      'Interest Sent': 'Minat Dihantar',
+      'Interest Sent ✓': 'Minat Dihantar ✓',
       'Interests': 'minat',
       'Interests (up to 6)': 'Minat (sehingga 6)',
       'Invite your friends to SILARAH. When any eligible friend completes onboarding using your code, you both get 3 days of FREE Premium!':
@@ -7257,7 +7257,7 @@ class UiCopy {
       'Self-employed': 'Bekerja sendiri',
       'Selfie Challenge': 'Cabaran Selfie',
       'Send & End Match': 'Hantar & Tamatkan Perlawanan',
-      'Send Interest': 'Hantar Faedah',
+      'Send Interest': 'Hantar Minat',
       'Send Verification Code': 'Hantar Kod Pengesahan',
       'Send copies of all messages to guardian':
           'Hantar salinan semua mesej kepada penjaga',
@@ -7354,7 +7354,7 @@ class UiCopy {
       'The camera could not be opened. Please try again.':
           'Kamera tidak dapat dibuka. Cuba lagi.',
       'The interest could not be accepted. Please retry.':
-          'Faedah tidak dapat diterima. Sila cuba semula.',
+          'Minat tidak dapat diterima. Sila cuba semula.',
       'Their background': 'Latar belakang mereka',
       'Their city': 'bandar mereka',
       'Their community / biradari': 'Masyarakat / biradari mereka',
@@ -7468,7 +7468,7 @@ class UiCopy {
       'With Family': 'Bersama Keluarga',
       'With In-Laws': 'Bersama Mertua',
       'Withdraw': 'tarik diri',
-      'Withdraw interest?': 'Tarik balik faedah?',
+      'Withdraw interest?': 'Tarik balik minat?',
       'Withdrawn': 'Ditarik balik',
       'Within 6 months': 'Dalam masa 6 bulan',
       'Within a year': 'Dalam masa setahun',
@@ -7944,10 +7944,10 @@ class UiCopy {
       'Independent checks that strengthen your profile':
           'Profilinizi güçlendiren bağımsız kontroller',
       'Indonesian': 'Endonezya dili',
-      'Interest accepted': 'Faiz Kabul Edildi',
-      'Interest expiring soon': 'Faiz Yakında Sona Erecek',
-      'Interest Sent': 'Gönderilen Faiz',
-      'Interest Sent ✓': 'Gönderilen Faiz ✓',
+      'Interest accepted': 'İlgi Kabul Edildi',
+      'Interest expiring soon': 'İlginin Süresi Yakında Doluyor',
+      'Interest Sent': 'İlgi Gönderildi',
+      'Interest Sent ✓': 'İlgi Gönderildi ✓',
       'Interests': 'İlgi alanları',
       'Interests (up to 6)': 'İlgi Alanları (en fazla 6)',
       'Invite your friends to SILARAH. When any eligible friend completes onboarding using your code, you both get 3 days of FREE Premium!':
@@ -8321,7 +8321,7 @@ class UiCopy {
       'Self-employed': 'Serbest meslek',
       'Selfie Challenge': 'Selfie Mücadelesi',
       'Send & End Match': 'Eşleşmeyi Gönder ve Bitir',
-      'Send Interest': 'Faiz Gönder',
+      'Send Interest': 'İlgi Gönder',
       'Send Verification Code': 'Doğrulama Kodunu Gönder',
       'Send copies of all messages to guardian':
           'Tüm mesajların kopyalarını veliye gönder',
@@ -8348,7 +8348,7 @@ class UiCopy {
       'Sign In': 'Oturum aç',
       'Sign Out': 'Oturumu Kapat',
       'Significant debt': 'Önemli borç',
-      'Silarah': '<marka0/>',
+      'Silarah': 'Silarah',
       'Silarah (سيلارا) · For the sake of Allah':
           'Silarah (سيلارا) · Allah rızası için',
       'Silarah is for those 18 and older. We\'ve made this requirement to protect everyone in our community.':
@@ -8418,7 +8418,7 @@ class UiCopy {
       'The camera could not be opened. Please try again.':
           'Kamera açılamadı. Lütfen tekrar deneyin.',
       'The interest could not be accepted. Please retry.':
-          'Faiz kabul edilemedi. Lütfen tekrar deneyin.',
+          'İlgi kabul edilemedi. Lütfen tekrar deneyin.',
       'Their background': 'Geçmişleri',
       'Their city': 'Onların şehri',
       'Their community / biradari': 'Toplulukları / biradari',
@@ -8531,7 +8531,7 @@ class UiCopy {
       'With Family': 'Aile ile',
       'With In-Laws': 'Kayınvalidem ile',
       'Withdraw': 'Çekilme',
-      'Withdraw interest?': 'Faizi çekmek mi?',
+      'Withdraw interest?': 'İlgi geri çekilsin mi?',
       'Withdrawn': 'Geri çekildi',
       'Within 6 months': '6 ay içinde',
       'Within a year': 'Bir yıl içinde',
@@ -8600,7 +8600,7 @@ class UiCopy {
           'Talebiniz alındı! Kişisel veri arşivinizi derliyoruz.',
       'Your ward hasn\'t started any conversations yet.\nYou\'ll see their chats here when they do.':
           'Koğuşunuz henüz herhangi bir görüşme başlatmadı.\nYaptıklarında sohbetlerini burada göreceksiniz.',
-      'e.g. SILARAHXX': 'örneğin MİTHAQXX',
+      'e.g. SILARAHXX': 'örneğin SILARAHXX',
       'e.g. Software Engineer, Teacher, Doctor':
           'örneğin Yazılım Mühendisi, Öğretmen, Doktor',
       'new': 'yeni',
@@ -8793,7 +8793,7 @@ class UiCopy {
       'DEEN LEVEL': 'دین کی سطح',
       'DEEN LEVEL PREFERENCE': 'دین کی سطح کی ترجیح',
       'DIASPORA MODE': 'ڈائیسپورا موڈ',
-      'DISTANCE': 'DISTANCE',
+      'DISTANCE': 'فاصلہ',
       'DO THEY HAVE CHILDREN?': 'کیا ان کے بچے ہیں؟',
       'DO YOU HAVE CHILDREN?': 'کیا آپ کے بچے ہیں؟',
       'DOWNLOAD MY DATA': 'میرا ڈیٹا ڈاؤن لوڈ کریں۔',
@@ -8916,7 +8916,7 @@ class UiCopy {
       'Fulani': 'فلانی',
       'Full Help Center': 'مکمل امدادی مرکز',
       'Full name': 'پورا نام',
-      'GENDER PREFERENCE': 'GENDER ترجیح',
+      'GENDER PREFERENCE': 'جنس کی ترجیح',
       'GUARDIAN': 'گارڈین',
       'GUARDIAN CONTACT INFO': 'گارڈین رابطہ کی معلومات',
       'GUARDIAN INVOLVEMENT': 'گارڈین کی شمولیت',
@@ -9008,10 +9008,10 @@ class UiCopy {
       'Independent checks that strengthen your profile':
           'آزاد چیک جو آپ کے پروفائل کو مضبوط بناتے ہیں۔',
       'Indonesian': 'انڈونیشین',
-      'Interest accepted': 'سود قبول ہے۔',
+      'Interest accepted': 'دلچسپی قبول کر لی گئی',
       'Interest expiring soon': 'دلچسپی کی میعاد جلد ختم ہو رہی ہے۔',
       'Interest Sent': 'دلچسپی بھیجی گئی۔',
-      'Interest Sent ✓': 'سود بھیجا گیا ✓',
+      'Interest Sent ✓': 'دلچسپی بھیجی گئی ✓',
       'Interests': 'دلچسپیاں',
       'Interests (up to 6)': 'دلچسپیاں (6 تک)',
       'Invite your friends to SILARAH. When any eligible friend completes onboarding using your code, you both get 3 days of FREE Premium!':
@@ -9036,7 +9036,7 @@ class UiCopy {
       'Kyrgyz': 'کرغیز',
       'LANGUAGES SPOKEN': 'بولی جانے والی زبانیں',
       'LIVING ARRANGEMENT PREFERENCE': 'رہائش کے انتظام کی ترجیح',
-      'LOCATION': 'LOCATION',
+      'LOCATION': 'مقام',
       'Language': 'زبان',
       'Languages': 'زبانیں',
       'Last Name': 'آخری نام',
@@ -9338,7 +9338,7 @@ class UiCopy {
       'Rohingya': 'روہنگیا',
       'Russian': 'روسی',
       'SAVED PROFILES': 'محفوظ شدہ پروفائلز',
-      'SECT': 'SECT',
+      'SECT': 'فرقہ',
       'SECT PREFERENCE': 'فرقہ کی ترجیح',
       'SECURE CONNECTION · WAITING': 'محفوظ کنکشن · انتظار جاری',
       'SHARED WITH': 'کے ساتھ اشتراک کیا گیا۔',
@@ -9484,7 +9484,7 @@ class UiCopy {
       'The camera could not be opened. Please try again.':
           'کیمرہ نہیں کھل سکا۔ دوبارہ کوشش کریں۔',
       'The interest could not be accepted. Please retry.':
-          'سود قبول نہ ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔',
+          'دلچسپی قبول نہ ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔',
       'Their background': 'ان کا پس منظر',
       'Their city': 'ان کا شہر',
       'Their community / biradari': 'ان کی برادری/برادری',
@@ -9596,7 +9596,7 @@ class UiCopy {
       'With Family': 'فیملی کے ساتھ',
       'With In-Laws': 'سسرال والوں کے ساتھ',
       'Withdraw': 'واپس لینا',
-      'Withdraw interest?': 'سود واپس لیں؟',
+      'Withdraw interest?': 'دلچسپی واپس لیں؟',
       'Withdrawn': 'واپس لے لیا',
       'Within 6 months': '6 ماہ کے اندر',
       'Within a year': 'ایک سال کے اندر اندر',

@@ -1340,7 +1340,7 @@
   "settings_notify_boostReminders": "Boost-Erinnerungen",
   "settings_notify_boostRemindersSub": "Erinnere dich daran, wann dein wöchentlicher Boost fertig ist",
   "settings_notify_interestAccepted": "Interesse angenommen",
-  "settings_notify_interestExpiring": "Zinsen laufen bald aus",
+  "settings_notify_interestExpiring": "Interesse läuft bald ab",
   "settings_notify_newInterest": "Neue Interessen",
   "settings_notify_newMessage": "Neue Nachrichten",
   "settings_notify_quietHours": "Ruhige Stunden",

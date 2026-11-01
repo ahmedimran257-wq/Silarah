@@ -2005,7 +2005,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_notify_interestAccepted => 'Interesse angenommen';
 
   @override
-  String get settings_notify_interestExpiring => 'Zinsen laufen bald aus';
+  String get settings_notify_interestExpiring => 'Interesse läuft bald ab';
 
   @override
   String get settings_notify_newInterest => 'Neue Interessen';

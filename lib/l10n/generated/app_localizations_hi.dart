@@ -372,7 +372,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get discovery_handoff_open_interests => 'इंटरेस्ट्स खोलें';
 
   @override
-  String get discovery_header_title => '<ब्रांड0/>';
+  String get discovery_header_title => 'Silarah';
 
   @override
   String get discovery_label_interestSent => 'रुचि भेजी गई ✓';
@@ -906,7 +906,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get lang_sundanese => 'सुंडानी';
 
   @override
-  String get lang_swahili => 'swahili';
+  String get lang_swahili => 'स्वाहिली';
 
   @override
   String get lang_swedish => 'स्वीडिश';
@@ -1876,7 +1876,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get preview_title => 'पूर्व दर्शन';
 
   @override
-  String get preview_vaping_label => 'vaping';
+  String get preview_vaping_label => 'वेपिंग';
 
   @override
   String get preview_willing_relocate_label => 'यहां रीलोकेट होना चाहते हैं';
@@ -1891,7 +1891,7 @@ class AppLocalizationsHi extends AppLocalizations {
       '80%+ पूर्णता वाली प्रोफ़ाइलों को 3× अधिक रुचियाँ प्राप्त होती हैं।';
 
   @override
-  String get settings_brand_credit => '<ब्रांड0/> (سيلارا) · अल्लाह के लिए';
+  String get settings_brand_credit => 'Silarah (سيلارا) · अल्लाह के लिए';
 
   @override
   String get settings_button_deleteAccount => 'खाता हटा दो';
@@ -1994,11 +1994,11 @@ class AppLocalizationsHi extends AppLocalizations {
       'याद दिलाएं कि आपका साप्ताहिक बूस्ट कब तैयार हो जाएगा';
 
   @override
-  String get settings_notify_interestAccepted => 'ब्याज स्वीकृत';
+  String get settings_notify_interestAccepted => 'रुचि स्वीकार की गई';
 
   @override
   String get settings_notify_interestExpiring =>
-      'ब्याज जल्द ही समाप्त हो रहा है';
+      'रुचि जल्द ही समाप्त हो रही है';
 
   @override
   String get settings_notify_newInterest => 'नई रुचियाँ';
@@ -2165,7 +2165,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get splash_referral_button => 'कोड लागू करें';
 
   @override
-  String get splash_referral_hint => 'जैसे मिथाकएक्सएक्स';
+  String get splash_referral_hint => 'जैसे SILARAHXX';
 
   @override
   String get splash_referral_invalid =>

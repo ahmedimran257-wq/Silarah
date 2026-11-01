@@ -375,7 +375,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get discovery_header_title => 'Silarah';
 
   @override
-  String get discovery_label_interestSent => 'সুদ পাঠানো হয়েছে ✓';
+  String get discovery_label_interestSent => 'আগ্রহ পাঠানো হয়েছে ✓';
 
   @override
   String get discovery_label_outsidePrefs =>
@@ -1988,11 +1988,11 @@ class AppLocalizationsBn extends AppLocalizations {
       'আপনার সাপ্তাহিক বুস্ট প্রস্তুত হলে মনে করিয়ে দিন';
 
   @override
-  String get settings_notify_interestAccepted => 'সুদ গৃহীত';
+  String get settings_notify_interestAccepted => 'আগ্রহ গৃহীত';
 
   @override
   String get settings_notify_interestExpiring =>
-      'সুদের মেয়াদ শীঘ্রই শেষ হচ্ছে';
+      'আগ্রহের মেয়াদ শীঘ্রই শেষ হচ্ছে';
 
   @override
   String get settings_notify_newInterest => 'নতুন আগ্রহ';
@@ -2160,7 +2160,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get splash_referral_button => 'কোড প্রয়োগ করুন';
 
   @override
-  String get splash_referral_hint => 'যেমন মিথাএক্সএক্সএক্স';
+  String get splash_referral_hint => 'যেমন SILARAHXX';
 
   @override
   String get splash_referral_invalid =>

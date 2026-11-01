@@ -376,7 +376,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get discovery_handoff_open_interests => 'Buka Minat';
 
   @override
-  String get discovery_header_title => '<merek0/>';
+  String get discovery_header_title => 'Silarah';
 
   @override
   String get discovery_label_interestSent => 'Bunga Terkirim ✓';
@@ -1963,7 +1963,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get settings_label_photoPrivacy => 'Privasi Foto';
 
   @override
-  String get settings_label_rate => 'Nilai <merek0/>';
+  String get settings_label_rate => 'Nilai Silarah';
 
   @override
   String get settings_label_rate_snackbar =>
