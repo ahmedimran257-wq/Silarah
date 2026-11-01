@@ -29,8 +29,8 @@ and the review inbox immediately before submission.
 1. **Discovery:** sign in, open Discover, use Filters to change Indian state,
    city and distance preferences or view all eligible profiles across India.
 2. **Interests:** open Interests to review received and sent interest states.
-3. **Chat:** open the prepared accepted connection. Typing presence and message
-   translation are available inside the conversation.
+3. **Chat:** open the prepared accepted connection. Typing presence is shown inside
+   the conversation.
 4. **Photo privacy:** Profile → Manage photos → choose everyone, mutual interest,
    or request-to-view → Save photos.
 5. **Verification:** Profile → Trust checks. Photo verification is optional and

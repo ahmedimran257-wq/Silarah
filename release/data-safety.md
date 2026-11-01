@@ -26,7 +26,7 @@ wording immediately before submission.
 | Address/location | City, state, country, coordinates | Yes | Supabase; location lookup provider receives query/location | Matching, app functionality | City/country required; precise device location optional |
 | Photos | Profile photos and temporary optional photo-check captures | Yes | Supabase; on-device ML does not upload model input | Profile, safety, verification | Profile photo required; photo check optional |
 | Personal info | DOB/age, gender, marital/family details, faith, education, work, income preferences, languages, bio | Yes | Supabase | Profile and matching | Mix of required and optional |
-| Messages | Chats, interests, reports and guardian data | Yes | Supabase; MyMemory only when translation is requested | App functionality and safety | Feature-dependent |
+| Messages | Chats, interests, reports and guardian data | Yes | Supabase | App functionality and safety | Feature-dependent |
 | Purchase history | Product, entitlement, transaction status, price/currency metadata | Yes | Google Play, RevenueCat, Supabase | Purchases, entitlement, support, fraud prevention | Purchase-dependent |
 | App activity | Interests, matches, profile views, saved profiles, notification state | Yes | Supabase | App functionality, personalization, security | Feature-dependent |
 | App info/performance | Crash traces, device/app diagnostics | Yes | Firebase Crashlytics | Stability and security | Automatically collected in production |
@@ -39,8 +39,8 @@ wording immediately before submission.
   not ephemeral.
 - On-device ML Kit/TFLite processing alone is not third-party sharing because
   the image stays on the device. The later upload to Supabase is collection.
-- A user-initiated translation sends the selected message text to MyMemory;
-  declare that service-provider sharing while the feature is active.
+- Chat translation was retired (migration 259); no message text is sent to a
+  translation service.
 - Government-ID collection and matching are not present in this build. The
   optional photo check uses temporary look/smile/blink captures for authorized
   human comparison and deletes them after review and no later than 48 hours.

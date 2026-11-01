@@ -30,7 +30,7 @@ photos. Do not describe the app as child-accessible or as guaranteeing identity.
 - Authentication is required.
 - Enter the two synthetic reviewer accounts described in
   `release/reviewer-instructions.md` only in Play Console.
-- Reconfirm the stable review inbox, pre-verified male phone state, female free
+- Reconfirm the stable review inbox, male reviewer test Premium grant, female free
   messaging and prepared synthetic conversation immediately before submission.
 - Do not store reviewer credentials in this repository.
 
