@@ -87,6 +87,18 @@ enum SubscriptionPurchaseOutcome {
   pending,
   alreadyPurchased,
   entitlementPending,
+
+  /// The store sheet opened but the result never arrived (connection lost).
+  /// Google Play may have charged; RevenueCat posts it when back online.
+  unconfirmed,
+
+  /// An earlier payment for the other plan is pending or unconfirmed, so
+  /// buying this plan could start a second subscription.
+  otherPlanUnconfirmed,
+
+  /// The Premium subscription is on account hold. Fixing the payment in
+  /// Google Play restores it; buying again would charge twice.
+  billingIssue,
   failed,
 }
 
@@ -127,6 +139,87 @@ abstract final class SubscriptionEntitlements {
   static bool isPremiumActive(CustomerInfo info) {
     return activePremium(info) != null;
   }
+
+  /// Google Play account hold: the renewal payment failed, access is paused,
+  /// and the subscription still recovers if the member fixes the payment.
+  /// Bounded by Play's longest hold so a lapsed member can always buy again.
+  static bool isOnAccountHold(CustomerInfo info, {DateTime? now}) {
+    final premium = info.entitlements.all[SubscriptionEntitlements.premium];
+    if (premium == null ||
+        premium.isActive ||
+        !premium.willRenew ||
+        premium.billingIssueDetectedAt == null ||
+        premium.unsubscribeDetectedAt != null) {
+      return false;
+    }
+    final expiry = DateTime.tryParse(premium.expirationDate ?? '');
+    if (expiry == null) return false;
+    return (now ?? DateTime.now()).difference(expiry) <
+        const Duration(days: 60);
+  }
+}
+
+/// RevenueCat error codes that can follow a completed Google Play charge
+/// whose receipt never reached RevenueCat.
+const unconfirmedPurchaseErrorCodes = {
+  PurchasesErrorCode.networkError,
+  PurchasesErrorCode.offlineConnectionError,
+  PurchasesErrorCode.unknownError,
+  PurchasesErrorCode.unknownBackendError,
+  PurchasesErrorCode.unexpectedBackendResponseError,
+};
+
+/// Remembers, per account, a payment that is pending or whose result was
+/// lost, so the other plan cannot be bought on top of it. Monthly and
+/// 3-month are separate Play subscriptions; Play only blocks re-buying the
+/// same one.
+class UnconfirmedPurchaseMemory {
+  UnconfirmedPurchaseMemory._();
+
+  /// Long enough for Play's slow payment methods to settle and for its
+  /// three-day refund of a purchase RevenueCat never acknowledged.
+  static const window = Duration(hours: 72);
+
+  static String _key(String userId) => 'subscription_unconfirmed_$userId';
+
+  static Future<void> remember(
+    String userId,
+    SubscriptionPlan plan, {
+    required bool pending,
+    DateTime? now,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final at = (now ?? DateTime.now()).millisecondsSinceEpoch;
+    await prefs.setString(
+        _key(userId), '${plan.name}|$at|${pending ? 'pending' : 'lost'}');
+  }
+
+  /// The plan of a fresh unconfirmed payment, if any.
+  static Future<SubscriptionPlan?> plan(String userId, {DateTime? now}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final parts = prefs.getString(_key(userId))?.split('|');
+    if (parts == null || parts.length != 3) return null;
+    final at = int.tryParse(parts[1]);
+    if (at == null) return null;
+    final age = (now ?? DateTime.now())
+        .difference(DateTime.fromMillisecondsSinceEpoch(at));
+    if (age > window) return null;
+    for (final plan in SubscriptionPlan.values) {
+      if (plan.name == parts[0]) return plan;
+    }
+    return null;
+  }
+
+  /// Premium became active, or a restore found nothing (which settles a lost
+  /// result but not a payment Play still holds as pending).
+  static Future<void> clear(String userId, {bool keepPending = false}) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (keepPending &&
+        (prefs.getString(_key(userId))?.endsWith('|pending') ?? false)) {
+      return;
+    }
+    await prefs.remove(_key(userId));
+  }
 }
 
 class SubscriptionService {
@@ -155,9 +248,11 @@ class SubscriptionService {
   String? _pricingTier;
   Offering? _activeOffering;
   int _sessionGeneration = 0;
+  String? _userId;
 
   Future<void> initialize({required String userId}) async {
     final generation = _sessionGeneration;
+    _userId = userId;
     try {
       _retryTimer?.cancel();
       _retryCount = 0;
@@ -181,6 +276,8 @@ class SubscriptionService {
     required SubscriptionPlan plan,
   }) async {
     final generation = _sessionGeneration;
+    final userId = _userId;
+    var storeOpened = false;
     try {
       Offering? offering = _activeOffering;
       if (offering == null) {
@@ -203,6 +300,9 @@ class SubscriptionService {
       // the other is active starts a second subscription and charges twice.
       // The paywall hides plans from subscribers, but its state can be stale
       // (offline start, purchase on another device), so ask the store live.
+      // The SDK cache can be minutes old; a purchase made elsewhere since
+      // then must count.
+      await Purchases.invalidateCustomerInfoCache();
       final current = await Purchases.getCustomerInfo();
       if (generation != _sessionGeneration) {
         return const SubscriptionPurchaseResult(
@@ -211,12 +311,34 @@ class SubscriptionService {
       if (SubscriptionEntitlements.isPremiumActive(current)) {
         _customerInfo = current;
         _isSubscribed = true;
+        if (userId != null) await UnconfirmedPurchaseMemory.clear(userId);
         return SubscriptionPurchaseResult(
           outcome: SubscriptionPurchaseOutcome.alreadyPurchased,
           customerInfo: current,
         );
       }
+      if (SubscriptionEntitlements.isOnAccountHold(current)) {
+        _customerInfo = current;
+        return SubscriptionPurchaseResult(
+          outcome: SubscriptionPurchaseOutcome.billingIssue,
+          customerInfo: current,
+        );
+      }
+      // A pending or lost payment is invisible to RevenueCat until Play
+      // settles it.
+      final unconfirmedPlan =
+          userId == null ? null : await UnconfirmedPurchaseMemory.plan(userId);
+      if (generation != _sessionGeneration) {
+        return const SubscriptionPurchaseResult(
+            outcome: SubscriptionPurchaseOutcome.failed);
+      }
+      if (unconfirmedPlan != null && unconfirmedPlan != plan) {
+        return const SubscriptionPurchaseResult(
+          outcome: SubscriptionPurchaseOutcome.otherPlanUnconfirmed,
+        );
+      }
 
+      storeOpened = true;
       final result = await Purchases.purchase(
         PurchaseParams.package(package),
       );
@@ -227,6 +349,14 @@ class SubscriptionService {
       final customerInfo = result.customerInfo;
       _isSubscribed = SubscriptionEntitlements.isPremiumActive(customerInfo);
       _customerInfo = customerInfo;
+      if (userId != null) {
+        if (_isSubscribed) {
+          await UnconfirmedPurchaseMemory.clear(userId);
+        } else {
+          // Charged, but RevenueCat has not granted Premium yet.
+          await UnconfirmedPurchaseMemory.remember(userId, plan, pending: true);
+        }
+      }
       return SubscriptionPurchaseResult(
         outcome: _isSubscribed
             ? SubscriptionPurchaseOutcome.purchased
@@ -239,7 +369,18 @@ class SubscriptionService {
             outcome: SubscriptionPurchaseOutcome.failed);
       }
       final code = PurchasesErrorHelper.getErrorCode(error);
-      final outcome = classifySubscriptionPurchaseError(code);
+      var outcome = classifySubscriptionPurchaseError(code);
+      if (storeOpened &&
+          outcome == SubscriptionPurchaseOutcome.failed &&
+          unconfirmedPurchaseErrorCodes.contains(code)) {
+        outcome = SubscriptionPurchaseOutcome.unconfirmed;
+      }
+      if (userId != null &&
+          (outcome == SubscriptionPurchaseOutcome.pending ||
+              outcome == SubscriptionPurchaseOutcome.unconfirmed)) {
+        await UnconfirmedPurchaseMemory.remember(userId, plan,
+            pending: outcome == SubscriptionPurchaseOutcome.pending);
+      }
       CustomerInfo? customerInfo;
       if (outcome == SubscriptionPurchaseOutcome.alreadyPurchased) {
         try {
@@ -251,6 +392,9 @@ class SubscriptionService {
           _customerInfo = customerInfo;
           _isSubscribed =
               SubscriptionEntitlements.isPremiumActive(customerInfo);
+          if (_isSubscribed && userId != null) {
+            await UnconfirmedPurchaseMemory.clear(userId);
+          }
         } catch (refreshError) {
           debugPrint(
             '[SubscriptionService] Existing purchase refresh error: '
@@ -266,19 +410,34 @@ class SubscriptionService {
       );
     } catch (error) {
       debugPrint('[SubscriptionService] Purchase error: $error');
+      if (!storeOpened || generation != _sessionGeneration) {
+        return const SubscriptionPurchaseResult(
+          outcome: SubscriptionPurchaseOutcome.failed,
+        );
+      }
+      if (userId != null) {
+        await UnconfirmedPurchaseMemory.remember(userId, plan, pending: false);
+      }
       return const SubscriptionPurchaseResult(
-        outcome: SubscriptionPurchaseOutcome.failed,
+        outcome: SubscriptionPurchaseOutcome.unconfirmed,
       );
     }
   }
 
   Future<bool> restorePurchases() async {
     final generation = _sessionGeneration;
+    final userId = _userId;
     try {
       final info = await Purchases.restorePurchases();
       if (generation != _sessionGeneration) return false;
       _customerInfo = info;
       _isSubscribed = SubscriptionEntitlements.isPremiumActive(info);
+      // A restore re-sends every Play purchase, so a lost result is settled
+      // either way. A payment Play still holds as pending is not included.
+      if (userId != null) {
+        await UnconfirmedPurchaseMemory.clear(userId,
+            keepPending: !_isSubscribed);
+      }
       return _isSubscribed;
     } catch (e) {
       debugPrint('[SubscriptionService] Restore error: $e');
@@ -299,6 +458,7 @@ class SubscriptionService {
     _retryCount = 0;
     _countryCode = null;
     _pricingTier = null;
+    _userId = null;
     _activeOffering = null;
     _customerInfo = null;
     _isSubscribed = false;

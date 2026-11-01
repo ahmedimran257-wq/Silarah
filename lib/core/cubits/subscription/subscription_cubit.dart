@@ -25,6 +25,7 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
   int _sessionGeneration = 0;
   String? _loggedInUserId;
   bool _storeIdentityReady = false;
+  bool _purchaseRequested = false;
 
   Future<void> initialize() async {
     if (isClosed || _pricingSub != null) return;
@@ -105,8 +106,16 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
   }
 
   Future<bool> purchase(String productId) async {
+    // Purchases queue behind store identity work, so a second tap would run
+    // after the first finished and see no loading state. Refuse it here.
+    if (_purchaseRequested) return false;
+    _purchaseRequested = true;
     final generation = _sessionGeneration;
-    return _withStoreIdentity(() => _purchase(productId, generation));
+    try {
+      return await _withStoreIdentity(() => _purchase(productId, generation));
+    } finally {
+      _purchaseRequested = false;
+    }
   }
 
   Future<bool> _purchase(String productId, int generation) async {
@@ -227,10 +236,16 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
         return false;
       }
 
-      emit(state.copyWith(
-        isLoading: false,
-        error: _purchaseErrorMessage(purchase.errorCode),
-      ));
+      final message = switch (purchase.outcome) {
+        SubscriptionPurchaseOutcome.unconfirmed =>
+          'The connection dropped before Google Play confirmed. If you were charged, Premium switches on automatically once you are back online. Please tap Restore Purchase rather than paying again.',
+        SubscriptionPurchaseOutcome.otherPlanUnconfirmed =>
+          'Your last Google Play payment has not been confirmed yet. To avoid paying twice, wait for it to finish or tap Restore Purchase before choosing a different plan.',
+        SubscriptionPurchaseOutcome.billingIssue =>
+          'Your Premium renewal payment did not go through. Update your payment method in Google Play to restore Premium without paying twice.',
+        _ => _purchaseErrorMessage(purchase.errorCode),
+      };
+      emit(state.copyWith(isLoading: false, error: message));
       return false;
     } catch (e) {
       debugPrint('[SubscriptionCubit] Purchase error: $e');
