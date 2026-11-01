@@ -43,6 +43,40 @@ void main() {
         lessThan(sql.indexOf('UPDATE public.users')));
   });
 
+  test('one plan ending while the other continues sends no "ended" notice', () {
+    final sql = File('supabase/migrations/'
+            '287_no_ended_notice_while_other_plan_active.sql')
+        .readAsStringSync();
+    expect(
+        sql,
+        contains(
+            "AND NOT (p_event_type = 'EXPIRATION' AND v_status <> 'none')"));
+    expect(
+        sql,
+        contains(
+            "'access_kept', p_subscription_status = 'none' AND v_status <> 'none'"));
+    final webhook = File('supabase/functions/revenuecat-webhook/index.ts')
+        .readAsStringSync();
+    expect(
+        webhook,
+        contains(
+            '!(eventType === "EXPIRATION" && applyResult?.access_kept === true)'));
+  });
+
+  // RevenueCat retries every non-2xx response. Transfers carry no product to
+  // validate and, with "transfer if there are no active subscriptions", move
+  // no access.
+  test('transfer and dashboard test events are acknowledged, not retried', () {
+    final webhook = File('supabase/functions/revenuecat-webhook/index.ts')
+        .readAsStringSync();
+    final ack = webhook
+        .indexOf('if (event?.type === "TRANSFER" || event?.type === "TEST") {');
+    expect(ack, isNonNegative);
+    expect(ack, greaterThan(webhook.indexOf('authHeader !==')),
+        reason: 'Only authenticated deliveries are acknowledged.');
+    expect(ack, lessThan(webhook.indexOf('validRevenueCatEvent(event)')));
+  });
+
   test('a paid member or a second tap cannot start another purchase', () {
     final cubit = File('lib/core/cubits/subscription/subscription_cubit.dart')
         .readAsStringSync();

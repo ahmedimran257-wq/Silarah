@@ -59,6 +59,15 @@ Deno.serve(async (req: Request) => {
   }
 
   const event = payload.event;
+  // A TRANSFER moves purchases between App User IDs. The project transfers
+  // only when no subscription is active, so no access changes hands, and
+  // the event carries no product or app_user_id to validate. TEST is the
+  // dashboard's "Send test event". Acknowledge both so RevenueCat does not
+  // retry them.
+  if (event?.type === "TRANSFER" || event?.type === "TEST") {
+    console.log(`[revenuecat-webhook] Acknowledged ${event.type} event.`);
+    return new Response("OK", { status: 200 });
+  }
   if (!event || !validRevenueCatEvent(event)) {
     return new Response("Bad Request: missing event", { status: 400 });
   }
@@ -222,7 +231,12 @@ Deno.serve(async (req: Request) => {
   // Duplicate RevenueCat deliveries are expected. Database state and in-app
   // notifications are changed only once, while a failed transactional email
   // remains claimable from the durable outbox on a webhook retry.
-  if (applyResult?.applied) {
+  // One plan ending while the member's other plan continues is not an end
+  // of Premium; the database skips that email, and the notice goes too.
+  if (
+    applyResult?.applied &&
+    !(eventType === "EXPIRATION" && applyResult?.access_kept === true)
+  ) {
     await queueSubscriptionNotification(supabase, supabaseUserId, eventType);
   }
 
