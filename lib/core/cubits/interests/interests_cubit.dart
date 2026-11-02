@@ -46,6 +46,31 @@ class InterestsCubit extends Cubit<InterestsState> {
   static const _revisionCheckFreshness = Duration(seconds: 90);
   static const _maxRowsPerSection = 100;
 
+  // Profiles with a send_interest request on the wire. A double tap, or two
+  // screens sending to the same member, must not send a second request that
+  // the database rejects and the screen reports as a failure.
+  final Set<String> _sendsInFlight = <String>{};
+
+  /// Whether an interest to [profileId] is being sent right now.
+  bool isSendingInterest(String profileId) =>
+      _sendsInFlight.contains(profileId);
+
+  /// Server errors meaning the pair already has a pending interest or a
+  /// match, so this screen is out of date rather than the send having failed.
+  @visibleForTesting
+  static bool isRelationshipAlreadyActive(Object error) {
+    final message = error.toString();
+    return message.contains('interest_already_active') ||
+        message.contains('already_matched') ||
+        message.contains('interest_already_exists') ||
+        message.contains('already sent');
+  }
+
+  /// The interest was already answered, withdrawn or expired elsewhere (a
+  /// second device, or the sender withdrawing at the same moment).
+  static bool _isInterestUnavailable(Object error) =>
+      error.toString().contains('interest_unavailable');
+
   // Init
   Future<void> loadData({bool force = false}) async {
     if (!SupabaseService.isInitialized) return;
@@ -478,6 +503,11 @@ class InterestsCubit extends Cubit<InterestsState> {
         // DB trigger create_match_on_accept() automatically creates the match row
       } catch (e) {
         debugPrint('[InterestsCubit] Error accepting interest: $e');
+        if (_isInterestUnavailable(e)) {
+          // Show the server's answer: accepted elsewhere is still a match.
+          await loadData(force: true);
+          return state.matches.any((entry) => entry.id == id);
+        }
         return false;
       }
     }
@@ -511,6 +541,7 @@ class InterestsCubit extends Cubit<InterestsState> {
         });
       } catch (e) {
         debugPrint('[InterestsCubit] Error declining interest: $e');
+        if (_isInterestUnavailable(e)) await loadData(force: true);
         return false;
       }
     }
@@ -534,7 +565,16 @@ class InterestsCubit extends Cubit<InterestsState> {
     if (state.interactionWith(profile.id) != ProfileInteractionState.none) {
       return false;
     }
+    // A second tap while the first send is on the wire is not a new send.
+    if (!_sendsInFlight.add(profile.id)) return false;
+    try {
+      return await _sendInterest(profile, note: note);
+    } finally {
+      _sendsInFlight.remove(profile.id);
+    }
+  }
 
+  Future<bool> _sendInterest(DiscoveryProfile profile, {String? note}) async {
     final now = DateTime.now();
     final filteredNote =
         note?.isNotEmpty == true ? ContentFilter.redact(note!) : null;
@@ -573,8 +613,7 @@ class InterestsCubit extends Cubit<InterestsState> {
       }
       // Refresh stale UI when the server already owns this relationship. A
       // duplicate is not a new successful send and must not replay ceremony.
-      if (e.toString().contains('interest_already_exists') ||
-          e.toString().contains('already sent')) {
+      if (isRelationshipAlreadyActive(e)) {
         await loadData(force: true);
         return false;
       }
@@ -645,6 +684,7 @@ class InterestsCubit extends Cubit<InterestsState> {
             .rpc('withdraw_interest', params: {'p_interest_id': id});
       } catch (e) {
         debugPrint('[InterestsCubit] Error withdrawing interest: $e');
+        if (_isInterestUnavailable(e)) await loadData(force: true);
         return false;
       }
     }

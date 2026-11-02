@@ -13,6 +13,7 @@ import '../../../core/services/fcm_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class DeleteAccountScreen extends StatefulWidget {
@@ -25,6 +26,8 @@ class DeleteAccountScreen extends StatefulWidget {
 class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
   int _step = 1;
   String? _reason;
+  // One deletion request at a time; a second tap would also sign out twice.
+  bool _submitting = false;
   final _confirmCtrl = TextEditingController();
 
   @override
@@ -44,16 +47,27 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
   }
 
   Future<void> _confirm() async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+    try {
+      await _requestDeletion();
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  Future<void> _requestDeletion() async {
     HapticFeedback.mediumImpact();
 
     if (SupabaseService.isInitialized) {
       try {
         final userId = SupabaseService.currentUserId;
         if (userId != null) {
+          // A stalled connection ends in the error message, not a spinner.
           await SupabaseService.client.rpc(
             'request_my_account_deletion',
             params: {'p_reason': _reason},
-          );
+          ).timeout(const Duration(seconds: 20));
 
           // Store identity is cleared by the shared auth sign-out listener.
           // FCM onUserLogout deletes the device token before sign-out.
@@ -150,6 +164,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
           _ => _Step3(
               key: const ValueKey(3),
               ctrl: _confirmCtrl,
+              submitting: _submitting,
               onConfirm: _confirm,
               onChange: () => setState(() {})),
         },
@@ -391,16 +406,18 @@ class _Step3 extends StatelessWidget {
   const _Step3({
     super.key,
     required this.ctrl,
+    required this.submitting,
     required this.onConfirm,
     required this.onChange,
   });
   final TextEditingController ctrl;
+  final bool submitting;
   final VoidCallback onConfirm;
   final VoidCallback onChange;
 
   @override
   Widget build(BuildContext context) {
-    final canConfirm = ctrl.text.trim() == 'DELETE';
+    final canConfirm = ctrl.text.trim() == 'DELETE' && !submitting;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppDimensions.space24),
       child: Column(
@@ -489,12 +506,14 @@ class _Step3 extends StatelessWidget {
                 ),
               ),
               onPressed: canConfirm ? onConfirm : null,
-              child: UiText(
-                context.uiCopy('Delete Account'),
-                style: AppTypography.button.copyWith(
-                  color: canConfirm ? Colors.white : AppColors.slateMist,
-                ),
-              ),
+              child: submitting
+                  ? const SilarahPulseLoader(size: 26)
+                  : UiText(
+                      context.uiCopy('Delete Account'),
+                      style: AppTypography.button.copyWith(
+                        color: canConfirm ? Colors.white : AppColors.slateMist,
+                      ),
+                    ),
             ),
           ),
           const SizedBox(height: AppDimensions.space40),

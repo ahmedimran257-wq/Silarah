@@ -142,7 +142,6 @@ void main() {
   test('Supabase traffic goes through the invalidating client', () {
     final service =
         File('lib/core/services/supabase_service.dart').readAsStringSync();
-    expect(
-        service, contains('httpClient: AccountSnapshotInvalidatingClient()'));
+    expect(service, contains('httpClient: AccountSnapshotInvalidatingClient('));
   });
 }

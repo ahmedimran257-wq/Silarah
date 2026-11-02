@@ -269,6 +269,15 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
                                               onSendInterest: sent
                                                   ? null
                                                   : () async {
+                                                      // The first tap's send
+                                                      // is still on the wire.
+                                                      if (context
+                                                          .read<
+                                                              InterestsCubit>()
+                                                          .isSendingInterest(
+                                                              p.id)) {
+                                                        return;
+                                                      }
                                                       HapticFeedback
                                                           .mediumImpact();
                                                       final sent = await context

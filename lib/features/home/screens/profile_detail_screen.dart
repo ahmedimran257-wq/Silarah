@@ -73,6 +73,9 @@ class ProfileDetailScreen extends StatefulWidget {
 class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   bool _bookmarked = false;
   bool _bookmarkUpdating = false;
+  // Covers the quota check, note sheet and send, so a double tap cannot
+  // stack two note sheets or send twice.
+  bool _sendingInterest = false;
   ShortlistDetail? _shortlistDetail;
   bool _shortlistLoading = false;
   int _photoPage = 0;
@@ -331,8 +334,22 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
   // Actions
   Future<void> _handleSendInterest() async {
+    if (_sendingInterest) return;
+    _sendingInterest = true;
+    final bool sent;
+    try {
+      sent = await _sendInterestWithNote();
+    } finally {
+      _sendingInterest = false;
+    }
+    if (!mounted || !sent) return;
+    HapticFeedback.mediumImpact();
+    await showInterestCeremony(context, firstName: widget.profile.firstName);
+  }
+
+  Future<bool> _sendInterestWithNote() async {
     if (!await context.read<InterestsCubit>().canStartInterest() || !mounted) {
-      return;
+      return false;
     }
     // D1: Show note sheet before sending
     final note = await showInterestNoteSheet(
@@ -340,16 +357,13 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       firstName: widget.profile.firstName,
     );
     // null = user cancelled
-    if (note == null || !mounted) return;
+    if (note == null || !mounted) return false;
 
     // M6: Sync interest to cubit so feed state stays consistent
-    final sent = await context.read<InterestsCubit>().sendInterest(
+    return context.read<InterestsCubit>().sendInterest(
           widget.profile,
           note: note.isNotEmpty ? note : null,
         );
-    if (!mounted || !sent) return;
-    HapticFeedback.mediumImpact();
-    await showInterestCeremony(context, firstName: widget.profile.firstName);
   }
 
   Future<void> _handleBookmark() async {

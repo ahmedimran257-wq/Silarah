@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/app_config.dart';
 import 'my_account_snapshot.dart';
+import 'request_timeout_client.dart';
 
 enum SessionRecoveryStatus {
   authenticated,
@@ -185,7 +186,8 @@ class SupabaseService {
         // listener would bypass its allowlist and race the one-time code.
         detectSessionInUri: false,
       ),
-      httpClient: AccountSnapshotInvalidatingClient(),
+      // Writes clear the shared account rows; every request has a time limit.
+      httpClient: AccountSnapshotInvalidatingClient(RequestTimeoutClient()),
     );
     _client = Supabase.instance.client;
     _isInitialized = true;
