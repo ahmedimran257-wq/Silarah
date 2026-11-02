@@ -1,0 +1,150 @@
+<!doctype html>
+<!--
+  Silarah Play Store feature graphic (1024 x 500).
+  Render: release/play-store/render_feature_graphic.sh
+  Colours are the Ivory & Emerald palette in lib/core/theme/app_colors.dart.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: Playfair; src: url('../../assets/fonts/PlayfairDisplay.ttf'); }
+  @font-face { font-family: Playfair; font-style: italic; src: url('../../assets/fonts/PlayfairDisplay-Italic.ttf'); }
+  @font-face { font-family: Inter; src: url('../../assets/fonts/Inter.ttf'); }
+
+  :root {
+    --ivory: #F7F3EA;
+    --ivory-light: #FFFDF8;
+    --ivory-deep: #EFE8DA;
+    --emerald: #175C45;
+    --emerald-deep: #104936;
+    --gold: #B08D57;
+    --gold-text: #8A682F;
+    --gold-light: #E3CB98;
+    --ink: #18211C;
+    --ink-soft: #59615C;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1024px; height: 500px; overflow: hidden; }
+  body {
+    position: relative;
+    background:
+      radial-gradient(ellipse 70% 90% at 22% 45%, var(--ivory-light) 0%, var(--ivory) 55%, var(--ivory-deep) 100%);
+    font-family: Inter, sans-serif;
+    color: var(--ink);
+  }
+
+  .copy { position: absolute; left: 70px; top: 64px; width: 540px; }
+  .eyebrow {
+    font-weight: 600; font-size: 14px; letter-spacing: 4.2px;
+    color: var(--gold-text); text-transform: uppercase;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::after { content: ""; width: 54px; height: 1.5px; background: var(--gold); }
+  /* The script sits in the middle of a 1024 px square; show only that band. */
+  .logo { width: 430px; height: 168px; overflow: hidden; margin: 6px 0 0 -14px; position: relative; }
+  .logo img { position: absolute; width: 470px; left: -30px; top: -150px; filter: url(#emerald-ink); }
+  .headline {
+    font-family: Playfair; font-size: 40px; line-height: 1.12; color: var(--ink);
+    margin-top: 2px; letter-spacing: -0.2px;
+  }
+  .headline em { font-style: italic; color: var(--emerald); }
+  .chips { display: flex; gap: 10px; margin-top: 26px; }
+  .chip {
+    font-size: 15px; font-weight: 600; color: var(--emerald-deep);
+    padding: 9px 16px 9px 13px; border-radius: 999px;
+    background: rgba(23, 92, 69, 0.07); border: 1.5px solid rgba(23, 92, 69, 0.28);
+    display: flex; align-items: center; gap: 7px; white-space: nowrap;
+  }
+  .chip svg { width: 15px; height: 15px; }
+
+  .art { position: absolute; right: 0; top: 0; width: 400px; height: 500px; }
+</style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute">
+    <!-- Black script on white becomes emerald script on transparent. -->
+    <filter id="emerald-ink" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values="
+        0 0 0 0 0.0902
+        0 0 0 0 0.3608
+        0 0 0 0 0.2706
+        -0.333 -0.333 -0.334 0 1"/>
+    </filter>
+  </svg>
+
+  <div class="copy">
+    <div class="eyebrow">Muslim Matrimony</div>
+    <div class="logo"><img src="../../assets/icon/app_icon.png" alt=""></div>
+    <div class="headline">Find your life partner<br><em>for nikah</em>, with dignity.</div>
+    <div class="chips">
+      <div class="chip">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg>
+        Photo verification
+      </div>
+      <div class="chip">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>
+        Private photos
+      </div>
+      <div class="chip">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="5" r="2"/><circle cx="11" cy="6" r="1.6"/><path d="M2 13c0-2 1.6-3.5 3.5-3.5S9 11 9 13M9.5 10.2c.4-.3.9-.5 1.5-.5 1.5 0 2.7 1.2 2.7 2.8"/></svg>
+        Wali mode
+      </div>
+    </div>
+  </div>
+
+  <svg class="art" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Pointed (Mughal) arch, open at the bottom edge. -->
+      <path id="arch" d="M40 500 V215 C40 140 105 92 160 66 C178 57 192 44 200 26 C208 44 222 57 240 66 C295 92 360 140 360 215 V500 Z"/>
+      <clipPath id="arch-clip"><use href="#arch"/></clipPath>
+      <linearGradient id="arch-fill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#1E6B51"/>
+        <stop offset="1" stop-color="#0E3F2F"/>
+      </linearGradient>
+      <!-- Eight-point star lattice (khatam), drawn as two overlapping squares per cell. -->
+      <pattern id="khatam" width="56" height="56" patternUnits="userSpaceOnUse" x="12" y="6">
+        <g fill="none" stroke="#E3CB98" stroke-width="1" opacity="0.22">
+          <rect x="14" y="14" width="28" height="28"/>
+          <rect x="14" y="14" width="28" height="28" transform="rotate(45 28 28)"/>
+          <path d="M0 28 H8 M48 28 H56 M28 0 V8 M28 48 V56"/>
+        </g>
+      </pattern>
+      <mask id="crescent-cut" maskUnits="userSpaceOnUse" x="-30" y="-30" width="60" height="60">
+        <rect x="-30" y="-30" width="60" height="60" fill="#fff"/>
+        <circle cx="7" cy="-4" r="14.5" fill="#000"/>
+      </mask>
+      <radialGradient id="glow" cx="0.5" cy="0.52" r="0.5">
+        <stop offset="0" stop-color="#2B8A66" stop-opacity="0.55"/>
+        <stop offset="1" stop-color="#2B8A66" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <use href="#arch" fill="url(#arch-fill)"/>
+    <g clip-path="url(#arch-clip)">
+      <rect width="400" height="500" fill="url(#khatam)"/>
+      <circle cx="200" cy="292" r="150" fill="url(#glow)"/>
+    </g>
+    <!-- Inner gold outline, and an outer hairline that echoes it. -->
+    <path d="M58 500 V218 C58 152 116 110 166 85 C182 77 194 66 200 52 C206 66 218 77 234 85 C284 110 342 152 342 218 V500"
+          fill="none" stroke="#C9A66B" stroke-width="1.6" opacity="0.9"/>
+    <path d="M24 500 V212 C24 130 94 80 152 52 C172 42 190 26 200 6 C210 26 228 42 248 52 C306 80 376 130 376 212 V500"
+          fill="none" stroke="#B08D57" stroke-width="1.2" opacity="0.55"/>
+
+    <!-- Two interlocking rings: the marriage mark. -->
+    <g fill="none" stroke-linecap="round">
+      <circle cx="172" cy="292" r="50" stroke="#E3CB98" stroke-width="7"/>
+      <circle cx="228" cy="292" r="50" stroke="#C9A66B" stroke-width="7"/>
+      <!-- Re-draw the first ring at the lower crossing on top so the rings interlock. -->
+      <path d="M210.3 324.1 A50 50 0 0 1 187.5 339.6" stroke="#E3CB98" stroke-width="7" stroke-linecap="butt"/>
+      <!-- Small diamond on the second ring. -->
+      <path d="M228 230 l9 -10 l9 10 l-9 12 z" transform="translate(-9 6)" fill="#F4E4BE" stroke="#C9A66B" stroke-width="1.5"/>
+    </g>
+    <!-- Crescent and star above the rings. -->
+    <g transform="translate(200 160)">
+      <circle r="17" fill="#E3CB98" mask="url(#crescent-cut)"/>
+      <path d="M14 -10 l2.1 4.3 4.7 .7 -3.4 3.3 .8 4.7 -4.2 -2.2 -4.2 2.2 .8 -4.7 -3.4 -3.3 4.7 -.7 z" fill="#E3CB98"/>
+    </g>
+  </svg>
+</body>
+</html>
