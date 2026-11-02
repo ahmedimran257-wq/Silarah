@@ -57,8 +57,8 @@ review (e73d8dc, 5768dc6).
 
 | # | Severity | What was wrong (plain words) | Where | Status |
 |---|---|---|---|---|
-| 1 | Medium | After you block someone, they could still read your full profile (bio, job, education, last active time). Routes: your old match (a block marks it "blocked" but keeps it), a bookmark, today's view, and an explicit "they blocked me" rule. Migration 280 fixed this for photos only. | `get_authorized_member_profiles` | Fixed in `288`. Verified on staging. **Production waiting for your OK.** |
-| 2 | Low | Same gap with less data. A blocked member could still see your verification and guardian badges, and your photo privacy setting and photo count. Your partner preferences (sect, deen, education) could be read by anyone with your profile id, even after a block or with Premium incognito on. | `get_member_trust_summaries`, `get_photo_access_context`, `get_discovery_compatibility_preferences` | Fixed in `288`. Verified on staging. **Production waiting for your OK.** |
+| 1 | Medium | After you block someone, they could still read your full profile (bio, job, education, last active time). Routes: your old match (a block marks it "blocked" but keeps it), a bookmark, today's view, and an explicit "they blocked me" rule. Migration 280 fixed this for photos only. | `get_authorized_member_profiles` | Fixed in `288`. Verified on staging, applied to production 2 Nov with your approval. |
+| 2 | Low | Same gap with less data. A blocked member could still see your verification and guardian badges, and your photo privacy setting and photo count. Your partner preferences (sect, deen, education) could be read by anyone with your profile id, even after a block or with Premium incognito on. | `get_member_trust_summaries`, `get_photo_access_context`, `get_discovery_compatibility_preferences` | Fixed in `288`. Verified on staging, applied to production 2 Nov with your approval. |
 | 3 | Low | When the server said the interest already exists (`interest_already_active`) or you are already matched (`already_matched`), the app checked for a different message. A stale "Send interest" button therefore kept failing and the screen never refreshed. | `InterestsCubit.sendInterest` | Fixed. The screen now reloads. |
 | 4 | Low | Double taps sent duplicate interests. On "Who viewed me", a double tap on Send interest made two requests: the second was rejected and showed "Interest could not be sent" right after a successful send. Profile detail could stack two note sheets. | `profile_views_screen.dart`, `profile_detail_screen.dart` | Fixed. One send per member at a time (cubit), plus guards on both screens. |
 | 5 | Low | Answering an interest already handled on another device showed "could not be accepted" and left the old card on screen. | accept, decline and withdraw in `InterestsCubit` | Fixed. The list reloads, and accepting counts as done when the match exists. |
@@ -82,6 +82,16 @@ fail on the old code. `flutter analyze` is clean, and the full suite passes
   case.
 - The four function definitions were byte-identical on staging and production
   before the change.
+
+### Production (approved and done, 2 November)
+
+- Migration `288` was applied to production, and `schema_migrations` lists
+  it as version 288. On staging and production, all four functions have the
+  same definition fingerprint and the same grants: `authenticated` and
+  `service_role` only.
+- A read-only check as a real member, rolled back, confirmed that their own
+  profile, trust badges and photo-access context still load. Their own
+  partner preferences are excluded, as designed.
 
 ## Informational (no change made)
 
@@ -127,8 +137,6 @@ fail on the old code. `flutter analyze` is clean, and the full suite passes
 
 ## Needs you
 
-1. **Approve applying migration 288 to production.** The automatic
-   permission check stopped the production step. It is tested on staging,
-   and the definitions it replaces are identical on both projects.
-2. Nothing new in the Supabase dashboard or Play Console. Leaked-password
-   protection stays off because it needs the paid plan (accepted).
+Nothing new in the Supabase dashboard or Play Console. Leaked-password
+protection stays off because it needs the paid plan (accepted). The app
+fixes reach members with the next build you upload to Play.
