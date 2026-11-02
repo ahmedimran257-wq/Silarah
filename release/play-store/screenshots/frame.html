@@ -1,0 +1,82 @@
+<!doctype html>
+<!--
+  Silarah Play Store phone screenshot frame (1080 x 1920).
+  The shot is chosen by the URL hash, e.g. frame.html#1.
+  Render: release/play-store/screenshots/render_screenshots.sh
+  Members shown in raw/ are illustrated demo profiles, not real people.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: Playfair; src: url('../../../assets/fonts/PlayfairDisplay.ttf'); }
+  @font-face { font-family: Playfair; font-style: italic; src: url('../../../assets/fonts/PlayfairDisplay-Italic.ttf'); }
+  @font-face { font-family: Inter; src: url('../../../assets/fonts/Inter.ttf'); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; }
+  body {
+    position: relative; font-family: Inter, sans-serif; color: #18211C;
+    background: radial-gradient(ellipse 90% 60% at 50% 30%, #FFFDF8 0%, #F7F3EA 55%, #EFE8DA 100%);
+  }
+  /* Faint khatam lattice behind everything. */
+  body::before {
+    content: ""; position: absolute; inset: 0; opacity: 0.5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cg fill='none' stroke='%23D9C9A8' stroke-width='1'%3E%3Crect x='18' y='18' width='36' height='36'/%3E%3Crect x='18' y='18' width='36' height='36' transform='rotate(45 36 36)'/%3E%3C/g%3E%3C/svg%3E");
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 38%);
+            mask-image: linear-gradient(to bottom, #000 0%, transparent 38%);
+  }
+  .head { position: absolute; left: 0; right: 0; top: 92px; text-align: center; padding: 0 70px; }
+  .eyebrow {
+    font-size: 26px; font-weight: 600; letter-spacing: 7px; text-transform: uppercase; color: #8A682F;
+    display: inline-flex; align-items: center; gap: 18px;
+  }
+  .eyebrow::before, .eyebrow::after { content: ""; width: 54px; height: 2px; background: #B08D57; }
+  h1 { font-family: Playfair; font-weight: 400; font-size: 76px; line-height: 1.08; margin-top: 22px; letter-spacing: -0.5px; }
+  h1 em { font-style: italic; color: #175C45; }
+
+  .phone {
+    position: absolute; left: 50%; top: 440px; transform: translateX(-50%);
+    width: 772px; height: 1560px; border-radius: 74px; padding: 16px;
+    background: #17251F;
+    box-shadow: 0 50px 90px -30px rgba(16, 73, 54, 0.45), 0 0 0 2px #2B3A33 inset;
+  }
+  .screen {
+    width: 100%; height: 100%; border-radius: 60px; overflow: hidden; position: relative;
+    background-color: #F7F3EA; background-repeat: no-repeat; background-size: 740px auto;
+  }
+  .bar {
+    height: 64px; background: #F7F3EA; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 46px; font-size: 24px; font-weight: 600; color: #18211C;
+  }
+  .bar i { display: inline-block; width: 26px; height: 14px; border: 2px solid #18211C; border-radius: 4px; position: relative; }
+  .bar i::after { content: ""; position: absolute; inset: 2px 6px 2px 2px; background: #18211C; border-radius: 1px; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1 id="title"></h1>
+  </div>
+  <div class="phone"><div class="screen" id="screen"><div class="bar"><span>9:41</span><i></i></div></div></div>
+<script>
+  // crop: pixels of the 1080 x 2400 capture hidden at the top (status bar, empty sheet edge).
+  const shots = {
+    1: { img: 'discover_ayesha', crop: 110, eyebrow: 'Muslim Matrimony', title: 'Find your life partner<br><em>for nikah</em>' },
+    2: { img: 'private_fatima', crop: 110, eyebrow: 'Photo privacy', title: 'Your photos stay private<br><em>until you say yes</em>' },
+    3: { img: 'profile_top', crop: 110, eyebrow: 'Photo verification', title: 'Verified profiles,<br><em>honest insights</em>' },
+    4: { img: 'profile_details', crop: 250, eyebrow: 'Serious introductions', title: 'Know their deen,<br><em>family and goals</em>' },
+    5: { img: 'privacy', crop: 110, eyebrow: 'Wali mode', title: 'Family involved,<br><em>privacy protected</em>' },
+    6: { img: 'filters', crop: 185, eyebrow: 'Smart search', title: 'Search by sect, family<br><em>and trust checks</em>' },
+  };
+  const s = shots[location.hash.slice(1)] || shots[1];
+  document.getElementById('eyebrow').textContent = s.eyebrow;
+  document.getElementById('title').innerHTML = s.title;
+  const scale = 740 / 1080;
+  const screen = document.getElementById('screen');
+  screen.style.backgroundImage = `url('raw/${s.img}.png')`;
+  // The drawn status bar covers the top 64 px; the capture starts right below it.
+  screen.style.backgroundPosition = `0 ${64 - s.crop * scale}px`;
+  if (s.crop === 0) document.querySelector('.bar').style.display = 'none';
+</script>
+</body>
+</html>

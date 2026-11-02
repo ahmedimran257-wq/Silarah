@@ -7,6 +7,12 @@ back, rankings ("#1", "best") and repeated keyword lists.
 Feature graphic: `feature-graphic-1024x500.png`, rendered from
 `feature-graphic.html` by `render_feature_graphic.sh`.
 
+Phone screenshots: `screenshots/phone-1.png` to `phone-6.png` (1080 x 1920),
+framed from the captures in `screenshots/raw/` by `frame.html` and
+`render_screenshots.sh`. The members shown are illustrated demo profiles
+(`screenshots/demo-portrait.html`), seeded only while capturing and then
+deleted; never put a real member in store graphics.
+
 ## App name (max 30)
 
 Silarah: Muslim Matrimony

@@ -1,0 +1,84 @@
+<!doctype html>
+<!-- Illustrated, faceless demo-member portrait for store screenshots: portrait.html#w1 ... #m4, 900 x 1600. -->
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;width:900px;height:1600px;overflow:hidden}svg{display:block}</style>
+</head><body>
+<svg id="s" width="900" height="1600" viewBox="0 0 900 1600" xmlns="http://www.w3.org/2000/svg"></svg>
+<script>
+const people = {
+  // Women
+  w1: {g:'f', bg:['#F3E6DC','#E2C9B8'], arch:'#FBF3EC', skin:'#E9B98F', hijab:'#2F5D50', outfit:'#E8DCC8', accent:'#C9A66B', leaf:'#7E9C83'},
+  w2: {g:'f', bg:['#E6EEE8','#C6D8CC'], arch:'#F4F8F4', skin:'#D9A07A', hijab:'#EDE3D3', outfit:'#7C5A4A', accent:'#B08D57', leaf:'#5F8A6E'},
+  w3: {g:'f', bg:['#F1E4E6','#DDBFC4'], arch:'#FBF1F2', skin:'#C98B66', hijab:'#9C4A5E', outfit:'#F2E7DA', accent:'#D8B57A', leaf:'#A07C86'},
+  w4: {g:'f', bg:['#E5ECF2','#C3D2DE'], arch:'#F4F7FA', skin:'#F0C6A2', hijab:'#2E4A6B', outfit:'#D9C8AE', accent:'#C9A66B', leaf:'#7A93A8'},
+  w5: {g:'f', bg:['#F4EBDD','#E3CFAE'], arch:'#FCF7EE', skin:'#B87C58', hijab:'#C9A66B', outfit:'#3E5A4C', accent:'#F4E4BE', leaf:'#9A8456'},
+  w6: {g:'f', bg:['#ECE7F0','#D3C7DD'], arch:'#F7F4F9', skin:'#E3AE86', hijab:'#5B4A72', outfit:'#EFE6D8', accent:'#C9A66B', leaf:'#8E83A0'},
+  // Men
+  m1: {g:'m', bg:['#E6EEE8','#C6D8CC'], arch:'#F4F8F4', skin:'#D9A07A', hair:'#2A211C', outfit:'#F1EBDD', accent:'#B08D57', leaf:'#5F8A6E', kufi:false},
+  m2: {g:'m', bg:['#F3E6DC','#E2C9B8'], arch:'#FBF3EC', skin:'#C98B66', hair:'#1E1A17', outfit:'#2F5D50', accent:'#C9A66B', leaf:'#9A8456', kufi:true},
+  m3: {g:'m', bg:['#E5ECF2','#C3D2DE'], arch:'#F4F7FA', skin:'#E9B98F', hair:'#3A2C22', outfit:'#8A6E58', accent:'#E3CB98', leaf:'#7A93A8', kufi:false},
+  m4: {g:'m', bg:['#F4EBDD','#E3CFAE'], arch:'#FCF7EE', skin:'#B87C58', hair:'#191512', outfit:'#EFE6D8', accent:'#B08D57', leaf:'#9A8456', kufi:true},
+};
+const p = people[location.hash.slice(1)] || people.w1;
+const shade = (hex, f) => { // f<1 darker, f>1 lighter
+  const n = parseInt(hex.slice(1),16); let r=n>>16,g=(n>>8)&255,b=n&255;
+  const m = v => Math.max(0, Math.min(255, Math.round(f<1 ? v*f : v+(255-v)*(f-1))));
+  return '#'+[m(r),m(g),m(b)].map(v=>v.toString(16).padStart(2,'0')).join('');
+};
+const leaves = (x, y, rot, flip) => {
+  let s = `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${flip?-1:1} 1)" fill="${p.leaf}" opacity="0.55">`;
+  s += `<path d="M0 0 C 10 -120 30 -240 20 -360" fill="none" stroke="${p.leaf}" stroke-width="4"/>`;
+  for (let i=0;i<6;i++){ const yy=-50-i*52; const sx = 12+i*1.5;
+    s += `<ellipse cx="${sx+34}" cy="${yy}" rx="34" ry="13" transform="rotate(-30 ${sx+34} ${yy})"/>`;
+    s += `<ellipse cx="${sx-30}" cy="${yy-20}" rx="30" ry="12" transform="rotate(30 ${sx-30} ${yy-20})"/>`; }
+  return s + '</g>';
+};
+let svg = `
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="${p.bg[0]}"/><stop offset="1" stop-color="${p.bg[1]}"/></linearGradient>
+  <radialGradient id="face" cx="0.45" cy="0.4" r="0.7"><stop offset="0" stop-color="${shade(p.skin,1.08)}"/><stop offset="1" stop-color="${shade(p.skin,0.9)}"/></radialGradient>
+  <linearGradient id="cloth" x1="0" y1="0" x2="1" y2="0.6"><stop offset="0" stop-color="${shade(p.g==='f'?p.hijab:p.outfit,1.06)}"/><stop offset="1" stop-color="${shade(p.g==='f'?p.hijab:p.outfit,0.86)}"/></linearGradient>
+</defs>
+<rect width="900" height="1600" fill="url(#bg)"/>
+<path d="M150 1600 V520 C150 330 300 230 410 175 C430 165 444 150 450 132 C456 150 470 165 490 175 C600 230 750 330 750 520 V1600 Z" fill="${p.arch}" opacity="0.75"/>
+${leaves(110, 1560, -8, false)}${leaves(790, 1580, 10, true)}
+<circle cx="740" cy="250" r="5" fill="${p.accent}"/><circle cx="170" cy="330" r="4" fill="${p.accent}" opacity="0.8"/>
+`;
+if (p.g === 'f') {
+  svg += `
+  <path d="M100 1600 L110 1200 C125 1010 255 935 450 925 C645 935 775 1010 790 1200 L800 1600 Z" fill="${p.outfit}"/>
+  <path d="M450 318 C292 318 232 448 238 600 C243 730 282 810 250 905 C335 985 565 985 650 905 C618 810 657 730 662 600 C668 448 608 318 450 318 Z" fill="url(#cloth)"/>
+  <ellipse cx="450" cy="612" rx="106" ry="136" fill="url(#face)"/>
+  <ellipse cx="450" cy="612" rx="113" ry="143" fill="none" stroke="${shade(p.hijab,0.78)}" stroke-width="12" opacity="0.55"/>
+  <ellipse cx="398" cy="665" rx="22" ry="13" fill="#E07A6B" opacity="0.18"/>
+  <ellipse cx="502" cy="665" rx="22" ry="13" fill="#E07A6B" opacity="0.18"/>
+  <path d="M318 735 C370 830 530 830 590 728" fill="none" stroke="${shade(p.hijab,0.74)}" stroke-width="7" opacity="0.6" stroke-linecap="round"/>
+  <path d="M592 720 C600 800 572 860 480 900" fill="none" stroke="${shade(p.hijab,0.74)}" stroke-width="6" opacity="0.5" stroke-linecap="round"/>
+  <path d="M300 820 C330 870 360 900 400 925" fill="none" stroke="${shade(p.hijab,1.15)}" stroke-width="5" opacity="0.5" stroke-linecap="round"/>
+  <circle cx="588" cy="716" r="9" fill="${p.accent}" stroke="${shade(p.accent,0.75)}" stroke-width="2"/>
+  `;
+} else {
+  svg += `
+  <path d="M85 1600 L95 1200 C110 955 250 885 450 875 C650 885 790 955 805 1200 L815 1600 Z" fill="url(#cloth)"/>
+  <path d="M450 905 V1600" stroke="${shade(p.outfit,0.75)}" stroke-width="5"/>
+  <circle cx="450" cy="950" r="7" fill="${p.accent}"/><circle cx="450" cy="1005" r="7" fill="${p.accent}"/><circle cx="450" cy="1060" r="7" fill="${p.accent}"/>
+  <rect x="392" y="740" width="116" height="150" rx="46" fill="${shade(p.skin,0.85)}"/>
+  <path d="M372 852 C398 902 502 902 528 852 L538 890 C508 935 392 935 362 890 Z" fill="${shade(p.outfit,0.82)}"/>
+  <ellipse cx="333" cy="618" rx="20" ry="32" fill="${shade(p.skin,0.92)}"/>
+  <ellipse cx="567" cy="618" rx="20" ry="32" fill="${shade(p.skin,0.92)}"/>
+  <ellipse cx="450" cy="600" rx="120" ry="150" fill="url(#face)"/>
+  <path d="M332 610 C330 718 382 790 450 795 C518 790 570 718 568 610 C558 670 535 708 505 718 C488 700 412 700 395 718 C365 708 342 670 332 610 Z" fill="${p.hair}"/>
+  <path d="M402 705 C425 688 475 688 498 705 C472 699 428 699 402 705 Z" fill="${p.hair}"/>
+  `;
+  if (p.kufi) {
+    svg += `<path d="M328 555 C326 452 388 418 450 418 C512 418 574 452 572 555 C540 538 500 532 450 532 C400 532 360 538 328 555 Z" fill="#F7F1E4"/>
+    <path d="M332 540 C370 522 530 522 568 540" fill="none" stroke="${p.accent}" stroke-width="5"/>
+    <path d="M360 500 C400 488 500 488 540 500 M385 462 C420 452 480 452 515 462" fill="none" stroke="${p.accent}" stroke-width="3" opacity="0.7"/>
+    <path d="M330 560 C330 540 336 528 344 522 L344 600 C336 590 330 575 330 560 Z M570 560 C570 540 564 528 556 522 L556 600 C564 590 570 575 570 560 Z" fill="${p.hair}"/>`;
+  } else {
+    svg += `<path d="M330 600 C312 470 372 420 450 418 C534 416 596 470 570 600 C565 540 545 505 505 492 C470 500 410 498 380 486 C350 505 336 540 330 600 Z" fill="${p.hair}"/>`;
+  }
+}
+document.getElementById('s').innerHTML = svg;
+</script>
+</body></html>
