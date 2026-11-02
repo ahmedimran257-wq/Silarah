@@ -49,6 +49,21 @@
     padding: 0 46px; font-size: 24px; font-weight: 600; color: #18211C;
   }
   .bar i { display: inline-block; width: 26px; height: 14px; border: 2px solid #18211C; border-radius: 4px; position: relative; }
+  .chips { position: absolute; top: 1700px; left: 0; right: 0; display: flex; justify-content: center; gap: 14px; }
+  .chips span {
+    display: inline-flex; align-items: center; gap: 10px; padding: 12px 22px; border-radius: 999px;
+    font-size: 24px; font-weight: 600; color: #104936;
+    background: rgba(23, 92, 69, 0.06); border: 1.5px solid rgba(23, 92, 69, 0.22);
+  }
+  .chips b { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
+  .mini {
+    position: absolute; border-radius: 56px; padding: 12px;
+    background: #17251F; box-shadow: 0 40px 80px -30px rgba(16, 73, 54, 0.5), 0 0 0 2px #2B3A33 inset;
+  }
+  .mini-screen {
+    width: 100%; height: 100%; border-radius: 46px; background-repeat: no-repeat;
+    background-size: 100% auto; background-position: 0 0;
+  }
   .bar i::after { content: ""; position: absolute; inset: 2px 6px 2px 2px; background: #18211C; border-radius: 1px; }
 </style>
 </head>
@@ -77,6 +92,28 @@
   // The drawn status bar covers the top 64 px; the capture starts right below it.
   screen.style.backgroundPosition = `0 ${64 - s.crop * scale}px`;
   if (s.crop === 0) document.querySelector('.bar').style.display = 'none';
+
+  // Shot 7: the same Settings screen in three themes, fanned out.
+  if (location.hash === '#7') {
+    document.getElementById('eyebrow').textContent = 'Three themes';
+    document.getElementById('title').innerHTML = 'Make Silarah<br><em>feel like yours</em>';
+    document.querySelector('.phone').remove();
+    const themes = [
+      { img: 'theme_rose', name: 'Rose & Marigold', dot: '#AD2450', css: 'left:4px;top:650px;width:520px;height:855px;transform:rotate(-6deg);z-index:1' },
+      { img: 'theme_oled', name: 'OLED Night', dot: '#E7A3BC', css: 'left:556px;top:650px;width:520px;height:855px;transform:rotate(6deg);z-index:1' },
+      { img: 'theme_ivory', name: 'Ivory & Emerald', dot: '#175C45', css: 'left:220px;top:520px;width:640px;height:1059px;z-index:2' },
+    ];
+    const chips = document.createElement('div');
+    chips.className = 'chips';
+    for (const t of [themes[0], themes[2], themes[1]]) {
+      chips.insertAdjacentHTML('beforeend', `<span><b style="background:${t.dot}"></b>${t.name}</span>`);
+    }
+    document.body.appendChild(chips);
+    for (const t of themes) {
+      document.body.insertAdjacentHTML('beforeend',
+        `<div class="mini" style="${t.css}"><div class="mini-screen" style="background-image:url('raw/${t.img}.png')"></div></div>`);
+    }
+  }
 </script>
 </body>
 </html>
