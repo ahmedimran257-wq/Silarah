@@ -40,19 +40,22 @@ Future<void> showDiscoveryFilterSheet(
   DiscoveryFilter? initial,
   String? scrollToSection,
 }) async {
-  await Navigator.of(context).push(
-    SilarahBottomSheetRoute<void>(
-      builder: (sheetCtx) => BlocProvider.value(
-        value: context.read<DiscoveryFeedCubit>(),
-        child: DiscoveryFilterSheet(
-          initial:
-              initial ?? context.read<DiscoveryFeedCubit>().state.activeFilter,
-          scrollToSection: scrollToSection,
-        ),
+  // The sheet paints its own rounded surface inside a DraggableScrollableSheet,
+  // which fills the route. A transparent route keeps the theme's sheet surface
+  // from showing as an empty band above it.
+  await showSilarahBottomSheet<void>(
+    context: context,
+    builder: (sheetCtx) => BlocProvider.value(
+      value: context.read<DiscoveryFeedCubit>(),
+      child: DiscoveryFilterSheet(
+        initial:
+            initial ?? context.read<DiscoveryFeedCubit>().state.activeFilter,
+        scrollToSection: scrollToSection,
       ),
-      isScrollControlled: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
     ),
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    useSafeArea: true,
   );
 }
 

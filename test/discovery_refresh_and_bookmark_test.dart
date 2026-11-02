@@ -237,4 +237,47 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  for (final mode in [
+    SilarahThemeMode.ivoryEmerald,
+    SilarahThemeMode.roseMarigold,
+    SilarahThemeMode.oled,
+  ]) {
+    testWidgets('private photo caption appears once in ${mode.name}',
+        (tester) async {
+      AppColors.activate(mode);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 360,
+                height: 640,
+                child: SilarahProfileCard(
+                  displayName: 'Member',
+                  age: 28,
+                  cityName: 'Kurnool',
+                  photoCount: 1,
+                  isPhotoPrivate: true,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // One centred caption under the placeholder icon, not a second pill.
+      expect(
+        find.textContaining('visible after acceptance'),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.person_outline_rounded), findsOneWidget);
+      // The lock + count chip in the corner stays.
+      expect(find.byIcon(Icons.lock_outline_rounded), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
 }

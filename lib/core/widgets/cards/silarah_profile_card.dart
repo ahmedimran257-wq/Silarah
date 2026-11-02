@@ -318,16 +318,6 @@ class SilarahProfileCard extends StatelessWidget {
                     ),
                   ),
                 ),
-
-                if (isPhotoPrivate && photoCount > 0)
-                  Positioned(
-                    top: 72,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: _FrostedPhotoPill(photoCount: photoCount),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -593,40 +583,6 @@ class _PreviousMatchPill extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FrostedPhotoPill extends StatelessWidget {
-  const _FrostedPhotoPill({required this.photoCount});
-  final int photoCount;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppDimensions.space12,
-        vertical: AppDimensions.space6,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.overlayBlack55,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusChip),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.lock_outline_rounded,
-              color: AppColors.onMedia, size: 14),
-          const SizedBox(width: AppDimensions.space6),
-          UiText(
-            '$photoCount photo${photoCount > 1 ? 's' : ''} · visible after acceptance',
-            style: AppTypography.caption.copyWith(
-              color: AppColors.onMedia,
-              fontSize: 11,
             ),
           ),
         ],

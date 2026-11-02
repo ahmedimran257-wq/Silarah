@@ -51,6 +51,20 @@ void main() {
     expect(nav, isNot(contains('AnimatedScale')));
   });
 
+  test('filter sheet draws one surface, not a route surface behind it', () {
+    // The sheet's DraggableScrollableSheet fills the route and paints its own
+    // rounded surface, so the route itself must stay transparent.
+    final entry = filters.substring(
+      filters.indexOf('Future<void> showDiscoveryFilterSheet('),
+      filters.indexOf('class DiscoveryFilterSheet extends'),
+    );
+    expect(entry, contains('showSilarahBottomSheet<void>('));
+    expect(entry, contains('backgroundColor: Colors.transparent'));
+    expect(entry, isNot(contains('SilarahBottomSheetRoute')));
+    expect(filters, contains('DraggableScrollableSheet('));
+    expect(filters, contains('const Center(child: SilarahSheetHandle())'));
+  });
+
   test('filter selection keeps chip geometry stable and builds lazily', () {
     expect(filters, contains('ListView.builder('));
     expect(
