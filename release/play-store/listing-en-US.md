@@ -7,11 +7,15 @@ back, rankings ("#1", "best") and repeated keyword lists.
 Feature graphic: `feature-graphic-1024x500.png`, rendered from
 `feature-graphic.html` by `render_feature_graphic.sh`.
 
-Phone screenshots: `screenshots/phone-1.png` to `phone-7.png` (1080 x 1920),
+Phone screenshots: `screenshots/phone-1.png` to `phone-8.png` (1080 x 1920),
 framed from the captures in `screenshots/raw/` by `frame.html` and
 `render_screenshots.sh`. The members shown are illustrated demo profiles
 (`screenshots/demo-portrait.html`), seeded only while capturing and then
 deleted; never put a real member in store graphics.
+
+Play order: 1, 2, 3, 4, 8 (chat), 5, 6, 7 (themes). The feature graphic and
+all eight screenshots are declared as AI-assisted in Play Console's AI asset
+declaration; the app icon is not.
 
 ## App name (max 30)
 
