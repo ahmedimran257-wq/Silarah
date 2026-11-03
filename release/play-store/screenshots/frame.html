@@ -76,11 +76,11 @@
 <script>
   // crop: pixels of the 1080 x 2400 capture hidden at the top (status bar, empty sheet edge).
   const shots = {
-    1: { img: 'discover_ayesha', crop: 110, eyebrow: 'Muslim Matrimony', title: 'Find your life partner<br><em>for nikah</em>' },
-    2: { img: 'private_fatima', crop: 110, eyebrow: 'Photo privacy', title: 'Your photos stay private<br><em>until you say yes</em>' },
-    3: { img: 'profile_top', crop: 110, eyebrow: 'Photo verification', title: 'Verified profiles,<br><em>honest insights</em>' },
-    4: { img: 'profile_details', crop: 250, eyebrow: 'Serious introductions', title: 'Know their deen,<br><em>family and goals</em>' },
-    5: { img: 'privacy', crop: 110, eyebrow: 'Wali mode', title: 'Family involved,<br><em>privacy protected</em>' },
+    1: { img: 'discover_ayesha', crop: 110, fade: 110, eyebrow: 'Muslim Matrimony', title: 'Find your life partner<br><em>for nikah</em>' },
+    2: { img: 'private_bilal', crop: 110, fade: 110, eyebrow: 'Photo privacy', title: 'Your photos stay private<br><em>until you say yes</em>' },
+    3: { img: 'profile_ahmed', crop: 110, fade: 200, eyebrow: 'Photo verification', title: 'Verified profiles,<br><em>honest insights</em>' },
+    4: { img: 'details_ahmed', crop: 240, fade: 330, eyebrow: 'Serious introductions', title: 'Know their deen,<br><em>family and goals</em>' },
+    5: { img: 'wali_on', crop: 110, fade: 160, eyebrow: 'Wali mode', title: 'Family involved,<br><em>privacy protected</em>' },
     6: { img: 'filters', crop: 185, eyebrow: 'Smart search', title: 'Search by sect, family<br><em>and trust checks</em>' },
     8: { img: 'chat', crop: 110, eyebrow: 'Interest first, then chat', title: 'Talk with respect,<br><em>families included</em>' },
   };
@@ -93,6 +93,9 @@
   // The drawn status bar covers the top 64 px; the capture starts right below it.
   screen.style.backgroundPosition = `0 ${64 - s.crop * scale}px`;
   if (s.crop === 0) document.querySelector('.bar').style.display = 'none';
+  // Fade the bottom edge so a half-cut bottom bar never shows.
+  if (s.fade) screen.insertAdjacentHTML('beforeend',
+    `<div style="position:absolute;left:0;right:0;bottom:0;height:${s.fade}px;background:linear-gradient(to bottom,rgba(247,243,234,0),#F7F3EA 85%)"></div>`);
 
   // Shot 7: the same Settings screen in three themes, fanned out.
   if (location.hash === '#7') {
