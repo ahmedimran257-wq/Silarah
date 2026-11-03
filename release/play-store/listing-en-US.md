@@ -7,7 +7,7 @@ back, rankings ("#1", "best") and repeated keyword lists.
 Feature graphic: `feature-graphic-1024x500.png`, rendered from
 `feature-graphic.html` by `render_feature_graphic.sh`.
 
-Phone screenshots: `screenshots/phone-1.png` to `phone-6.png` (1080 x 1920),
+Phone screenshots: `screenshots/phone-1.png` to `phone-7.png` (1080 x 1920),
 framed from the captures in `screenshots/raw/` by `frame.html` and
 `render_screenshots.sh`. The members shown are illustrated demo profiles
 (`screenshots/demo-portrait.html`), seeded only while capturing and then
@@ -19,11 +19,13 @@ Silarah: Muslim Matrimony
 
 ## Short description (max 80)
 
-Muslim matrimony for nikah: private photos, photo verification and wali mode
+Muslim matrimony for nikah: find your rishta with private photos & wali mode
 
 ## Full description (max 4000)
 
 Silarah is a Muslim matrimony and marriage app for single Muslims and their families in India who are looking for a life partner for nikah. Profiles are built around faith, family and marriage intentions, so every introduction starts serious and stays respectful.
+
+From Hyderabad and Lucknow to Mumbai, Delhi, Bengaluru and Kolkata, meet Muslim brides and grooms from every sect, community and mother tongue, Sunni or Shia, Urdu, Hindi, Telugu or Bengali speaking.
 
 Search for yourself, or create a matrimony profile for your son, daughter, brother or sister. Either way, you decide who sees your photos and who can talk to you.
 
