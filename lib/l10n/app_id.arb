@@ -1336,7 +1336,7 @@
   "settings_label_verifyProfile": "Verifikasi Profil",
   "settings_label_version": "Versi",
   "settings_notify_activityNudges": "Dorongan Aktivitas",
-  "settings_notify_activityNudgesSub": "Ingatkan ketika tidak aktif selama 7+ hari",
+  "settings_notify_activityNudgesSub": "Tips profil dan pengingat setelah 7 hari tidak aktif",
   "settings_notify_boostReminders": "Tingkatkan Pengingat",
   "settings_notify_boostRemindersSub": "Ingatkan kapan peningkatan mingguan Anda siap",
   "settings_notify_interestAccepted": "Bunga Diterima",

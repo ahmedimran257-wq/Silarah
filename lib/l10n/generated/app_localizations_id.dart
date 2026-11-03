@@ -1994,7 +1994,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get settings_notify_activityNudgesSub =>
-      'Ingatkan ketika tidak aktif selama 7+ hari';
+      'Tips profil dan pengingat setelah 7 hari tidak aktif';
 
   @override
   String get settings_notify_boostReminders => 'Tingkatkan Pengingat';

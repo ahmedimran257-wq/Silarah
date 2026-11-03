@@ -401,6 +401,8 @@ class _NotificationTile extends StatelessWidget {
         return Icons.visibility_rounded;
       case 'festival_greeting':
         return Icons.nightlight_round;
+      case 'profile_nudge':
+        return Icons.person_add_alt_1_rounded;
       default:
         return Icons.notifications_none_rounded;
     }
@@ -440,6 +442,8 @@ class _NotificationTile extends StatelessWidget {
       case 'account_banned':
         return AppColors.errorRed;
       case 'festival_greeting':
+        return AppColors.champagneGold;
+      case 'profile_nudge':
         return AppColors.champagneGold;
       default:
         return AppColors.slateMist;

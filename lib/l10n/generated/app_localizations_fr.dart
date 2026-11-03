@@ -1993,7 +1993,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_notify_activityNudgesSub =>
-      'Rappeler en cas d\'inactivité pendant plus de 7 jours';
+      'Conseils pour votre profil et rappel après 7 jours d\'absence';
 
   @override
   String get settings_notify_boostReminders => 'Rappels de boost';

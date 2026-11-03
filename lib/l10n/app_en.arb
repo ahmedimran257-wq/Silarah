@@ -1343,7 +1343,7 @@
   "settings_label_verifyProfile": "Verify Profile",
   "settings_label_version": "Version",
   "settings_notify_activityNudges": "Activity nudges",
-  "settings_notify_activityNudgesSub": "Remind when inactive for 7+ days",
+  "settings_notify_activityNudgesSub": "Profile tips, and a reminder after 7 days away",
   "settings_notify_boostReminders": "Boost reminders",
   "settings_notify_boostRemindersSub": "Remind when your weekly boost is ready",
   "settings_notify_interestAccepted": "Interest accepted",

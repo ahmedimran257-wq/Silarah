@@ -1979,7 +1979,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get settings_notify_activityNudgesSub =>
-      '7+ دنوں تک غیر فعال ہونے پر یاد دلائیں۔';
+      'پروفائل مکمل کرنے کی تجاویز اور 7 دن غیر فعال رہنے پر یاد دہانی';
 
   @override
   String get settings_notify_boostReminders => 'یاد دہانیوں کو فروغ دیں۔';

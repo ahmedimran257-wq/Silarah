@@ -1336,7 +1336,7 @@
   "settings_label_verifyProfile": "Profili Doğrula",
   "settings_label_version": "Sürüm",
   "settings_notify_activityNudges": "Etkinlik Dürtülemeleri",
-  "settings_notify_activityNudgesSub": "7+ gün boyunca işlem yapılmadığında hatırlat",
+  "settings_notify_activityNudgesSub": "Profil ipuçları ve 7 gün uzak kaldığında hatırlatma",
   "settings_notify_boostReminders": "Hatırlatıcıları Artırın",
   "settings_notify_boostRemindersSub": "Haftalık takviyeniz hazır olduğunda hatırlatın",
   "settings_notify_interestAccepted": "İlgi Kabul Edildi",

@@ -1976,7 +1976,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get settings_notify_activityNudgesSub =>
-      '7+ gün boyunca işlem yapılmadığında hatırlat';
+      'Profil ipuçları ve 7 gün uzak kaldığında hatırlatma';
 
   @override
   String get settings_notify_boostReminders => 'Hatırlatıcıları Artırın';

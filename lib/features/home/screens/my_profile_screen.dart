@@ -609,6 +609,8 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                     hasVerificationBadge: _hasVerificationBadge,
                     verificationLoading: _verificationLoading,
                     onVerify: _openVerification,
+                    approvedPhotoCount: _approvedPhotoCount,
+                    guardianLinked: _guardianEnabled,
                     primaryPhotoUrl: _primaryPhotoUrl,
                     onPhotoLoadFailed: _recoverPrimaryPhoto,
                   );
@@ -1566,20 +1568,20 @@ class _BoostSectionState extends State<_BoostSection> {
 
   @override
   Widget build(BuildContext context) {
-    // Women can use profile boosts without a paid entitlement.
+    // Boost is Premium-only for everyone (paid, referral or test Premium).
+    // Women's free messaging is a separate rule and does not apply here.
     final authState = context.watch<AuthCubit>().state;
     final gender =
         authState is AuthAuthenticated ? (authState.gender ?? 'male') : 'male';
-    final isFemale = gender == 'female';
 
     return BlocBuilder<SubscriptionCubit, SubscriptionState>(
       builder: (context, subState) {
         final isActive = _boostedAt != null;
         final isCoolingDown = _isCoolingDown && !isActive;
 
-        // Women: always show boost as available (free, no paywall).
-        // Men with no subscription: show locked state.
-        final showAsSubscribed = isFemale || subState.isSubscribed;
+        // Without Premium: locked card that opens the plans. A boost that is
+        // already running keeps showing its countdown until it ends.
+        final showAsSubscribed = subState.canBoostProfile(gender) || isActive;
 
         return AnimatedContainer(
           duration: AppDimensions.durationTransition,
@@ -2094,6 +2096,8 @@ class _ProfilePreviewCard extends StatelessWidget {
     required this.hasVerificationBadge,
     required this.verificationLoading,
     required this.onVerify,
+    required this.approvedPhotoCount,
+    required this.guardianLinked,
     required this.primaryPhotoUrl,
     required this.onPhotoLoadFailed,
   });
@@ -2104,6 +2108,8 @@ class _ProfilePreviewCard extends StatelessWidget {
   final bool hasVerificationBadge;
   final bool verificationLoading;
   final VoidCallback onVerify;
+  final int approvedPhotoCount;
+  final bool guardianLinked;
   final String? primaryPhotoUrl;
   final ValueChanged<String> onPhotoLoadFailed;
 
@@ -2240,6 +2246,15 @@ class _ProfilePreviewCard extends StatelessWidget {
               ],
             );
           }),
+          if (!verificationLoading) ...[
+            const SizedBox(height: AppDimensions.space16),
+            _DiscoverRankTips(
+              photoVerified: hasVerificationBadge,
+              approvedPhotoCount: approvedPhotoCount,
+              bioLength: data.bio?.trim().length ?? 0,
+              guardianLinked: guardianLinked,
+            ),
+          ],
         ],
       ),
     );
@@ -2250,6 +2265,106 @@ class _ProfilePreviewCard extends StatelessWidget {
     if (age != null) parts.add(context.uiAgeYears(age));
     if (data.cityName?.isNotEmpty == true) parts.add(data.cityName!);
     return parts.isEmpty ? 'Complete your profile below' : parts.join(' · ');
+  }
+}
+
+/// What raises a profile's Discover quality score (migration 289). Matching
+/// preferences still count most; these help among good matches.
+class _DiscoverRankTips extends StatelessWidget {
+  const _DiscoverRankTips({
+    required this.photoVerified,
+    required this.approvedPhotoCount,
+    required this.bioLength,
+    required this.guardianLinked,
+  });
+
+  static const maxRankedPhotos = 4;
+  static const meaningfulBioLength = 150;
+
+  final bool photoVerified;
+  final int approvedPhotoCount;
+  final int bioLength;
+  final bool guardianLinked;
+
+  @override
+  Widget build(BuildContext context) {
+    final photos = approvedPhotoCount.clamp(0, maxRankedPhotos);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        UiText(
+          'What helps you appear higher in Discover',
+          style:
+              AppTypography.captionMedium.copyWith(color: AppColors.pearlWhite),
+        ),
+        const SizedBox(height: AppDimensions.space8),
+        _DiscoverRankTip(
+          label: 'Verified profile photo',
+          done: photoVerified,
+        ),
+        _DiscoverRankTip(
+          label: 'Up to 4 approved photos',
+          done: photos >= maxRankedPhotos,
+          progress: '$photos/$maxRankedPhotos',
+        ),
+        _DiscoverRankTip(
+          label: 'A bio of a few lines',
+          done: bioLength >= meaningfulBioLength,
+        ),
+        _DiscoverRankTip(
+          label: 'Guardian linked',
+          done: guardianLinked,
+        ),
+        const SizedBox(height: AppDimensions.space4),
+        UiText(
+          'Matching preferences always count most. Staying active also helps.',
+          style: AppTypography.caption.copyWith(fontSize: 11),
+        ),
+      ],
+    );
+  }
+}
+
+class _DiscoverRankTip extends StatelessWidget {
+  const _DiscoverRankTip({
+    required this.label,
+    required this.done,
+    this.progress,
+  });
+
+  final String label;
+  final bool done;
+  final String? progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = done ? AppColors.verifiedTeal : AppColors.slateMist;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppDimensions.space4),
+      child: Row(
+        children: [
+          Icon(
+            done
+                ? Icons.check_circle_rounded
+                : Icons.radio_button_unchecked_rounded,
+            color: color,
+            size: 14,
+          ),
+          const SizedBox(width: AppDimensions.space8),
+          Expanded(
+            child: UiText(
+              label,
+              style: AppTypography.caption.copyWith(fontSize: 12),
+            ),
+          ),
+          if (progress != null)
+            UiText.verbatim(
+              progress!,
+              style: AppTypography.caption.copyWith(color: color, fontSize: 12),
+            ),
+        ],
+      ),
+    );
   }
 }
 

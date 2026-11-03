@@ -1336,7 +1336,7 @@
   "settings_label_verifyProfile": "प्रोफ़ाइल सत्यापित करें",
   "settings_label_version": "संस्करण",
   "settings_notify_activityNudges": "गतिविधि संकेत",
-  "settings_notify_activityNudgesSub": "7+ दिनों तक निष्क्रिय रहने पर याद दिलाएँ",
+  "settings_notify_activityNudgesSub": "प्रोफ़ाइल पूरी करने के सुझाव और 7 दिन निष्क्रिय रहने पर याद दिलाना",
   "settings_notify_boostReminders": "अनुस्मारक बूस्ट करें",
   "settings_notify_boostRemindersSub": "याद दिलाएं कि आपका साप्ताहिक बूस्ट कब तैयार हो जाएगा",
   "settings_notify_interestAccepted": "रुचि स्वीकार की गई",

@@ -3,6 +3,7 @@ import 'package:silarah/l10n/privacy_requests_ui_copy.dart';
 import 'package:silarah/l10n/generated/app_localizations.dart';
 import 'package:silarah/l10n/generated/app_localizations_en.dart';
 import 'package:silarah/l10n/billing_legal_ui_copy.dart';
+import 'package:silarah/l10n/discover_rank_ui_copy.dart';
 import 'package:silarah/l10n/legal_access_ui_copy.dart';
 import 'package:silarah/l10n/photo_guide_ui_copy.dart';
 import 'package:silarah/l10n/photo_moderation_ui_copy.dart';
@@ -39,6 +40,7 @@ class UiCopy {
         pricingUiCopy[languageCode]?[source] ??
         productGuideUiCopy[languageCode]?[source] ??
         trustUiCopy[languageCode]?[source] ??
+        discoverRankUiCopy[languageCode]?[source] ??
         emailDeliveryUiCopy[languageCode]?[source] ??
         emailGuardianUiCopy[languageCode]?[source] ??
         guardianUiCopy[languageCode]?[source] ??
@@ -60,6 +62,7 @@ class UiCopy {
       pricingUiCopy[languageCode]?.containsKey(source) == true ||
       productGuideUiCopy[languageCode]?.containsKey(source) == true ||
       trustUiCopy[languageCode]?.containsKey(source) == true ||
+      discoverRankUiCopy[languageCode]?.containsKey(source) == true ||
       emailDeliveryUiCopy[languageCode]?.containsKey(source) == true ||
       emailGuardianUiCopy[languageCode]?.containsKey(source) == true ||
       guardianUiCopy[languageCode]?.containsKey(source) == true ||

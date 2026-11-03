@@ -1956,7 +1956,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_notify_activityNudgesSub =>
-      'تذكير عندما يكون غير نشط لمدة 7+ أيام';
+      'نصائح لإكمال الملف وتذكير بعد غياب 7 أيام';
 
   @override
   String get settings_notify_boostReminders => 'تعزيز التذكيرات';

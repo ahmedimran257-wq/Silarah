@@ -1992,7 +1992,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_notify_activityNudgesSub =>
-      'Erinnerung bei Inaktivität für mehr als 7 Tage';
+      'Profiltipps und eine Erinnerung nach 7 Tagen Abwesenheit';
 
   @override
   String get settings_notify_boostReminders => 'Boost-Erinnerungen';

@@ -20,8 +20,9 @@ void main() {
     expect(migration, contains("'live_boost_feed_anchor_not_found'"));
   });
 
-  test('boost entitlement matches messaging: paid, referral or test Premium',
-      () {
+  // History only: 275 exempted women. Migration 289 makes boost Premium-only
+  // for everyone; see test/profile_reminders_rank_and_boost_test.dart.
+  test('275 boost entitlement matched messaging (superseded by 289)', () {
     expect(
         migration,
         contains(

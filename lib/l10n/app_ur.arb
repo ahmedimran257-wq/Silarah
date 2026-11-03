@@ -1336,7 +1336,7 @@
   "settings_label_verifyProfile": "پروفائل کی تصدیق کریں۔",
   "settings_label_version": "ورژن",
   "settings_notify_activityNudges": "سرگرمی کی طرف اشارہ کرتا ہے۔",
-  "settings_notify_activityNudgesSub": "7+ دنوں تک غیر فعال ہونے پر یاد دلائیں۔",
+  "settings_notify_activityNudgesSub": "پروفائل مکمل کرنے کی تجاویز اور 7 دن غیر فعال رہنے پر یاد دہانی",
   "settings_notify_boostReminders": "یاد دہانیوں کو فروغ دیں۔",
   "settings_notify_boostRemindersSub": "یاد دلائیں جب آپ کا ہفتہ وار فروغ تیار ہو۔",
   "settings_notify_interestAccepted": "دلچسپی قبول کر لی گئی",

@@ -1336,7 +1336,7 @@
   "settings_label_verifyProfile": "প্রোফাইল যাচাই করুন",
   "settings_label_version": "সংস্করণ",
   "settings_notify_activityNudges": "কার্যকলাপ নাজ",
-  "settings_notify_activityNudgesSub": "7+ দিন নিষ্ক্রিয় থাকলে মনে করিয়ে দিন",
+  "settings_notify_activityNudgesSub": "প্রোফাইল সম্পূর্ণ করার টিপস এবং ৭ দিন নিষ্ক্রিয় থাকলে মনে করানো",
   "settings_notify_boostReminders": "বুস্ট রিমাইন্ডার",
   "settings_notify_boostRemindersSub": "আপনার সাপ্তাহিক বুস্ট প্রস্তুত হলে মনে করিয়ে দিন",
   "settings_notify_interestAccepted": "আগ্রহ গৃহীত",

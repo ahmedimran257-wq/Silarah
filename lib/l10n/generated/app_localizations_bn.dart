@@ -1978,7 +1978,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get settings_notify_activityNudgesSub =>
-      '7+ দিন নিষ্ক্রিয় থাকলে মনে করিয়ে দিন';
+      'প্রোফাইল সম্পূর্ণ করার টিপস এবং ৭ দিন নিষ্ক্রিয় থাকলে মনে করানো';
 
   @override
   String get settings_notify_boostReminders => 'বুস্ট রিমাইন্ডার';

@@ -3729,7 +3729,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_notify_activityNudgesSub.
   ///
   /// In en, this message translates to:
-  /// **'Remind when inactive for 7+ days'**
+  /// **'Profile tips, and a reminder after 7 days away'**
   String get settings_notify_activityNudgesSub;
 
   /// No description provided for @settings_notify_boostReminders.

@@ -1336,7 +1336,7 @@
   "settings_label_verifyProfile": "التحقق من الملف الشخصي",
   "settings_label_version": "إصدار",
   "settings_notify_activityNudges": "تنبيهات النشاط",
-  "settings_notify_activityNudgesSub": "تذكير عندما يكون غير نشط لمدة 7+ أيام",
+  "settings_notify_activityNudgesSub": "نصائح لإكمال الملف وتذكير بعد غياب 7 أيام",
   "settings_notify_boostReminders": "تعزيز التذكيرات",
   "settings_notify_boostRemindersSub": "ذكّر عندما يكون التعزيز الأسبوعي الخاص بك جاهزًا",
   "settings_notify_interestAccepted": "تم قبول الاهتمام",

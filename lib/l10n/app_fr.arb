@@ -1336,7 +1336,7 @@
   "settings_label_verifyProfile": "Vérifier le profil",
   "settings_label_version": "Version",
   "settings_notify_activityNudges": "Coups de pouce pour l'activité",
-  "settings_notify_activityNudgesSub": "Rappeler en cas d'inactivité pendant plus de 7 jours",
+  "settings_notify_activityNudgesSub": "Conseils pour votre profil et rappel après 7 jours d'absence",
   "settings_notify_boostReminders": "Rappels de boost",
   "settings_notify_boostRemindersSub": "Rappelez-vous quand votre boost hebdomadaire est prêt",
   "settings_notify_interestAccepted": "Intérêt accepté",

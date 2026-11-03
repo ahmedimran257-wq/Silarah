@@ -1984,7 +1984,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get settings_notify_activityNudgesSub =>
-      '7+ दिनों तक निष्क्रिय रहने पर याद दिलाएँ';
+      'प्रोफ़ाइल पूरी करने के सुझाव और 7 दिन निष्क्रिय रहने पर याद दिलाना';
 
   @override
   String get settings_notify_boostReminders => 'अनुस्मारक बूस्ट करें';
