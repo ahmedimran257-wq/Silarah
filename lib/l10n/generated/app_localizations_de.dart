@@ -2813,4 +2813,92 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_notify_festivalGreetingsSub =>
       'Grüße zu Ramadan und Eid, etwa fünfmal im Jahr';
+
+  @override
+  String get profile_quality_tier_complete => 'Vollständig';
+
+  @override
+  String get profile_quality_tier_strong => 'Fast geschafft';
+
+  @override
+  String get profile_quality_tier_good => 'Guter Fortschritt';
+
+  @override
+  String get profile_quality_tier_start => 'Am Anfang';
+
+  @override
+  String profile_quality_ring_semantics(int percent) {
+    return 'Profil zu $percent % vollständig';
+  }
+
+  @override
+  String profile_quality_next_eyebrow(int percent) {
+    return 'Nächster Schritt · $percent % erreichen';
+  }
+
+  @override
+  String profile_quality_points(int points) {
+    return '+$points %';
+  }
+
+  @override
+  String get profile_quality_step_photo => 'Profilfoto hinzufügen';
+
+  @override
+  String get profile_quality_step_bio => 'Beschreibung hinzufügen';
+
+  @override
+  String get profile_quality_step_deen =>
+      'Islamische Identität vervollständigen';
+
+  @override
+  String get profile_quality_step_education => 'Ausbildung & Beruf hinzufügen';
+
+  @override
+  String get profile_quality_step_family => 'Familienhintergrund hinzufügen';
+
+  @override
+  String get profile_quality_step_partner => 'Partnerwünsche festlegen';
+
+  @override
+  String get profile_quality_step_second_photo => 'Zweites Foto hinzufügen';
+
+  @override
+  String get profile_quality_step_income => 'Einkommensbereich hinzufügen';
+
+  @override
+  String get profile_quality_step_languages => 'Sprachen hinzufügen';
+
+  @override
+  String get profile_quality_complete_title => 'Dein Profil ist vollständig';
+
+  @override
+  String get profile_quality_complete_body =>
+      'Jedes Detail ist an seinem Platz. Mitglieder sehen deine ganze Geschichte.';
+
+  @override
+  String get profile_quality_tip_verified_benefit =>
+      'Ein bestätigtes Gesicht bekommt mehr Antworten';
+
+  @override
+  String get profile_quality_tip_photos_benefit =>
+      'Mehr Fotos erleichtern Mitgliedern ein Ja';
+
+  @override
+  String get profile_quality_tip_bio_benefit =>
+      'Deine eigenen Worte prägen den ersten Eindruck';
+
+  @override
+  String get profile_quality_tip_guardian_benefit =>
+      'Familien schätzen eine verbundene Vertrauensperson';
+
+  @override
+  String get profile_quality_done => 'Erledigt';
+
+  @override
+  String get profile_quality_name_fallback => 'Dein Name';
+
+  @override
+  String get profile_quality_subtitle_fallback =>
+      'Vervollständige unten dein Profil';
 }

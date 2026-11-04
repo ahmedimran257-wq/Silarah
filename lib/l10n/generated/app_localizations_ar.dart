@@ -2761,4 +2761,89 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_notify_festivalGreetingsSub =>
       'تهاني رمضان والعيد، نحو خمس مرات في السنة';
+
+  @override
+  String get profile_quality_tier_complete => 'مكتمل';
+
+  @override
+  String get profile_quality_tier_strong => 'على وشك الاكتمال';
+
+  @override
+  String get profile_quality_tier_good => 'تقدّم جيد';
+
+  @override
+  String get profile_quality_tier_start => 'البداية';
+
+  @override
+  String profile_quality_ring_semantics(int percent) {
+    return 'الملف مكتمل بنسبة $percent%';
+  }
+
+  @override
+  String profile_quality_next_eyebrow(int percent) {
+    return 'الخطوة التالية · الوصول إلى $percent%';
+  }
+
+  @override
+  String profile_quality_points(int points) {
+    return '+$points%';
+  }
+
+  @override
+  String get profile_quality_step_photo => 'أضف صورة للملف الشخصي';
+
+  @override
+  String get profile_quality_step_bio => 'أضف نبذة';
+
+  @override
+  String get profile_quality_step_deen => 'أكمل هويتك الإسلامية';
+
+  @override
+  String get profile_quality_step_education => 'أضف التعليم والمهنة';
+
+  @override
+  String get profile_quality_step_family => 'أضف الخلفية العائلية';
+
+  @override
+  String get profile_quality_step_partner => 'حدّد تفضيلات شريك الحياة';
+
+  @override
+  String get profile_quality_step_second_photo => 'أضف صورة ثانية';
+
+  @override
+  String get profile_quality_step_income => 'أضف نطاق الدخل';
+
+  @override
+  String get profile_quality_step_languages => 'أضف اللغات';
+
+  @override
+  String get profile_quality_complete_title => 'ملفك الشخصي مكتمل';
+
+  @override
+  String get profile_quality_complete_body =>
+      'كل التفاصيل في مكانها. يرى الأعضاء قصتك كاملة.';
+
+  @override
+  String get profile_quality_tip_verified_benefit =>
+      'الوجه الموثوق يحصد ردودًا أكثر';
+
+  @override
+  String get profile_quality_tip_photos_benefit =>
+      'المزيد من الصور يشجّع الأعضاء على القبول';
+
+  @override
+  String get profile_quality_tip_bio_benefit => 'كلماتك تصنع الانطباع الأول';
+
+  @override
+  String get profile_quality_tip_guardian_benefit =>
+      'تقدّر العائلات وجود وليّ مرتبط';
+
+  @override
+  String get profile_quality_done => 'تم';
+
+  @override
+  String get profile_quality_name_fallback => 'اسمك';
+
+  @override
+  String get profile_quality_subtitle_fallback => 'أكمل ملفك الشخصي أدناه';
 }

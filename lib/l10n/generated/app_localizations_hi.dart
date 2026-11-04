@@ -2791,4 +2791,91 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get settings_notify_festivalGreetingsSub =>
       'रमज़ान और ईद की मुबारकबाद, साल में लगभग पाँच बार';
+
+  @override
+  String get profile_quality_tier_complete => 'पूर्ण';
+
+  @override
+  String get profile_quality_tier_strong => 'लगभग पूरा';
+
+  @override
+  String get profile_quality_tier_good => 'अच्छी प्रगति';
+
+  @override
+  String get profile_quality_tier_start => 'शुरुआत';
+
+  @override
+  String profile_quality_ring_semantics(int percent) {
+    return 'प्रोफ़ाइल $percent% पूरी';
+  }
+
+  @override
+  String profile_quality_next_eyebrow(int percent) {
+    return 'अगला कदम · $percent% तक पहुँचें';
+  }
+
+  @override
+  String profile_quality_points(int points) {
+    return '+$points%';
+  }
+
+  @override
+  String get profile_quality_step_photo => 'प्रोफ़ाइल फ़ोटो जोड़ें';
+
+  @override
+  String get profile_quality_step_bio => 'परिचय जोड़ें';
+
+  @override
+  String get profile_quality_step_deen => 'अपनी इस्लामी पहचान पूरी करें';
+
+  @override
+  String get profile_quality_step_education => 'शिक्षा और पेशा जोड़ें';
+
+  @override
+  String get profile_quality_step_family => 'पारिवारिक पृष्ठभूमि जोड़ें';
+
+  @override
+  String get profile_quality_step_partner => 'जीवनसाथी की पसंद तय करें';
+
+  @override
+  String get profile_quality_step_second_photo => 'दूसरी फ़ोटो जोड़ें';
+
+  @override
+  String get profile_quality_step_income => 'आय सीमा जोड़ें';
+
+  @override
+  String get profile_quality_step_languages => 'भाषाएँ जोड़ें';
+
+  @override
+  String get profile_quality_complete_title => 'आपकी प्रोफ़ाइल पूरी है';
+
+  @override
+  String get profile_quality_complete_body =>
+      'हर जानकारी अपनी जगह पर है। सदस्य आपकी पूरी कहानी देखते हैं।';
+
+  @override
+  String get profile_quality_tip_verified_benefit =>
+      'भरोसेमंद चेहरे को ज़्यादा जवाब मिलते हैं';
+
+  @override
+  String get profile_quality_tip_photos_benefit =>
+      'ज़्यादा फ़ोटो से सदस्यों के लिए हाँ कहना आसान होता है';
+
+  @override
+  String get profile_quality_tip_bio_benefit =>
+      'आपके अपने शब्द पहली छाप छोड़ते हैं';
+
+  @override
+  String get profile_quality_tip_guardian_benefit =>
+      'परिवार जुड़े हुए अभिभावक को महत्व देते हैं';
+
+  @override
+  String get profile_quality_done => 'हो गया';
+
+  @override
+  String get profile_quality_name_fallback => 'आपका नाम';
+
+  @override
+  String get profile_quality_subtitle_fallback =>
+      'नीचे अपनी प्रोफ़ाइल पूरी करें';
 }

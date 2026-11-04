@@ -5069,6 +5069,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ramadan and Eid wishes, about five a year'**
   String get settings_notify_festivalGreetingsSub;
+
+  /// No description provided for @profile_quality_tier_complete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get profile_quality_tier_complete;
+
+  /// No description provided for @profile_quality_tier_strong.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost there'**
+  String get profile_quality_tier_strong;
+
+  /// No description provided for @profile_quality_tier_good.
+  ///
+  /// In en, this message translates to:
+  /// **'Good progress'**
+  String get profile_quality_tier_good;
+
+  /// No description provided for @profile_quality_tier_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting started'**
+  String get profile_quality_tier_start;
+
+  /// No description provided for @profile_quality_ring_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile {percent}% complete'**
+  String profile_quality_ring_semantics(int percent);
+
+  /// No description provided for @profile_quality_next_eyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Next step · reach {percent}%'**
+  String profile_quality_next_eyebrow(int percent);
+
+  /// No description provided for @profile_quality_points.
+  ///
+  /// In en, this message translates to:
+  /// **'+{points}%'**
+  String profile_quality_points(int points);
+
+  /// No description provided for @profile_quality_step_photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a profile photo'**
+  String get profile_quality_step_photo;
+
+  /// No description provided for @profile_quality_step_bio.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a bio'**
+  String get profile_quality_step_bio;
+
+  /// No description provided for @profile_quality_step_deen.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your Islamic identity'**
+  String get profile_quality_step_deen;
+
+  /// No description provided for @profile_quality_step_education.
+  ///
+  /// In en, this message translates to:
+  /// **'Add education & profession'**
+  String get profile_quality_step_education;
+
+  /// No description provided for @profile_quality_step_family.
+  ///
+  /// In en, this message translates to:
+  /// **'Add family background'**
+  String get profile_quality_step_family;
+
+  /// No description provided for @profile_quality_step_partner.
+  ///
+  /// In en, this message translates to:
+  /// **'Set partner preferences'**
+  String get profile_quality_step_partner;
+
+  /// No description provided for @profile_quality_step_second_photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a second photo'**
+  String get profile_quality_step_second_photo;
+
+  /// No description provided for @profile_quality_step_income.
+  ///
+  /// In en, this message translates to:
+  /// **'Add income range'**
+  String get profile_quality_step_income;
+
+  /// No description provided for @profile_quality_step_languages.
+  ///
+  /// In en, this message translates to:
+  /// **'Add languages'**
+  String get profile_quality_step_languages;
+
+  /// No description provided for @profile_quality_complete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile is complete'**
+  String get profile_quality_complete_title;
+
+  /// No description provided for @profile_quality_complete_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Every detail is in place. Members see your full story.'**
+  String get profile_quality_complete_body;
+
+  /// No description provided for @profile_quality_tip_verified_benefit.
+  ///
+  /// In en, this message translates to:
+  /// **'A trusted face earns more replies'**
+  String get profile_quality_tip_verified_benefit;
+
+  /// No description provided for @profile_quality_tip_photos_benefit.
+  ///
+  /// In en, this message translates to:
+  /// **'More photos help members say yes'**
+  String get profile_quality_tip_photos_benefit;
+
+  /// No description provided for @profile_quality_tip_bio_benefit.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own words make the first impression'**
+  String get profile_quality_tip_bio_benefit;
+
+  /// No description provided for @profile_quality_tip_guardian_benefit.
+  ///
+  /// In en, this message translates to:
+  /// **'Families value a linked guardian'**
+  String get profile_quality_tip_guardian_benefit;
+
+  /// No description provided for @profile_quality_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get profile_quality_done;
+
+  /// No description provided for @profile_quality_name_fallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get profile_quality_name_fallback;
+
+  /// No description provided for @profile_quality_subtitle_fallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your profile below'**
+  String get profile_quality_subtitle_fallback;
 }
 
 class _AppLocalizationsDelegate

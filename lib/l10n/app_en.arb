@@ -1619,5 +1619,73 @@
   "settings_notify_festivalGreetings": "Festival greetings",
   "settings_notify_festivalGreetingsSub": "Ramadan and Eid wishes, about five a year",
   "@settings_notify_festivalGreetings": {},
-  "@settings_notify_festivalGreetingsSub": {}
+  "@settings_notify_festivalGreetingsSub": {},
+  "profile_quality_tier_complete": "Complete",
+  "profile_quality_tier_strong": "Almost there",
+  "profile_quality_tier_good": "Good progress",
+  "profile_quality_tier_start": "Getting started",
+  "profile_quality_ring_semantics": "Profile {percent}% complete",
+  "profile_quality_next_eyebrow": "Next step · reach {percent}%",
+  "profile_quality_points": "+{points}%",
+  "profile_quality_step_photo": "Add a profile photo",
+  "profile_quality_step_bio": "Add a bio",
+  "profile_quality_step_deen": "Complete your Islamic identity",
+  "profile_quality_step_education": "Add education & profession",
+  "profile_quality_step_family": "Add family background",
+  "profile_quality_step_partner": "Set partner preferences",
+  "profile_quality_step_second_photo": "Add a second photo",
+  "profile_quality_step_income": "Add income range",
+  "profile_quality_step_languages": "Add languages",
+  "profile_quality_complete_title": "Your profile is complete",
+  "profile_quality_complete_body": "Every detail is in place. Members see your full story.",
+  "profile_quality_tip_verified_benefit": "A trusted face earns more replies",
+  "profile_quality_tip_photos_benefit": "More photos help members say yes",
+  "profile_quality_tip_bio_benefit": "Your own words make the first impression",
+  "profile_quality_tip_guardian_benefit": "Families value a linked guardian",
+  "profile_quality_done": "Done",
+  "@profile_quality_tier_complete": {},
+  "@profile_quality_tier_strong": {},
+  "@profile_quality_tier_good": {},
+  "@profile_quality_tier_start": {},
+  "@profile_quality_ring_semantics": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "@profile_quality_next_eyebrow": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "@profile_quality_points": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "@profile_quality_step_photo": {},
+  "@profile_quality_step_bio": {},
+  "@profile_quality_step_deen": {},
+  "@profile_quality_step_education": {},
+  "@profile_quality_step_family": {},
+  "@profile_quality_step_partner": {},
+  "@profile_quality_step_second_photo": {},
+  "@profile_quality_step_income": {},
+  "@profile_quality_step_languages": {},
+  "@profile_quality_complete_title": {},
+  "@profile_quality_complete_body": {},
+  "@profile_quality_tip_verified_benefit": {},
+  "@profile_quality_tip_photos_benefit": {},
+  "@profile_quality_tip_bio_benefit": {},
+  "@profile_quality_tip_guardian_benefit": {},
+  "@profile_quality_done": {},
+  "profile_quality_name_fallback": "Your name",
+  "profile_quality_subtitle_fallback": "Complete your profile below",
+  "@profile_quality_name_fallback": {},
+  "@profile_quality_subtitle_fallback": {}
 }

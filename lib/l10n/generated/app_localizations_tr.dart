@@ -2790,4 +2790,90 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get settings_notify_festivalGreetingsSub =>
       'Ramazan ve bayram tebrikleri, yılda yaklaşık beş kez';
+
+  @override
+  String get profile_quality_tier_complete => 'Tamamlandı';
+
+  @override
+  String get profile_quality_tier_strong => 'Neredeyse tamam';
+
+  @override
+  String get profile_quality_tier_good => 'İyi ilerleme';
+
+  @override
+  String get profile_quality_tier_start => 'Başlangıç';
+
+  @override
+  String profile_quality_ring_semantics(int percent) {
+    return 'Profil %$percent tamamlandı';
+  }
+
+  @override
+  String profile_quality_next_eyebrow(int percent) {
+    return 'Sonraki adım · %$percent seviyesine ulaş';
+  }
+
+  @override
+  String profile_quality_points(int points) {
+    return '+%$points';
+  }
+
+  @override
+  String get profile_quality_step_photo => 'Profil fotoğrafı ekle';
+
+  @override
+  String get profile_quality_step_bio => 'Tanıtım yazısı ekle';
+
+  @override
+  String get profile_quality_step_deen => 'İslami kimliğini tamamla';
+
+  @override
+  String get profile_quality_step_education => 'Eğitim ve meslek ekle';
+
+  @override
+  String get profile_quality_step_family => 'Aile geçmişi ekle';
+
+  @override
+  String get profile_quality_step_partner => 'Eş tercihlerini belirle';
+
+  @override
+  String get profile_quality_step_second_photo => 'İkinci bir fotoğraf ekle';
+
+  @override
+  String get profile_quality_step_income => 'Gelir aralığı ekle';
+
+  @override
+  String get profile_quality_step_languages => 'Dil ekle';
+
+  @override
+  String get profile_quality_complete_title => 'Profilin tamamlandı';
+
+  @override
+  String get profile_quality_complete_body =>
+      'Her ayrıntı yerinde. Üyeler hikâyenin tamamını görüyor.';
+
+  @override
+  String get profile_quality_tip_verified_benefit =>
+      'Doğrulanmış bir yüz daha çok yanıt alır';
+
+  @override
+  String get profile_quality_tip_photos_benefit =>
+      'Daha fazla fotoğraf üyelerin evet demesini kolaylaştırır';
+
+  @override
+  String get profile_quality_tip_bio_benefit =>
+      'Kendi sözlerin ilk izlenimi oluşturur';
+
+  @override
+  String get profile_quality_tip_guardian_benefit =>
+      'Aileler bağlı bir veliye değer verir';
+
+  @override
+  String get profile_quality_done => 'Tamam';
+
+  @override
+  String get profile_quality_name_fallback => 'Adın';
+
+  @override
+  String get profile_quality_subtitle_fallback => 'Profilini aşağıdan tamamla';
 }

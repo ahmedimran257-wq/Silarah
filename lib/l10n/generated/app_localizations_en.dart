@@ -2782,4 +2782,90 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_notify_festivalGreetingsSub =>
       'Ramadan and Eid wishes, about five a year';
+
+  @override
+  String get profile_quality_tier_complete => 'Complete';
+
+  @override
+  String get profile_quality_tier_strong => 'Almost there';
+
+  @override
+  String get profile_quality_tier_good => 'Good progress';
+
+  @override
+  String get profile_quality_tier_start => 'Getting started';
+
+  @override
+  String profile_quality_ring_semantics(int percent) {
+    return 'Profile $percent% complete';
+  }
+
+  @override
+  String profile_quality_next_eyebrow(int percent) {
+    return 'Next step · reach $percent%';
+  }
+
+  @override
+  String profile_quality_points(int points) {
+    return '+$points%';
+  }
+
+  @override
+  String get profile_quality_step_photo => 'Add a profile photo';
+
+  @override
+  String get profile_quality_step_bio => 'Add a bio';
+
+  @override
+  String get profile_quality_step_deen => 'Complete your Islamic identity';
+
+  @override
+  String get profile_quality_step_education => 'Add education & profession';
+
+  @override
+  String get profile_quality_step_family => 'Add family background';
+
+  @override
+  String get profile_quality_step_partner => 'Set partner preferences';
+
+  @override
+  String get profile_quality_step_second_photo => 'Add a second photo';
+
+  @override
+  String get profile_quality_step_income => 'Add income range';
+
+  @override
+  String get profile_quality_step_languages => 'Add languages';
+
+  @override
+  String get profile_quality_complete_title => 'Your profile is complete';
+
+  @override
+  String get profile_quality_complete_body =>
+      'Every detail is in place. Members see your full story.';
+
+  @override
+  String get profile_quality_tip_verified_benefit =>
+      'A trusted face earns more replies';
+
+  @override
+  String get profile_quality_tip_photos_benefit =>
+      'More photos help members say yes';
+
+  @override
+  String get profile_quality_tip_bio_benefit =>
+      'Your own words make the first impression';
+
+  @override
+  String get profile_quality_tip_guardian_benefit =>
+      'Families value a linked guardian';
+
+  @override
+  String get profile_quality_done => 'Done';
+
+  @override
+  String get profile_quality_name_fallback => 'Your name';
+
+  @override
+  String get profile_quality_subtitle_fallback => 'Complete your profile below';
 }

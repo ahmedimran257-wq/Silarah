@@ -2787,4 +2787,90 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get settings_notify_festivalGreetingsSub =>
       'رمضان اور عید کی مبارکباد، سال میں تقریباً پانچ بار';
+
+  @override
+  String get profile_quality_tier_complete => 'مکمل';
+
+  @override
+  String get profile_quality_tier_strong => 'تقریباً مکمل';
+
+  @override
+  String get profile_quality_tier_good => 'اچھی پیش رفت';
+
+  @override
+  String get profile_quality_tier_start => 'آغاز';
+
+  @override
+  String profile_quality_ring_semantics(int percent) {
+    return 'پروفائل $percent% مکمل';
+  }
+
+  @override
+  String profile_quality_next_eyebrow(int percent) {
+    return 'اگلا قدم · $percent% تک پہنچیں';
+  }
+
+  @override
+  String profile_quality_points(int points) {
+    return '+$points%';
+  }
+
+  @override
+  String get profile_quality_step_photo => 'پروفائل تصویر شامل کریں';
+
+  @override
+  String get profile_quality_step_bio => 'تعارف شامل کریں';
+
+  @override
+  String get profile_quality_step_deen => 'اپنی اسلامی شناخت مکمل کریں';
+
+  @override
+  String get profile_quality_step_education => 'تعلیم اور پیشہ شامل کریں';
+
+  @override
+  String get profile_quality_step_family => 'خاندانی پس منظر شامل کریں';
+
+  @override
+  String get profile_quality_step_partner => 'شریکِ حیات کی ترجیحات طے کریں';
+
+  @override
+  String get profile_quality_step_second_photo => 'دوسری تصویر شامل کریں';
+
+  @override
+  String get profile_quality_step_income => 'آمدنی کی حد شامل کریں';
+
+  @override
+  String get profile_quality_step_languages => 'زبانیں شامل کریں';
+
+  @override
+  String get profile_quality_complete_title => 'آپ کی پروفائل مکمل ہے';
+
+  @override
+  String get profile_quality_complete_body =>
+      'ہر تفصیل اپنی جگہ پر ہے۔ اراکین آپ کی پوری کہانی دیکھتے ہیں۔';
+
+  @override
+  String get profile_quality_tip_verified_benefit =>
+      'قابلِ اعتماد چہرے کو زیادہ جواب ملتے ہیں';
+
+  @override
+  String get profile_quality_tip_photos_benefit =>
+      'زیادہ تصاویر سے اراکین کے لیے ہاں کہنا آسان ہوتا ہے';
+
+  @override
+  String get profile_quality_tip_bio_benefit =>
+      'آپ کے اپنے الفاظ پہلا تاثر بناتے ہیں';
+
+  @override
+  String get profile_quality_tip_guardian_benefit =>
+      'خاندان منسلک سرپرست کو اہمیت دیتے ہیں';
+
+  @override
+  String get profile_quality_done => 'ہو گیا';
+
+  @override
+  String get profile_quality_name_fallback => 'آپ کا نام';
+
+  @override
+  String get profile_quality_subtitle_fallback => 'نیچے اپنی پروفائل مکمل کریں';
 }

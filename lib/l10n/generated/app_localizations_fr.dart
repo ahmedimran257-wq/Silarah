@@ -2817,4 +2817,92 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_notify_festivalGreetingsSub =>
       'Vœux du Ramadan et de l\'Aïd, environ cinq par an';
+
+  @override
+  String get profile_quality_tier_complete => 'Complet';
+
+  @override
+  String get profile_quality_tier_strong => 'Presque terminé';
+
+  @override
+  String get profile_quality_tier_good => 'Bonne progression';
+
+  @override
+  String get profile_quality_tier_start => 'Premiers pas';
+
+  @override
+  String profile_quality_ring_semantics(int percent) {
+    return 'Profil complété à $percent %';
+  }
+
+  @override
+  String profile_quality_next_eyebrow(int percent) {
+    return 'Prochaine étape · atteindre $percent %';
+  }
+
+  @override
+  String profile_quality_points(int points) {
+    return '+$points %';
+  }
+
+  @override
+  String get profile_quality_step_photo => 'Ajoutez une photo de profil';
+
+  @override
+  String get profile_quality_step_bio => 'Ajoutez une présentation';
+
+  @override
+  String get profile_quality_step_deen => 'Complétez votre identité islamique';
+
+  @override
+  String get profile_quality_step_education => 'Ajoutez études et profession';
+
+  @override
+  String get profile_quality_step_family => 'Ajoutez votre contexte familial';
+
+  @override
+  String get profile_quality_step_partner =>
+      'Définissez vos préférences de partenaire';
+
+  @override
+  String get profile_quality_step_second_photo => 'Ajoutez une deuxième photo';
+
+  @override
+  String get profile_quality_step_income => 'Ajoutez une tranche de revenus';
+
+  @override
+  String get profile_quality_step_languages => 'Ajoutez vos langues';
+
+  @override
+  String get profile_quality_complete_title => 'Votre profil est complet';
+
+  @override
+  String get profile_quality_complete_body =>
+      'Chaque détail est en place. Les membres voient toute votre histoire.';
+
+  @override
+  String get profile_quality_tip_verified_benefit =>
+      'Un visage vérifié reçoit plus de réponses';
+
+  @override
+  String get profile_quality_tip_photos_benefit =>
+      'Plus de photos aident les membres à dire oui';
+
+  @override
+  String get profile_quality_tip_bio_benefit =>
+      'Vos propres mots font la première impression';
+
+  @override
+  String get profile_quality_tip_guardian_benefit =>
+      'Les familles apprécient un tuteur associé';
+
+  @override
+  String get profile_quality_done => 'Fait';
+
+  @override
+  String get profile_quality_name_fallback => 'Votre nom';
+
+  @override
+  String get profile_quality_subtitle_fallback =>
+      'Complétez votre profil ci-dessous';
 }

@@ -2807,4 +2807,92 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get settings_notify_festivalGreetingsSub =>
       'Ucapan Ramadan dan Idulfitri, sekitar lima kali setahun';
+
+  @override
+  String get profile_quality_tier_complete => 'Lengkap';
+
+  @override
+  String get profile_quality_tier_strong => 'Hampir selesai';
+
+  @override
+  String get profile_quality_tier_good => 'Kemajuan baik';
+
+  @override
+  String get profile_quality_tier_start => 'Baru mulai';
+
+  @override
+  String profile_quality_ring_semantics(int percent) {
+    return 'Profil $percent% lengkap';
+  }
+
+  @override
+  String profile_quality_next_eyebrow(int percent) {
+    return 'Langkah berikutnya · capai $percent%';
+  }
+
+  @override
+  String profile_quality_points(int points) {
+    return '+$points%';
+  }
+
+  @override
+  String get profile_quality_step_photo => 'Tambahkan foto profil';
+
+  @override
+  String get profile_quality_step_bio => 'Tambahkan bio';
+
+  @override
+  String get profile_quality_step_deen => 'Lengkapi identitas Islam Anda';
+
+  @override
+  String get profile_quality_step_education =>
+      'Tambahkan pendidikan & pekerjaan';
+
+  @override
+  String get profile_quality_step_family => 'Tambahkan latar belakang keluarga';
+
+  @override
+  String get profile_quality_step_partner => 'Atur preferensi pasangan';
+
+  @override
+  String get profile_quality_step_second_photo => 'Tambahkan foto kedua';
+
+  @override
+  String get profile_quality_step_income => 'Tambahkan kisaran penghasilan';
+
+  @override
+  String get profile_quality_step_languages => 'Tambahkan bahasa';
+
+  @override
+  String get profile_quality_complete_title => 'Profil Anda sudah lengkap';
+
+  @override
+  String get profile_quality_complete_body =>
+      'Setiap detail sudah lengkap. Anggota melihat kisah Anda seutuhnya.';
+
+  @override
+  String get profile_quality_tip_verified_benefit =>
+      'Wajah terverifikasi mendapat lebih banyak balasan';
+
+  @override
+  String get profile_quality_tip_photos_benefit =>
+      'Lebih banyak foto membantu anggota berkata ya';
+
+  @override
+  String get profile_quality_tip_bio_benefit =>
+      'Kata-kata Anda sendiri membentuk kesan pertama';
+
+  @override
+  String get profile_quality_tip_guardian_benefit =>
+      'Keluarga menghargai wali yang terhubung';
+
+  @override
+  String get profile_quality_done => 'Selesai';
+
+  @override
+  String get profile_quality_name_fallback => 'Nama Anda';
+
+  @override
+  String get profile_quality_subtitle_fallback =>
+      'Lengkapi profil Anda di bawah';
 }

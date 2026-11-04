@@ -46,9 +46,10 @@ import '../../../core/services/profile_view_service.dart';
 import '../../../core/services/wali_mode_service.dart';
 import '../../onboarding/screens/photo_upload_screen.dart';
 import '../widgets/profile_header_action_rail.dart';
+import '../widgets/profile_quality_card.dart';
 
 // Completeness score
-({int score, String? nudge}) _calcCompleteness(
+({int score, ProfileQualityStep? next}) _calcCompleteness(
   OnboardingData d, {
   required int approvedPhotoCount,
 }) {
@@ -74,28 +75,21 @@ import '../widgets/profile_header_action_rail.dart';
   final hasLangs = d.languages != null && d.languages!.isNotEmpty;
   if (hasLangs) score += 3;
 
-  String? nudge;
-  if (!hasPrimaryPhoto) {
-    nudge = 'Add a profile photo to reach ${score + 25}%';
-  } else if (!hasBio) {
-    nudge = 'Add a bio to reach ${score + 15}%';
-  } else if (!hasIslamic) {
-    nudge = 'Complete Islamic identity to reach ${score + 15}%';
-  } else if (!hasEduPro) {
-    nudge = 'Add education & profession to reach ${score + 10}%';
-  } else if (!hasFamily) {
-    nudge = 'Add family background to reach ${score + 10}%';
-  } else if (!hasPartnerPrefs) {
-    nudge = 'Set partner preferences to reach ${score + 10}%';
-  } else if (!hasSecondPhoto) {
-    nudge = 'Add a second photo to reach ${score + 8}%';
-  } else if (!hasIncome) {
-    nudge = 'Add income range to reach ${score + 4}%';
-  } else if (!hasLangs) {
-    nudge = 'Add languages to reach ${score + 3}%';
-  }
+  // The first missing item, in the order the card suggests them.
+  final missing = [
+    (hasPrimaryPhoto, ProfileQualityStep.photo),
+    (hasBio, ProfileQualityStep.bio),
+    (hasIslamic, ProfileQualityStep.deen),
+    (hasEduPro, ProfileQualityStep.education),
+    (hasFamily, ProfileQualityStep.family),
+    (hasPartnerPrefs, ProfileQualityStep.partnerPreferences),
+    (hasSecondPhoto, ProfileQualityStep.secondPhoto),
+    (hasIncome, ProfileQualityStep.income),
+    (hasLangs, ProfileQualityStep.languages),
+  ].where((item) => !item.$1);
+  final next = missing.isEmpty ? null : missing.first.$2;
 
-  return (score: score.clamp(0, 100), nudge: nudge);
+  return (score: score.clamp(0, 100), next: next);
 }
 
 // Screen
@@ -603,12 +597,15 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                   );
                   return _ProfilePreviewCard(
                     score: result.score,
-                    nudge: result.nudge,
+                    nextStep: result.next,
                     data: data,
                     guardianManaged: guardianManaged,
                     hasVerificationBadge: _hasVerificationBadge,
                     verificationLoading: _verificationLoading,
                     onVerify: _openVerification,
+                    onManagePhotos: _openManagePhotos,
+                    onEditProfile: _openEditProfile,
+                    onGuardian: _openGuardianSettings,
                     approvedPhotoCount: _approvedPhotoCount,
                     guardianLinked: _guardianEnabled,
                     primaryPhotoUrl: _primaryPhotoUrl,
@@ -2052,6 +2049,8 @@ class _ProfileAvatar extends StatelessWidget {
     required this.onPhotoLoadFailed,
   });
 
+  static const size = ProfileQualityCard.avatarSize;
+
   final String? primaryPhotoUrl;
   final ValueChanged<String> onPhotoLoadFailed;
 
@@ -2060,7 +2059,7 @@ class _ProfileAvatar extends StatelessWidget {
     Widget child = Icon(
       Icons.person_outline_rounded,
       color: AppColors.slateMist,
-      size: 36,
+      size: 32,
     );
 
     if (primaryPhotoUrl != null && primaryPhotoUrl!.isNotEmpty) {
@@ -2068,19 +2067,18 @@ class _ProfileAvatar extends StatelessWidget {
         imageUrl: primaryPhotoUrl!,
         key: ValueKey(primaryPhotoUrl),
         fit: BoxFit.cover,
-        width: 72,
-        height: 72,
+        width: size,
+        height: size,
         onImageError: () => onPhotoLoadFailed(primaryPhotoUrl!),
       );
     }
 
     return Container(
-      width: 72,
-      height: 72,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.surfaceGlassHover,
-        border: Border.all(color: AppColors.goldBorder, width: 2),
       ),
       child: ClipOval(child: child),
     );
@@ -2090,24 +2088,30 @@ class _ProfileAvatar extends StatelessWidget {
 class _ProfilePreviewCard extends StatelessWidget {
   const _ProfilePreviewCard({
     required this.score,
-    required this.nudge,
+    required this.nextStep,
     required this.data,
     required this.guardianManaged,
     required this.hasVerificationBadge,
     required this.verificationLoading,
     required this.onVerify,
+    required this.onManagePhotos,
+    required this.onEditProfile,
+    required this.onGuardian,
     required this.approvedPhotoCount,
     required this.guardianLinked,
     required this.primaryPhotoUrl,
     required this.onPhotoLoadFailed,
   });
   final int score;
-  final String? nudge;
+  final ProfileQualityStep? nextStep;
   final OnboardingData data;
   final bool guardianManaged;
   final bool hasVerificationBadge;
   final bool verificationLoading;
   final VoidCallback onVerify;
+  final VoidCallback onManagePhotos;
+  final VoidCallback onEditProfile;
+  final VoidCallback onGuardian;
   final int approvedPhotoCount;
   final bool guardianLinked;
   final String? primaryPhotoUrl;
@@ -2115,7 +2119,6 @@ class _ProfilePreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pct = score / 100.0;
     // Derive display name from real OnboardingData fields
     final displayName = [data.firstName, data.lastName]
         .where((s) => s != null && s.isNotEmpty)
@@ -2131,132 +2134,52 @@ class _ProfilePreviewCard extends StatelessWidget {
         age--;
       }
     }
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.space20),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.cardBorder),
+    return ProfileQualityCard(
+      score: score,
+      nextStep: nextStep,
+      onNextStep: (step) =>
+          step.opensPhotos ? onManagePhotos() : onEditProfile(),
+      avatar: _ProfileAvatar(
+        primaryPhotoUrl: primaryPhotoUrl,
+        onPhotoLoadFailed: onPhotoLoadFailed,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 7,
-                height: 7,
-                decoration: BoxDecoration(
-                  color: AppColors.verifiedTeal,
-                  shape: BoxShape.circle,
-                ),
+      name: displayName.isEmpty
+          ? AppLocalizations.of(context).profile_quality_name_fallback
+          : displayName,
+      subtitle: _buildSubtitle(context, age),
+      nameBadge: guardianManaged
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.champagneGold.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: AppColors.goldBorder),
               ),
-              const SizedBox(width: AppDimensions.space8),
-              UiText(context.uiCopy('Profile quality'),
-                  style: AppTypography.captionMedium
-                      .copyWith(color: AppColors.pearlWhite)),
-              const Spacer(),
-              UiText('$score%',
-                  style: AppTypography.captionMedium
-                      .copyWith(color: AppColors.champagneGold)),
-            ],
-          ),
-          const SizedBox(height: AppDimensions.space16),
-          Row(
-            children: [
-              _ProfileAvatar(
-                primaryPhotoUrl: primaryPhotoUrl,
-                onPhotoLoadFailed: onPhotoLoadFailed,
-              ),
-              const SizedBox(width: AppDimensions.space16),
-              Expanded(
-                  child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    Flexible(
-                      child: UiText(
-                        displayName.isEmpty ? 'Your Name' : displayName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.userName.copyWith(fontSize: 20),
-                      ),
-                    ),
-                    if (guardianManaged) ...[
-                      const SizedBox(width: AppDimensions.space8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color:
-                              AppColors.champagneGold.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: AppColors.goldBorder),
-                        ),
-                        child: UiText(context.uiCopy('Guardian-managed'),
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.champagneGold,
-                              fontSize: 10,
-                            )),
-                      ),
-                    ],
-                  ]),
-                  const SizedBox(height: AppDimensions.space4),
-                  UiText(_buildSubtitle(context, age),
-                      style: AppTypography.caption),
-                  if (!verificationLoading) ...[
-                    const SizedBox(height: AppDimensions.space10),
-                    _VerificationIdentityStatus(
-                      isVerified: hasVerificationBadge,
-                      onVerify: onVerify,
-                    ),
-                  ],
-                ],
-              )),
-            ],
-          ),
-          const SizedBox(height: AppDimensions.space16),
-          LayoutBuilder(builder: (context, constraints) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: pct),
-                  duration: AppDimensions.durationReveal,
-                  curve: Curves.easeOutCubic,
-                  builder: (context, value, _) => SilarahLinearProgress(
-                    value: value,
-                    height: 6,
-                    trackColor: AppColors.progressBarBase,
+              child: UiText(context.uiCopy('Guardian-managed'),
+                  style: AppTypography.caption.copyWith(
                     color: AppColors.champagneGold,
-                  ),
-                ),
-                if (nudge != null) ...[
-                  const SizedBox(height: AppDimensions.space8),
-                  Row(children: [
-                    Icon(Icons.info_outline_rounded,
-                        color: AppColors.champagneGold, size: 13),
-                    const SizedBox(width: 4),
-                    Expanded(
-                        child: UiText(nudge!,
-                            style: AppTypography.caption.copyWith(
-                                color: AppColors.champagneGold, fontSize: 11))),
-                  ]),
-                ],
-              ],
-            );
-          }),
-          if (!verificationLoading) ...[
-            const SizedBox(height: AppDimensions.space16),
-            _DiscoverRankTips(
+                    fontSize: 10,
+                  )),
+            )
+          : null,
+      identityStatus: verificationLoading
+          ? null
+          : _VerificationIdentityStatus(
+              isVerified: hasVerificationBadge,
+              onVerify: onVerify,
+            ),
+      tips: verificationLoading
+          ? null
+          : ProfileRankTips(
               photoVerified: hasVerificationBadge,
               approvedPhotoCount: approvedPhotoCount,
               bioLength: data.bio?.trim().length ?? 0,
               guardianLinked: guardianLinked,
+              onVerify: onVerify,
+              onPhotos: onManagePhotos,
+              onBio: onEditProfile,
+              onGuardian: onGuardian,
             ),
-          ],
-        ],
-      ),
     );
   }
 
@@ -2264,107 +2187,9 @@ class _ProfilePreviewCard extends StatelessWidget {
     final parts = <String>[];
     if (age != null) parts.add(context.uiAgeYears(age));
     if (data.cityName?.isNotEmpty == true) parts.add(data.cityName!);
-    return parts.isEmpty ? 'Complete your profile below' : parts.join(' · ');
-  }
-}
-
-/// What raises a profile's Discover quality score (migration 289). Matching
-/// preferences still count most; these help among good matches.
-class _DiscoverRankTips extends StatelessWidget {
-  const _DiscoverRankTips({
-    required this.photoVerified,
-    required this.approvedPhotoCount,
-    required this.bioLength,
-    required this.guardianLinked,
-  });
-
-  static const maxRankedPhotos = 4;
-  static const meaningfulBioLength = 150;
-
-  final bool photoVerified;
-  final int approvedPhotoCount;
-  final int bioLength;
-  final bool guardianLinked;
-
-  @override
-  Widget build(BuildContext context) {
-    final photos = approvedPhotoCount.clamp(0, maxRankedPhotos);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UiText(
-          'What helps you appear higher in Discover',
-          style:
-              AppTypography.captionMedium.copyWith(color: AppColors.pearlWhite),
-        ),
-        const SizedBox(height: AppDimensions.space8),
-        _DiscoverRankTip(
-          label: 'Verified profile photo',
-          done: photoVerified,
-        ),
-        _DiscoverRankTip(
-          label: 'Up to 4 approved photos',
-          done: photos >= maxRankedPhotos,
-          progress: '$photos/$maxRankedPhotos',
-        ),
-        _DiscoverRankTip(
-          label: 'A bio of a few lines',
-          done: bioLength >= meaningfulBioLength,
-        ),
-        _DiscoverRankTip(
-          label: 'Guardian linked',
-          done: guardianLinked,
-        ),
-        const SizedBox(height: AppDimensions.space4),
-        UiText(
-          'Matching preferences always count most. Staying active also helps.',
-          style: AppTypography.caption.copyWith(fontSize: 11),
-        ),
-      ],
-    );
-  }
-}
-
-class _DiscoverRankTip extends StatelessWidget {
-  const _DiscoverRankTip({
-    required this.label,
-    required this.done,
-    this.progress,
-  });
-
-  final String label;
-  final bool done;
-  final String? progress;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = done ? AppColors.verifiedTeal : AppColors.slateMist;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppDimensions.space4),
-      child: Row(
-        children: [
-          Icon(
-            done
-                ? Icons.check_circle_rounded
-                : Icons.radio_button_unchecked_rounded,
-            color: color,
-            size: 14,
-          ),
-          const SizedBox(width: AppDimensions.space8),
-          Expanded(
-            child: UiText(
-              label,
-              style: AppTypography.caption.copyWith(fontSize: 12),
-            ),
-          ),
-          if (progress != null)
-            UiText.verbatim(
-              progress!,
-              style: AppTypography.caption.copyWith(color: color, fontSize: 12),
-            ),
-        ],
-      ),
-    );
+    return parts.isEmpty
+        ? AppLocalizations.of(context).profile_quality_subtitle_fallback
+        : parts.join(' · ');
   }
 }
 
@@ -2406,30 +2231,36 @@ class _VerificationIdentityStatus extends StatelessWidget {
         button: true,
         label: 'Verify profile photo with guided smile and blink captures',
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppDimensions.space10,
-            vertical: AppDimensions.space8,
+          padding: const EdgeInsets.fromLTRB(
+            AppDimensions.space10,
+            AppDimensions.space4,
+            AppDimensions.space8,
+            AppDimensions.space4,
           ),
           decoration: BoxDecoration(
             color: AppColors.champagneGold.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
-            border: Border.all(color: AppColors.goldBorder),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: AppColors.champagneGold.withValues(alpha: 0.35),
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.verified_user_outlined,
-                  color: AppColors.champagneGold, size: 16),
-              const SizedBox(width: AppDimensions.space8),
+                  color: AppColors.champagneGold, size: 14),
+              const SizedBox(width: AppDimensions.space6),
               UiText(
                 context.uiCopy('Verify photo'),
                 style: AppTypography.captionMedium.copyWith(
                   color: AppColors.champagneGold,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(width: AppDimensions.space4),
               Icon(Icons.arrow_forward_rounded,
-                  color: AppColors.champagneGold, size: 14),
+                  color: AppColors.champagneGold, size: 13),
             ],
           ),
         ),
