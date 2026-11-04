@@ -3,6 +3,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/app_config.dart';
+import '../utils/expected_error.dart';
 import 'my_account_snapshot.dart';
 import 'request_timeout_client.dart';
 
@@ -124,14 +125,8 @@ class SupabaseService {
     }
   }
 
-  static bool _isInvalidRefreshToken(Object error) {
-    if (error is! AuthException) return false;
-    final message = error.message.toLowerCase();
-    return message.contains('invalid refresh token') ||
-        message.contains('refresh token not found') ||
-        message.contains('refresh_token_not_found') ||
-        message.contains('already used');
-  }
+  static bool _isInvalidRefreshToken(Object error) =>
+      isInvalidRefreshToken(error);
 
   static bool _isSessionUsable(Session? session) {
     if (session == null || session.isExpired) return false;

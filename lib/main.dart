@@ -25,6 +25,8 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/app_dimensions.dart';
 import 'core/services/supabase_service.dart';
 import 'core/services/my_account_snapshot.dart';
+import 'core/services/operational_telemetry_service.dart';
+import 'core/utils/expected_error.dart';
 import 'core/services/connectivity_service.dart';
 import 'core/services/subscription_service.dart';
 import 'core/services/wali_mode_service.dart';
@@ -112,18 +114,30 @@ Future<void> _installCrashReporting() async {
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     final exceptionText = details.exceptionAsString();
-    final isLayoutOverflow = exceptionText.contains('RenderFlex overflowed');
     debugPrint('Flutter Error: $exceptionText');
+    final expected = expectedErrorCode(details.exception);
+    if (expected != null) {
+      OperationalTelemetryService.record('uncaught', expected);
+      return;
+    }
+    final isLayoutOverflow = exceptionText.contains('RenderFlex overflowed');
     FirebaseCrashlytics.instance.recordFlutterError(
       details,
       fatal: !isLayoutOverflow,
     );
   };
 
-  // Catch async errors not caught by Flutter framework → forward to Crashlytics
+  // Catch async errors not caught by Flutter framework → forward to Crashlytics.
+  // Offline moments and ended logins are expected and recovered from, so they
+  // are recorded as rate-limited non-fatal codes, not crashes.
   ui.PlatformDispatcher.instance.onError = (error, stack) {
     debugPrint('Async Error: $error\n$stack');
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    final expected = expectedErrorCode(error);
+    if (expected != null) {
+      OperationalTelemetryService.record('uncaught', expected);
+    } else {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    }
     return true; // Prevent app crash
   };
 }

@@ -16,6 +16,7 @@ import '../../services/my_account_snapshot.dart';
 import '../../services/otp_request_coalescer.dart';
 import '../../services/supabase_service.dart';
 import '../../services/wali_mode_service.dart';
+import '../../utils/expected_error.dart';
 import 'auth_state.dart';
 
 enum AuthSessionCheckResult { authenticated, signedOut, retryableFailure }
@@ -32,8 +33,24 @@ class AuthCubit extends Cubit<AuthState> {
   AuthCubit() : super(const AuthInitial()) {
     if (_isRealMode) {
       _authSubscription = SupabaseService.client.auth.onAuthStateChange
-          .listen(_handleAuthEvent);
+          .listen(_handleAuthEvent, onError: _handleAuthStreamError);
     }
+  }
+
+  /// The background token refresh reports its failures on this stream.
+  /// Without a handler they became uncaught errors and fatal Crashlytics
+  /// reports. A dropped connection is retried by the client itself; a refresh
+  /// token the server no longer accepts means the login has ended.
+  void _handleAuthStreamError(Object error, StackTrace stackTrace) {
+    if (!isInvalidRefreshToken(error)) {
+      debugPrint(
+          'AuthCubit: auth refresh deferred: ${expectedErrorCode(error) ?? error.runtimeType}');
+      return;
+    }
+    if (_checkingSession) return;
+    _hydratedSessionUserId = null;
+    _deletionRecoveryUserId = null;
+    emit(const AuthUnauthenticated());
   }
 
   bool get _isRealMode => SupabaseService.isInitialized;
