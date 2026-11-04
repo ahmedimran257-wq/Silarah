@@ -131,7 +131,15 @@ void main() {
     );
     expect(screen, isNot(contains('interests.discoveryHandoff')));
     expect(screen, isNot(contains('discovery_handoff_match_title')));
-    expect(screen, contains("'Refresh Profiles'"));
+    // The empty guidance still offers a refresh, now localized in the
+    // dedicated Discover empty state.
+    expect(screen, contains('DiscoveryEmptyState('));
+    expect(screen, contains('onRefresh: () => cubit.loadInitial(force: true)'));
+    expect(
+      File('lib/features/home/widgets/discovery_empty_state.dart')
+          .readAsStringSync(),
+      contains('l10n.discovery_empty_refresh'),
+    );
     final sendHandler = screen.substring(
       screen.indexOf('Future<void> _handleSendInterest'),
       screen.indexOf('Future<void> _handleBookmark'),

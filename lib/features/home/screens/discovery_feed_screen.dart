@@ -33,7 +33,9 @@ import '../../../core/widgets/buttons/silarah_pressable.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import '../../../core/widgets/silarah_empty_state.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../widgets/discovery_empty_state.dart';
 import '../widgets/discovery_filter_bar.dart';
+import '../widgets/discovery_filter_sheet.dart';
 import '../widgets/interest_note_sheet.dart';
 import '../widgets/notification_bell_button.dart';
 import 'paywall_gate_screen.dart';
@@ -371,12 +373,7 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
     }
 
     if (feedState.status == FeedStatus.empty) {
-      return _EmptyFeed(
-        hasActiveFilters: feedState.activeFilter.isActive,
-        onRefresh: () =>
-            context.read<DiscoveryFeedCubit>().loadInitial(force: true),
-        onClearFilters: () => context.read<DiscoveryFeedCubit>().clearFilters(),
-      );
+      return _EmptyFeed(filter: feedState.activeFilter);
     }
 
     if (feedState.status == FeedStatus.error) {
@@ -393,12 +390,7 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
         .where((entry) => !hiddenProfileIds.contains(entry.profile.id))
         .toList(growable: false);
     if (profiles.isEmpty) {
-      return _EmptyFeed(
-        hasActiveFilters: feedState.activeFilter.isActive,
-        onRefresh: () =>
-            context.read<DiscoveryFeedCubit>().loadInitial(force: true),
-        onClearFilters: () => context.read<DiscoveryFeedCubit>().clearFilters(),
-      );
+      return _EmptyFeed(filter: feedState.activeFilter);
     }
     final isLoadingMore = feedState.status == FeedStatus.loadingMore;
 
@@ -814,25 +806,22 @@ class _InitialShimmer extends StatelessWidget {
 
 // Empty Feed State
 class _EmptyFeed extends StatelessWidget {
-  const _EmptyFeed({
-    required this.hasActiveFilters,
-    required this.onRefresh,
-    required this.onClearFilters,
-  });
+  const _EmptyFeed({required this.filter});
 
-  final bool hasActiveFilters;
-  final VoidCallback onRefresh;
-  final VoidCallback onClearFilters;
+  final DiscoveryFilter filter;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return SilarahEmptyState(
-      visual: SilarahEmptyVisual.discovery,
-      title: l10n.discovery_empty_title,
-      subtitle: l10n.discovery_empty_subtitle,
-      ctaLabel: hasActiveFilters ? 'Clear Filters' : 'Refresh Profiles',
-      onCta: hasActiveFilters ? onClearFilters : onRefresh,
+    final cubit = context.read<DiscoveryFeedCubit>();
+    return DiscoveryEmptyState(
+      filter: filter,
+      onRefresh: () => cubit.loadInitial(force: true),
+      onClearFilters: cubit.clearFilters,
+      onAdjustFilters: (section) => showDiscoveryFilterSheet(
+        context,
+        initial: filter,
+        scrollToSection: section,
+      ),
     );
   }
 }

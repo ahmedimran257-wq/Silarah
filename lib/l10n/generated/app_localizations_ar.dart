@@ -342,10 +342,55 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get discovery_empty_subtitle =>
-      'حاول توسيع مرشحات البحث الخاصة بك\nأو التحقق مرة أخرى غدا.';
+      'ينضم أعضاء جدد إلى سيلارا كل يوم. عُد غدًا لرؤية ملفات جديدة، أو وسّع تفضيلاتك لتتعرّف على المزيد الآن.';
 
   @override
-  String get discovery_empty_title => 'لقد رأيت الجميع في مكان قريب';
+  String get discovery_empty_filtered_eyebrow => 'حسّن بحثك';
+
+  @override
+  String get discovery_empty_filtered_title =>
+      'لا أحد يطابق عوامل التصفية هذه حتى الآن';
+
+  @override
+  String get discovery_empty_filtered_subtitle =>
+      'تفضيلاتك تضيّق الدائرة. غالبًا ما يؤدي تخفيف عامل تصفية واحد فقط إلى ظهور ملفات جديدة على الفور.';
+
+  @override
+  String get discovery_empty_clear_filters => 'مسح كل عوامل التصفية';
+
+  @override
+  String get discovery_empty_refresh => 'تحديث الملفات';
+
+  @override
+  String get discovery_empty_adjust_filters => 'تعديل عوامل التصفية';
+
+  @override
+  String get discovery_empty_hint_trust => 'جرّب تخفيف فحوصات الثقة أولًا';
+
+  @override
+  String get discovery_empty_hint_deen => 'جرّب توسيع مستوى الدين أولًا';
+
+  @override
+  String get discovery_empty_hint_family => 'جرّب توسيع نوع العائلة أولًا';
+
+  @override
+  String get discovery_empty_hint_sect => 'جرّب فتح عامل تصفية الطائفة أولًا';
+
+  @override
+  String get discovery_empty_hint_location => 'جرّب موقعًا أوسع أولًا';
+
+  @override
+  String get discovery_empty_hint_age => 'جرّب نطاقًا عمريًا أوسع أولًا';
+
+  @override
+  String get discovery_empty_hint_other =>
+      'جرّب تخفيف عامل تصفية واحد في كل مرة';
+
+  @override
+  String get discovery_empty_eyebrow => 'لقد اطّلعت على الجميع';
+
+  @override
+  String get discovery_empty_title => 'لقد رأيت الجميع لهذا اليوم';
 
   @override
   String get discovery_handoff_interest_subtitle =>
@@ -2181,29 +2226,35 @@ class AppLocalizationsAr extends AppLocalizations {
       'جارٍ إنشاء اتصال آمن بسيلارا.';
 
   @override
-  String get startup_connectivity_offline_title => 'الاتصال غير متاح';
+  String get startup_connectivity_offline_title => 'في انتظار الاتصال';
 
   @override
   String get startup_connectivity_offline_body =>
-      'مكانك في سيلارا محفوظ بأمان. سنواصل فور عودة الشبكة.';
+      'ملفك واهتماماتك ومحادثاتك في أمان. سيكمل سيلارا من حيث توقفت فور عودتك إلى الإنترنت.';
 
   @override
-  String get startup_connectivity_verifying => 'جارٍ التحقق من الاتصال';
+  String get startup_connectivity_verifying => 'جارٍ فحص الاتصال';
 
   @override
-  String get startup_connectivity_waiting => 'اتصال آمن · في الانتظار';
+  String get startup_connectivity_waiting => 'في انتظار الشبكة';
 
   @override
-  String get startup_connectivity_still_waiting => 'ما زلنا ننتظر';
+  String get startup_connectivity_still_waiting =>
+      'ما زلت غير متصل · نعيد المحاولة';
 
   @override
-  String get startup_connectivity_check => 'تحقق من الاتصال';
+  String get startup_connectivity_check => 'إعادة المحاولة';
 
   @override
-  String get startup_connectivity_checking => 'جارٍ التحقق بأمان';
+  String get startup_connectivity_checking => 'جارٍ الفحص…';
 
   @override
-  String get startup_connectivity_auto => 'ستتم إعادة الاتصال تلقائيًا';
+  String get startup_connectivity_auto =>
+      'سنعيد الاتصال تلقائيًا عند عودة الشبكة.';
+
+  @override
+  String get startup_connectivity_tip =>
+      'تأكد من تشغيل Wi-Fi أو بيانات الجوال.';
 
   @override
   String get startup_connectivity_protected => 'اتصال محمي';

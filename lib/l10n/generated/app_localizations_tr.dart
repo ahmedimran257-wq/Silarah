@@ -348,10 +348,61 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get discovery_empty_subtitle =>
-      'Arama filtrelerinizi genişletmeyi deneyin\nveya yarın tekrar kontrol edin.';
+      'Silarah\'a her gün yeni üyeler katılıyor. Yeni profiller için yarın tekrar bakın ya da şimdi daha fazla kişiyle tanışmak için tercihlerinizi genişletin.';
 
   @override
-  String get discovery_empty_title => 'Yakındaki herkesi gördün';
+  String get discovery_empty_filtered_eyebrow => 'ARAMANIZI İNCELTİN';
+
+  @override
+  String get discovery_empty_filtered_title =>
+      'Bu filtrelere henüz kimse uymuyor';
+
+  @override
+  String get discovery_empty_filtered_subtitle =>
+      'Tercihleriniz çevreyi daraltıyor. Tek bir filtreyi gevşetmek genellikle hemen yeni profiller getirir.';
+
+  @override
+  String get discovery_empty_clear_filters => 'Tüm filtreleri temizle';
+
+  @override
+  String get discovery_empty_refresh => 'Profilleri yenile';
+
+  @override
+  String get discovery_empty_adjust_filters => 'Filtreleri düzenle';
+
+  @override
+  String get discovery_empty_hint_trust =>
+      'Önce Güven kontrollerini gevşetmeyi deneyin';
+
+  @override
+  String get discovery_empty_hint_deen =>
+      'Önce Din Seviyesini genişletmeyi deneyin';
+
+  @override
+  String get discovery_empty_hint_family =>
+      'Önce Aile Tipini genişletmeyi deneyin';
+
+  @override
+  String get discovery_empty_hint_sect =>
+      'Önce Mezhep filtresini açmayı deneyin';
+
+  @override
+  String get discovery_empty_hint_location =>
+      'Önce daha geniş bir konum deneyin';
+
+  @override
+  String get discovery_empty_hint_age =>
+      'Önce daha geniş bir yaş aralığı deneyin';
+
+  @override
+  String get discovery_empty_hint_other =>
+      'Filtreleri birer birer gevşetmeyi deneyin';
+
+  @override
+  String get discovery_empty_eyebrow => 'HEPSİNİ GÖRDÜNÜZ';
+
+  @override
+  String get discovery_empty_title => 'Bugünlük herkesi gördünüz';
 
   @override
   String get discovery_handoff_interest_subtitle =>
@@ -2206,29 +2257,35 @@ class AppLocalizationsTr extends AppLocalizations {
       'Silarah ile güvenli bağlantı kuruluyor.';
 
   @override
-  String get startup_connectivity_offline_title => 'Bağlantı kullanılamıyor';
+  String get startup_connectivity_offline_title => 'Bağlantı bekleniyor';
 
   @override
   String get startup_connectivity_offline_body =>
-      'Silarah\'taki yeriniz güvende. Ağ geri döner dönmez devam edeceğiz.';
+      'Profiliniz, ilgileriniz ve sohbetleriniz güvende. Tekrar çevrimiçi olduğunuzda Silarah kaldığınız yerden devam edecek.';
 
   @override
-  String get startup_connectivity_verifying => 'BAĞLANTI DOĞRULANIYOR';
+  String get startup_connectivity_verifying => 'BAĞLANTI KONTROL EDİLİYOR';
 
   @override
-  String get startup_connectivity_waiting => 'GÜVENLİ BAĞLANTI · BEKLENİYOR';
+  String get startup_connectivity_waiting => 'AĞ BEKLENİYOR';
 
   @override
-  String get startup_connectivity_still_waiting => 'HÂLÂ BEKLENİYOR';
+  String get startup_connectivity_still_waiting =>
+      'HÂLÂ ÇEVRİMDIŞI · TEKRAR DENENİYOR';
 
   @override
-  String get startup_connectivity_check => 'Bağlantıyı kontrol et';
+  String get startup_connectivity_check => 'Tekrar dene';
 
   @override
-  String get startup_connectivity_checking => 'Güvenli kontrol yapılıyor';
+  String get startup_connectivity_checking => 'Kontrol ediliyor…';
 
   @override
-  String get startup_connectivity_auto => 'Yeniden bağlantı otomatiktir';
+  String get startup_connectivity_auto =>
+      'Ağ geri geldiğinde otomatik olarak yeniden bağlanacağız.';
+
+  @override
+  String get startup_connectivity_tip =>
+      'Wi-Fi veya mobil verinin açık olduğundan emin olun.';
 
   @override
   String get startup_connectivity_protected => 'Korumalı bağlantı';

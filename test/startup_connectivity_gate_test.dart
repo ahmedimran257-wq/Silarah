@@ -113,7 +113,7 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('normal startup shows only the brand sequence, not the tower',
+  testWidgets('normal startup shows only the brand sequence, not the offline screen',
       (tester) async {
     await tester.pumpWidget(
       _testApp(
@@ -124,7 +124,7 @@ void main() {
 
     expect(find.byType(SilarahLaunchSequence), findsOneWidget);
     expect(find.byType(StartupOfflineScreen), findsNothing);
-    expect(find.text('Check connection'), findsNothing);
+    expect(find.text('Try again'), findsNothing);
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -146,17 +146,18 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 550));
 
-    final retryButton = find.text('Check connection');
+    final retryButton = find.text('Try again');
     await tester.tap(retryButton);
     await tester.tap(retryButton);
     await tester.pump();
     expect(calls, 1);
-    expect(find.text('Checking securely'), findsOneWidget);
+    expect(find.text('Checking…'), findsOneWidget);
 
     retryCompleter.complete(false);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
-    expect(find.text('STILL WAITING'), findsOneWidget);
+    expect(find.text('STILL OFFLINE · RETRYING'), findsOneWidget);
+    expect(find.text('Try again'), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -172,12 +173,15 @@ void main() {
     await tester.pump(const Duration(milliseconds: 550));
 
     expect(tester.takeException(), isNull);
-    expect(find.text('Reconnection is automatic'), findsOneWidget);
+    expect(
+      find.text("We'll reconnect automatically when the network returns."),
+      findsOneWidget,
+    );
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('mobile tower renders good, poor, and offline signal states',
+  testWidgets('signal medallion renders good, poor, and offline states',
       (tester) async {
     for (final quality in [
       BackendConnectionQuality.good,
@@ -253,9 +257,10 @@ void main() {
     final networkUiSource = File(
       'lib/core/widgets/startup_offline_screen.dart',
     ).readAsStringSync();
-    expect(networkUiSource, contains('class _MobileTowerPainter'));
+    expect(networkUiSource, contains('class QuietSignalPainter'));
     expect(networkUiSource, contains('AppColors.onlineGreen'));
     expect(networkUiSource, contains('AppColors.expiryAmber'));
-    expect(networkUiSource, contains('AppColors.errorRed'));
+    // Waiting for the network is not an error: no alarm red on this screen.
+    expect(networkUiSource, isNot(contains('AppColors.errorRed')));
   });
 }

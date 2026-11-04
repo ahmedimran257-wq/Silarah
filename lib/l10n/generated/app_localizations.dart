@@ -705,13 +705,97 @@ abstract class AppLocalizations {
   /// No description provided for @discovery_empty_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Try expanding your search filters\nor check back tomorrow.'**
+  /// **'New members join Silarah every day. Check back tomorrow for fresh profiles, or widen your preferences to meet more people now.'**
   String get discovery_empty_subtitle;
+
+  /// No description provided for @discovery_empty_filtered_eyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'REFINE YOUR SEARCH'**
+  String get discovery_empty_filtered_eyebrow;
+
+  /// No description provided for @discovery_empty_filtered_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No one matches these filters yet'**
+  String get discovery_empty_filtered_title;
+
+  /// No description provided for @discovery_empty_filtered_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your preferences are narrowing the circle. Relaxing just one filter usually brings new profiles right away.'**
+  String get discovery_empty_filtered_subtitle;
+
+  /// No description provided for @discovery_empty_clear_filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all filters'**
+  String get discovery_empty_clear_filters;
+
+  /// No description provided for @discovery_empty_refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh profiles'**
+  String get discovery_empty_refresh;
+
+  /// No description provided for @discovery_empty_adjust_filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust filters'**
+  String get discovery_empty_adjust_filters;
+
+  /// No description provided for @discovery_empty_hint_trust.
+  ///
+  /// In en, this message translates to:
+  /// **'Try relaxing Trust checks first'**
+  String get discovery_empty_hint_trust;
+
+  /// No description provided for @discovery_empty_hint_deen.
+  ///
+  /// In en, this message translates to:
+  /// **'Try widening Deen level first'**
+  String get discovery_empty_hint_deen;
+
+  /// No description provided for @discovery_empty_hint_family.
+  ///
+  /// In en, this message translates to:
+  /// **'Try widening Family type first'**
+  String get discovery_empty_hint_family;
+
+  /// No description provided for @discovery_empty_hint_sect.
+  ///
+  /// In en, this message translates to:
+  /// **'Try opening up Sect first'**
+  String get discovery_empty_hint_sect;
+
+  /// No description provided for @discovery_empty_hint_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a wider location first'**
+  String get discovery_empty_hint_location;
+
+  /// No description provided for @discovery_empty_hint_age.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a wider age range first'**
+  String get discovery_empty_hint_age;
+
+  /// No description provided for @discovery_empty_hint_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Try relaxing one filter at a time'**
+  String get discovery_empty_hint_other;
+
+  /// No description provided for @discovery_empty_eyebrow.
+  ///
+  /// In en, this message translates to:
+  /// **'ALL CAUGHT UP'**
+  String get discovery_empty_eyebrow;
 
   /// No description provided for @discovery_empty_title.
   ///
   /// In en, this message translates to:
-  /// **'You\'ve seen everyone nearby'**
+  /// **'You\'ve seen everyone for today'**
   String get discovery_empty_title;
 
   /// No description provided for @discovery_handoff_interest_subtitle.
@@ -4143,50 +4227,56 @@ abstract class AppLocalizations {
   /// No description provided for @startup_connectivity_offline_title.
   ///
   /// In en, this message translates to:
-  /// **'Connection unavailable'**
+  /// **'Waiting for a connection'**
   String get startup_connectivity_offline_title;
 
   /// No description provided for @startup_connectivity_offline_body.
   ///
   /// In en, this message translates to:
-  /// **'Your place in Silarah is secure. We will continue the moment the network returns.'**
+  /// **'Your profile, interests and conversations are safe. Silarah will pick up right where you left off as soon as you\'re back online.'**
   String get startup_connectivity_offline_body;
 
   /// No description provided for @startup_connectivity_verifying.
   ///
   /// In en, this message translates to:
-  /// **'VERIFYING CONNECTION'**
+  /// **'CHECKING CONNECTION'**
   String get startup_connectivity_verifying;
 
   /// No description provided for @startup_connectivity_waiting.
   ///
   /// In en, this message translates to:
-  /// **'SECURE CONNECTION · WAITING'**
+  /// **'WAITING FOR NETWORK'**
   String get startup_connectivity_waiting;
 
   /// No description provided for @startup_connectivity_still_waiting.
   ///
   /// In en, this message translates to:
-  /// **'STILL WAITING'**
+  /// **'STILL OFFLINE · RETRYING'**
   String get startup_connectivity_still_waiting;
 
   /// No description provided for @startup_connectivity_check.
   ///
   /// In en, this message translates to:
-  /// **'Check connection'**
+  /// **'Try again'**
   String get startup_connectivity_check;
 
   /// No description provided for @startup_connectivity_checking.
   ///
   /// In en, this message translates to:
-  /// **'Checking securely'**
+  /// **'Checking…'**
   String get startup_connectivity_checking;
 
   /// No description provided for @startup_connectivity_auto.
   ///
   /// In en, this message translates to:
-  /// **'Reconnection is automatic'**
+  /// **'We\'ll reconnect automatically when the network returns.'**
   String get startup_connectivity_auto;
+
+  /// No description provided for @startup_connectivity_tip.
+  ///
+  /// In en, this message translates to:
+  /// **'Check that Wi-Fi or mobile data is turned on.'**
+  String get startup_connectivity_tip;
 
   /// No description provided for @startup_connectivity_protected.
   ///

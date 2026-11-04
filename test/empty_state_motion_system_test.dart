@@ -76,7 +76,8 @@ void main() {
     final profile = File('lib/features/home/screens/my_profile_screen.dart')
         .readAsStringSync();
 
-    expect(discovery, contains('SilarahEmptyVisual.discovery'));
+    // Discover has its own mihrab scene with filter-aware actions.
+    expect(discovery, contains('DiscoveryEmptyState('));
     expect(interests, contains('SilarahEmptyVisual.interests'));
     expect(interests, contains('SilarahEmptyVisual.sentInterests'));
     expect(chat, contains('SilarahEmptyVisual.conversations'));

@@ -345,10 +345,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get discovery_empty_subtitle =>
-      'Try expanding your search filters\nor check back tomorrow.';
+      'New members join Silarah every day. Check back tomorrow for fresh profiles, or widen your preferences to meet more people now.';
 
   @override
-  String get discovery_empty_title => 'You\'ve seen everyone nearby';
+  String get discovery_empty_filtered_eyebrow => 'REFINE YOUR SEARCH';
+
+  @override
+  String get discovery_empty_filtered_title =>
+      'No one matches these filters yet';
+
+  @override
+  String get discovery_empty_filtered_subtitle =>
+      'Your preferences are narrowing the circle. Relaxing just one filter usually brings new profiles right away.';
+
+  @override
+  String get discovery_empty_clear_filters => 'Clear all filters';
+
+  @override
+  String get discovery_empty_refresh => 'Refresh profiles';
+
+  @override
+  String get discovery_empty_adjust_filters => 'Adjust filters';
+
+  @override
+  String get discovery_empty_hint_trust => 'Try relaxing Trust checks first';
+
+  @override
+  String get discovery_empty_hint_deen => 'Try widening Deen level first';
+
+  @override
+  String get discovery_empty_hint_family => 'Try widening Family type first';
+
+  @override
+  String get discovery_empty_hint_sect => 'Try opening up Sect first';
+
+  @override
+  String get discovery_empty_hint_location => 'Try a wider location first';
+
+  @override
+  String get discovery_empty_hint_age => 'Try a wider age range first';
+
+  @override
+  String get discovery_empty_hint_other => 'Try relaxing one filter at a time';
+
+  @override
+  String get discovery_empty_eyebrow => 'ALL CAUGHT UP';
+
+  @override
+  String get discovery_empty_title => 'You\'ve seen everyone for today';
 
   @override
   String get discovery_handoff_interest_subtitle =>
@@ -2201,29 +2245,34 @@ class AppLocalizationsEn extends AppLocalizations {
       'Establishing a secure connection to Silarah.';
 
   @override
-  String get startup_connectivity_offline_title => 'Connection unavailable';
+  String get startup_connectivity_offline_title => 'Waiting for a connection';
 
   @override
   String get startup_connectivity_offline_body =>
-      'Your place in Silarah is secure. We will continue the moment the network returns.';
+      'Your profile, interests and conversations are safe. Silarah will pick up right where you left off as soon as you\'re back online.';
 
   @override
-  String get startup_connectivity_verifying => 'VERIFYING CONNECTION';
+  String get startup_connectivity_verifying => 'CHECKING CONNECTION';
 
   @override
-  String get startup_connectivity_waiting => 'SECURE CONNECTION · WAITING';
+  String get startup_connectivity_waiting => 'WAITING FOR NETWORK';
 
   @override
-  String get startup_connectivity_still_waiting => 'STILL WAITING';
+  String get startup_connectivity_still_waiting => 'STILL OFFLINE · RETRYING';
 
   @override
-  String get startup_connectivity_check => 'Check connection';
+  String get startup_connectivity_check => 'Try again';
 
   @override
-  String get startup_connectivity_checking => 'Checking securely';
+  String get startup_connectivity_checking => 'Checking…';
 
   @override
-  String get startup_connectivity_auto => 'Reconnection is automatic';
+  String get startup_connectivity_auto =>
+      'We\'ll reconnect automatically when the network returns.';
+
+  @override
+  String get startup_connectivity_tip =>
+      'Check that Wi-Fi or mobile data is turned on.';
 
   @override
   String get startup_connectivity_protected => 'Protected connection';

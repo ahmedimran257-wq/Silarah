@@ -347,10 +347,59 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get discovery_empty_subtitle =>
-      'اپنے سرچ فلٹرز کو پھیلانے کی کوشش کریں۔\nیا کل دوبارہ چیک کریں۔';
+      'سلارہ پر ہر روز نئے ممبر شامل ہوتے ہیں۔ نئی پروفائلز کے لیے کل دوبارہ دیکھیں، یا ابھی مزید لوگوں سے ملنے کے لیے اپنی ترجیحات کا دائرہ بڑھائیں۔';
 
   @override
-  String get discovery_empty_title => 'آپ نے آس پاس کے سبھی لوگوں کو دیکھا ہے۔';
+  String get discovery_empty_filtered_eyebrow => 'اپنی تلاش کو بہتر بنائیں';
+
+  @override
+  String get discovery_empty_filtered_title =>
+      'ان فلٹرز سے ابھی کوئی میل نہیں کھاتا';
+
+  @override
+  String get discovery_empty_filtered_subtitle =>
+      'آپ کی ترجیحات دائرہ تنگ کر رہی ہیں۔ صرف ایک فلٹر میں نرمی سے عموماً فوراً نئی پروفائلز نظر آنے لگتی ہیں۔';
+
+  @override
+  String get discovery_empty_clear_filters => 'تمام فلٹرز ہٹائیں';
+
+  @override
+  String get discovery_empty_refresh => 'پروفائلز ریفریش کریں';
+
+  @override
+  String get discovery_empty_adjust_filters => 'فلٹرز تبدیل کریں';
+
+  @override
+  String get discovery_empty_hint_trust =>
+      'پہلے اعتماد کی جانچ میں نرمی کر کے دیکھیں';
+
+  @override
+  String get discovery_empty_hint_deen =>
+      'پہلے دین کی سطح کا دائرہ بڑھا کر دیکھیں';
+
+  @override
+  String get discovery_empty_hint_family =>
+      'پہلے خاندانی قسم کا دائرہ بڑھا کر دیکھیں';
+
+  @override
+  String get discovery_empty_hint_sect => 'پہلے فرقہ کا فلٹر کھول کر دیکھیں';
+
+  @override
+  String get discovery_empty_hint_location =>
+      'پہلے وسیع علاقہ منتخب کر کے دیکھیں';
+
+  @override
+  String get discovery_empty_hint_age => 'پہلے عمر کی حد بڑھا کر دیکھیں';
+
+  @override
+  String get discovery_empty_hint_other =>
+      'ایک وقت میں ایک فلٹر میں نرمی کر کے دیکھیں';
+
+  @override
+  String get discovery_empty_eyebrow => 'آپ نے سب دیکھ لیا';
+
+  @override
+  String get discovery_empty_title => 'آج کے لیے آپ سب کو دیکھ چکے ہیں';
 
   @override
   String get discovery_handoff_interest_subtitle =>
@@ -2209,29 +2258,35 @@ class AppLocalizationsUr extends AppLocalizations {
       'سلارہ سے محفوظ رابطہ قائم کیا جا رہا ہے۔';
 
   @override
-  String get startup_connectivity_offline_title => 'کنکشن دستیاب نہیں ہے';
+  String get startup_connectivity_offline_title => 'کنکشن کا انتظار ہے';
 
   @override
   String get startup_connectivity_offline_body =>
-      'سلارہ میں آپ کی جگہ محفوظ ہے۔ نیٹ ورک واپس آتے ہی ہم جاری رکھیں گے۔';
+      'آپ کی پروفائل، دلچسپیاں اور گفتگو محفوظ ہیں۔ جیسے ہی آپ دوبارہ آن لائن ہوں گے، سلارہ وہیں سے شروع کرے گا جہاں آپ نے چھوڑا تھا۔';
 
   @override
-  String get startup_connectivity_verifying => 'کنکشن کی تصدیق ہو رہی ہے';
+  String get startup_connectivity_verifying => 'کنکشن کی جانچ ہو رہی ہے';
 
   @override
-  String get startup_connectivity_waiting => 'محفوظ کنکشن · انتظار جاری';
+  String get startup_connectivity_waiting => 'نیٹ ورک کا انتظار';
 
   @override
-  String get startup_connectivity_still_waiting => 'ابھی بھی انتظار ہے';
+  String get startup_connectivity_still_waiting =>
+      'ابھی بھی آف لائن · دوبارہ کوشش جاری';
 
   @override
-  String get startup_connectivity_check => 'کنکشن چیک کریں';
+  String get startup_connectivity_check => 'دوبارہ کوشش کریں';
 
   @override
-  String get startup_connectivity_checking => 'محفوظ جانچ جاری ہے';
+  String get startup_connectivity_checking => 'جانچ ہو رہی ہے…';
 
   @override
-  String get startup_connectivity_auto => 'دوبارہ کنکشن خودکار ہے';
+  String get startup_connectivity_auto =>
+      'نیٹ ورک واپس آتے ہی ہم خود بخود دوبارہ جڑ جائیں گے۔';
+
+  @override
+  String get startup_connectivity_tip =>
+      'دیکھ لیں کہ Wi-Fi یا موبائل ڈیٹا آن ہے۔';
 
   @override
   String get startup_connectivity_protected => 'محفوظ کنکشن';

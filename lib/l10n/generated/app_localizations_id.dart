@@ -349,11 +349,58 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get discovery_empty_subtitle =>
-      'Coba perluas filter pencarian Anda\natau periksa kembali besok.';
+      'Anggota baru bergabung dengan Silarah setiap hari. Kembali lagi besok untuk profil baru, atau perluas preferensi Anda untuk bertemu lebih banyak orang sekarang.';
 
   @override
-  String get discovery_empty_title =>
-      'Anda telah melihat semua orang di sekitar';
+  String get discovery_empty_filtered_eyebrow => 'PERHALUS PENCARIAN';
+
+  @override
+  String get discovery_empty_filtered_title =>
+      'Belum ada yang cocok dengan filter ini';
+
+  @override
+  String get discovery_empty_filtered_subtitle =>
+      'Preferensi Anda mempersempit lingkaran. Melonggarkan satu filter saja biasanya langsung memunculkan profil baru.';
+
+  @override
+  String get discovery_empty_clear_filters => 'Hapus semua filter';
+
+  @override
+  String get discovery_empty_refresh => 'Muat ulang profil';
+
+  @override
+  String get discovery_empty_adjust_filters => 'Atur filter';
+
+  @override
+  String get discovery_empty_hint_trust =>
+      'Coba longgarkan Pemeriksaan kepercayaan dulu';
+
+  @override
+  String get discovery_empty_hint_deen => 'Coba perluas Tingkat Dien dulu';
+
+  @override
+  String get discovery_empty_hint_family => 'Coba perluas Tipe Keluarga dulu';
+
+  @override
+  String get discovery_empty_hint_sect => 'Coba buka filter Sekte dulu';
+
+  @override
+  String get discovery_empty_hint_location =>
+      'Coba lokasi yang lebih luas dulu';
+
+  @override
+  String get discovery_empty_hint_age =>
+      'Coba rentang usia yang lebih luas dulu';
+
+  @override
+  String get discovery_empty_hint_other =>
+      'Coba longgarkan satu filter setiap kali';
+
+  @override
+  String get discovery_empty_eyebrow => 'SEMUA SUDAH DILIHAT';
+
+  @override
+  String get discovery_empty_title => 'Anda sudah melihat semua orang hari ini';
 
   @override
   String get discovery_handoff_interest_subtitle =>
@@ -2226,29 +2273,35 @@ class AppLocalizationsId extends AppLocalizations {
       'Membangun koneksi aman ke Silarah.';
 
   @override
-  String get startup_connectivity_offline_title => 'Koneksi tidak tersedia';
+  String get startup_connectivity_offline_title => 'Menunggu koneksi';
 
   @override
   String get startup_connectivity_offline_body =>
-      'Tempat Anda di Silarah aman. Kami akan melanjutkan saat jaringan kembali.';
+      'Profil, minat, dan percakapan Anda aman. Silarah akan melanjutkan tepat dari tempat Anda berhenti begitu Anda kembali online.';
 
   @override
   String get startup_connectivity_verifying => 'MEMERIKSA KONEKSI';
 
   @override
-  String get startup_connectivity_waiting => 'KONEKSI AMAN · MENUNGGU';
+  String get startup_connectivity_waiting => 'MENUNGGU JARINGAN';
 
   @override
-  String get startup_connectivity_still_waiting => 'MASIH MENUNGGU';
+  String get startup_connectivity_still_waiting =>
+      'MASIH OFFLINE · MENCOBA LAGI';
 
   @override
-  String get startup_connectivity_check => 'Periksa koneksi';
+  String get startup_connectivity_check => 'Coba lagi';
 
   @override
-  String get startup_connectivity_checking => 'Memeriksa dengan aman';
+  String get startup_connectivity_checking => 'Memeriksa…';
 
   @override
-  String get startup_connectivity_auto => 'Koneksi ulang berlangsung otomatis';
+  String get startup_connectivity_auto =>
+      'Kami akan tersambung kembali otomatis saat jaringan kembali.';
+
+  @override
+  String get startup_connectivity_tip =>
+      'Pastikan Wi-Fi atau data seluler aktif.';
 
   @override
   String get startup_connectivity_protected => 'Koneksi terlindungi';

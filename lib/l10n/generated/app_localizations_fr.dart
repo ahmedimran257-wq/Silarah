@@ -350,10 +350,59 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get discovery_empty_subtitle =>
-      'Essayez d\'élargir vos filtres de recherche\nou revenez demain.';
+      'De nouveaux membres rejoignent Silarah chaque jour. Revenez demain pour découvrir de nouveaux profils, ou élargissez vos préférences pour rencontrer plus de personnes dès maintenant.';
 
   @override
-  String get discovery_empty_title => 'Vous avez vu tout le monde à proximité';
+  String get discovery_empty_filtered_eyebrow => 'AFFINEZ VOTRE RECHERCHE';
+
+  @override
+  String get discovery_empty_filtered_title =>
+      'Personne ne correspond encore à ces filtres';
+
+  @override
+  String get discovery_empty_filtered_subtitle =>
+      'Vos préférences resserrent le cercle. Assouplir un seul filtre fait généralement apparaître de nouveaux profils tout de suite.';
+
+  @override
+  String get discovery_empty_clear_filters => 'Effacer tous les filtres';
+
+  @override
+  String get discovery_empty_refresh => 'Actualiser les profils';
+
+  @override
+  String get discovery_empty_adjust_filters => 'Ajuster les filtres';
+
+  @override
+  String get discovery_empty_hint_trust =>
+      'Assouplissez d\'abord les vérifications de confiance';
+
+  @override
+  String get discovery_empty_hint_deen => 'Élargissez d\'abord le niveau Deen';
+
+  @override
+  String get discovery_empty_hint_family =>
+      'Élargissez d\'abord le type de famille';
+
+  @override
+  String get discovery_empty_hint_sect => 'Ouvrez d\'abord le filtre Secte';
+
+  @override
+  String get discovery_empty_hint_location =>
+      'Essayez d\'abord une zone plus large';
+
+  @override
+  String get discovery_empty_hint_age =>
+      'Essayez d\'abord une tranche d\'âge plus large';
+
+  @override
+  String get discovery_empty_hint_other => 'Assouplissez un filtre à la fois';
+
+  @override
+  String get discovery_empty_eyebrow => 'VOUS AVEZ TOUT VU';
+
+  @override
+  String get discovery_empty_title =>
+      'Vous avez vu tout le monde pour aujourd\'hui';
 
   @override
   String get discovery_handoff_interest_subtitle =>
@@ -2225,29 +2274,35 @@ class AppLocalizationsFr extends AppLocalizations {
       'Établissement d’une connexion sécurisée à Silarah.';
 
   @override
-  String get startup_connectivity_offline_title => 'Connexion indisponible';
+  String get startup_connectivity_offline_title => 'En attente de connexion';
 
   @override
   String get startup_connectivity_offline_body =>
-      'Votre place sur Silarah est sécurisée. Nous reprendrons dès le retour du réseau.';
+      'Votre profil, vos intérêts et vos conversations sont en sécurité. Silarah reprendra exactement là où vous vous êtes arrêté dès votre retour en ligne.';
 
   @override
   String get startup_connectivity_verifying => 'VÉRIFICATION DE LA CONNEXION';
 
   @override
-  String get startup_connectivity_waiting => 'CONNEXION SÉCURISÉE · EN ATTENTE';
+  String get startup_connectivity_waiting => 'EN ATTENTE DU RÉSEAU';
 
   @override
-  String get startup_connectivity_still_waiting => 'TOUJOURS EN ATTENTE';
+  String get startup_connectivity_still_waiting =>
+      'TOUJOURS HORS LIGNE · NOUVEL ESSAI';
 
   @override
-  String get startup_connectivity_check => 'Vérifier la connexion';
+  String get startup_connectivity_check => 'Réessayer';
 
   @override
-  String get startup_connectivity_checking => 'Vérification sécurisée';
+  String get startup_connectivity_checking => 'Vérification…';
 
   @override
-  String get startup_connectivity_auto => 'La reconnexion est automatique';
+  String get startup_connectivity_auto =>
+      'La reconnexion se fera automatiquement au retour du réseau.';
+
+  @override
+  String get startup_connectivity_tip =>
+      'Vérifiez que le Wi-Fi ou les données mobiles sont activés.';
 
   @override
   String get startup_connectivity_protected => 'Connexion protégée';

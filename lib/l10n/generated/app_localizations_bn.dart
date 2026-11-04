@@ -346,10 +346,58 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get discovery_empty_subtitle =>
-      'আপনার অনুসন্ধান ফিল্টার প্রসারিত করার চেষ্টা করুন\nঅথবা আগামীকাল আবার চেক করুন।';
+      'সিলারাহতে প্রতিদিন নতুন সদস্য যোগ দেন। নতুন প্রোফাইলের জন্য আগামীকাল আবার দেখুন, অথবা এখনই আরও মানুষের সঙ্গে পরিচিত হতে আপনার পছন্দের পরিসর বাড়ান।';
 
   @override
-  String get discovery_empty_title => 'আপনি কাছাকাছি সবাইকে দেখেছেন';
+  String get discovery_empty_filtered_eyebrow => 'আপনার খোঁজ আরও নিখুঁত করুন';
+
+  @override
+  String get discovery_empty_filtered_title =>
+      'এই ফিল্টারগুলোর সঙ্গে এখনও কেউ মেলেনি';
+
+  @override
+  String get discovery_empty_filtered_subtitle =>
+      'আপনার পছন্দগুলো পরিসর সংকুচিত করছে। মাত্র একটি ফিল্টার শিথিল করলেই সাধারণত সঙ্গে সঙ্গে নতুন প্রোফাইল দেখা যায়।';
+
+  @override
+  String get discovery_empty_clear_filters => 'সব ফিল্টার মুছুন';
+
+  @override
+  String get discovery_empty_refresh => 'প্রোফাইল রিফ্রেশ করুন';
+
+  @override
+  String get discovery_empty_adjust_filters => 'ফিল্টার বদলান';
+
+  @override
+  String get discovery_empty_hint_trust =>
+      'প্রথমে বিশ্বাসযোগ্যতা যাচাই শিথিল করে দেখুন';
+
+  @override
+  String get discovery_empty_hint_deen => 'প্রথমে দ্বীন লেভেল বাড়িয়ে দেখুন';
+
+  @override
+  String get discovery_empty_hint_family =>
+      'প্রথমে পারিবারিক ধরন বাড়িয়ে দেখুন';
+
+  @override
+  String get discovery_empty_hint_sect =>
+      'প্রথমে সম্প্রদায় ফিল্টারটি খুলে দেখুন';
+
+  @override
+  String get discovery_empty_hint_location => 'প্রথমে আরও বড় এলাকা বেছে দেখুন';
+
+  @override
+  String get discovery_empty_hint_age => 'প্রথমে বয়সের পরিসীমা বাড়িয়ে দেখুন';
+
+  @override
+  String get discovery_empty_hint_other =>
+      'একবারে একটি করে ফিল্টার শিথিল করে দেখুন';
+
+  @override
+  String get discovery_empty_eyebrow => 'সবই দেখা হয়ে গেছে';
+
+  @override
+  String get discovery_empty_title => 'আজকের জন্য আপনি সবাইকে দেখে ফেলেছেন';
 
   @override
   String get discovery_handoff_interest_subtitle =>
@@ -2209,29 +2257,35 @@ class AppLocalizationsBn extends AppLocalizations {
       'সিলারাহর সাথে নিরাপদ সংযোগ স্থাপন করা হচ্ছে।';
 
   @override
-  String get startup_connectivity_offline_title => 'সংযোগ পাওয়া যাচ্ছে না';
+  String get startup_connectivity_offline_title => 'সংযোগের অপেক্ষায়';
 
   @override
   String get startup_connectivity_offline_body =>
-      'সিলারাহতে আপনার স্থান নিরাপদ। নেটওয়ার্ক ফিরলেই আমরা চালিয়ে যাব।';
+      'আপনার প্রোফাইল, আগ্রহ ও কথোপকথন নিরাপদ আছে। আপনি আবার অনলাইনে এলেই সিলারাহ ঠিক যেখানে থেমেছিলেন সেখান থেকে শুরু করবে।';
 
   @override
   String get startup_connectivity_verifying => 'সংযোগ যাচাই হচ্ছে';
 
   @override
-  String get startup_connectivity_waiting => 'নিরাপদ সংযোগ · অপেক্ষমাণ';
+  String get startup_connectivity_waiting => 'নেটওয়ার্কের অপেক্ষায়';
 
   @override
-  String get startup_connectivity_still_waiting => 'এখনও অপেক্ষমাণ';
+  String get startup_connectivity_still_waiting =>
+      'এখনও অফলাইন · আবার চেষ্টা চলছে';
 
   @override
-  String get startup_connectivity_check => 'সংযোগ পরীক্ষা করুন';
+  String get startup_connectivity_check => 'আবার চেষ্টা করুন';
 
   @override
-  String get startup_connectivity_checking => 'নিরাপদে পরীক্ষা হচ্ছে';
+  String get startup_connectivity_checking => 'যাচাই হচ্ছে…';
 
   @override
-  String get startup_connectivity_auto => 'স্বয়ংক্রিয়ভাবে পুনঃসংযোগ হবে';
+  String get startup_connectivity_auto =>
+      'নেটওয়ার্ক ফিরলেই আমরা নিজে থেকে আবার সংযোগ করব।';
+
+  @override
+  String get startup_connectivity_tip =>
+      'Wi-Fi বা মোবাইল ডেটা চালু আছে কি না দেখে নিন।';
 
   @override
   String get startup_connectivity_protected => 'সুরক্ষিত সংযোগ';

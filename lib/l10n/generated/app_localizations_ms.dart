@@ -349,11 +349,60 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get discovery_empty_subtitle =>
-      'Cuba kembangkan penapis carian anda\natau semak semula esok.';
+      'Ahli baharu menyertai Silarah setiap hari. Kembali esok untuk profil baharu, atau luaskan pilihan anda untuk bertemu lebih ramai orang sekarang.';
+
+  @override
+  String get discovery_empty_filtered_eyebrow => 'PERHALUSI CARIAN';
+
+  @override
+  String get discovery_empty_filtered_title =>
+      'Belum ada yang sepadan dengan penapis ini';
+
+  @override
+  String get discovery_empty_filtered_subtitle =>
+      'Pilihan anda menyempitkan bulatan. Melonggarkan satu penapis sahaja biasanya terus memaparkan profil baharu.';
+
+  @override
+  String get discovery_empty_clear_filters => 'Kosongkan semua penapis';
+
+  @override
+  String get discovery_empty_refresh => 'Muat semula profil';
+
+  @override
+  String get discovery_empty_adjust_filters => 'Laraskan penapis';
+
+  @override
+  String get discovery_empty_hint_trust =>
+      'Cuba longgarkan Semakan kepercayaan dahulu';
+
+  @override
+  String get discovery_empty_hint_deen => 'Cuba luaskan Tahap Deen dahulu';
+
+  @override
+  String get discovery_empty_hint_family =>
+      'Cuba luaskan Jenis Keluarga dahulu';
+
+  @override
+  String get discovery_empty_hint_sect => 'Cuba buka penapis mazhab dahulu';
+
+  @override
+  String get discovery_empty_hint_location =>
+      'Cuba lokasi yang lebih luas dahulu';
+
+  @override
+  String get discovery_empty_hint_age =>
+      'Cuba julat umur yang lebih luas dahulu';
+
+  @override
+  String get discovery_empty_hint_other =>
+      'Cuba longgarkan satu penapis pada satu masa';
+
+  @override
+  String get discovery_empty_eyebrow => 'SEMUA SUDAH DILIHAT';
 
   @override
   String get discovery_empty_title =>
-      'Anda telah melihat semua orang yang berdekatan';
+      'Anda telah melihat semua orang untuk hari ini';
 
   @override
   String get discovery_handoff_interest_subtitle =>
@@ -2227,29 +2276,35 @@ class AppLocalizationsMs extends AppLocalizations {
       'Mewujudkan sambungan selamat ke Silarah.';
 
   @override
-  String get startup_connectivity_offline_title => 'Sambungan tidak tersedia';
+  String get startup_connectivity_offline_title => 'Menunggu sambungan';
 
   @override
   String get startup_connectivity_offline_body =>
-      'Tempat anda di Silarah selamat. Kami akan meneruskan sebaik sahaja rangkaian kembali.';
+      'Profil, minat dan perbualan anda selamat. Silarah akan menyambung tepat dari tempat anda berhenti sebaik sahaja anda kembali dalam talian.';
 
   @override
-  String get startup_connectivity_verifying => 'MENGESAHKAN SAMBUNGAN';
+  String get startup_connectivity_verifying => 'MENYEMAK SAMBUNGAN';
 
   @override
-  String get startup_connectivity_waiting => 'SAMBUNGAN SELAMAT · MENUNGGU';
+  String get startup_connectivity_waiting => 'MENUNGGU RANGKAIAN';
 
   @override
-  String get startup_connectivity_still_waiting => 'MASIH MENUNGGU';
+  String get startup_connectivity_still_waiting =>
+      'MASIH LUAR TALIAN · MENCUBA SEMULA';
 
   @override
-  String get startup_connectivity_check => 'Semak sambungan';
+  String get startup_connectivity_check => 'Cuba lagi';
 
   @override
-  String get startup_connectivity_checking => 'Semakan selamat';
+  String get startup_connectivity_checking => 'Menyemak…';
 
   @override
-  String get startup_connectivity_auto => 'Sambungan semula adalah automatik';
+  String get startup_connectivity_auto =>
+      'Kami akan menyambung semula secara automatik apabila rangkaian kembali.';
+
+  @override
+  String get startup_connectivity_tip =>
+      'Pastikan Wi-Fi atau data mudah alih dihidupkan.';
 
   @override
   String get startup_connectivity_protected => 'Sambungan dilindungi';

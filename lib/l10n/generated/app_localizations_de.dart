@@ -348,10 +348,60 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get discovery_empty_subtitle =>
-      'Versuchen Sie, Ihre Suchfilter zu erweitern\noder schauen Sie morgen noch einmal vorbei.';
+      'Jeden Tag kommen neue Mitglieder zu Silarah. Schauen Sie morgen wieder vorbei oder erweitern Sie Ihre Präferenzen, um jetzt mehr Menschen kennenzulernen.';
 
   @override
-  String get discovery_empty_title => 'Du hast jeden in der Nähe gesehen';
+  String get discovery_empty_filtered_eyebrow => 'SUCHE VERFEINERN';
+
+  @override
+  String get discovery_empty_filtered_title =>
+      'Noch passt niemand zu diesen Filtern';
+
+  @override
+  String get discovery_empty_filtered_subtitle =>
+      'Ihre Präferenzen grenzen den Kreis ein. Schon ein gelockerter Filter bringt meist sofort neue Profile.';
+
+  @override
+  String get discovery_empty_clear_filters => 'Alle Filter löschen';
+
+  @override
+  String get discovery_empty_refresh => 'Profile aktualisieren';
+
+  @override
+  String get discovery_empty_adjust_filters => 'Filter anpassen';
+
+  @override
+  String get discovery_empty_hint_trust =>
+      'Lockern Sie zuerst die Vertrauensprüfungen';
+
+  @override
+  String get discovery_empty_hint_deen => 'Erweitern Sie zuerst die Deen-Ebene';
+
+  @override
+  String get discovery_empty_hint_family =>
+      'Erweitern Sie zuerst den Familientyp';
+
+  @override
+  String get discovery_empty_hint_sect =>
+      'Öffnen Sie zuerst den Filter „Sekte“';
+
+  @override
+  String get discovery_empty_hint_location =>
+      'Wählen Sie zuerst einen größeren Umkreis';
+
+  @override
+  String get discovery_empty_hint_age =>
+      'Wählen Sie zuerst eine größere Altersspanne';
+
+  @override
+  String get discovery_empty_hint_other =>
+      'Lockern Sie die Filter einzeln nacheinander';
+
+  @override
+  String get discovery_empty_eyebrow => 'ALLES GESEHEN';
+
+  @override
+  String get discovery_empty_title => 'Für heute haben Sie alle gesehen';
 
   @override
   String get discovery_handoff_interest_subtitle =>
@@ -2222,30 +2272,35 @@ class AppLocalizationsDe extends AppLocalizations {
       'Eine sichere Verbindung zu Silarah wird hergestellt.';
 
   @override
-  String get startup_connectivity_offline_title => 'Verbindung nicht verfügbar';
+  String get startup_connectivity_offline_title => 'Warten auf Verbindung';
 
   @override
   String get startup_connectivity_offline_body =>
-      'Ihr Platz bei Silarah ist sicher. Sobald das Netzwerk zurückkehrt, geht es weiter.';
+      'Ihr Profil, Ihre Interessen und Gespräche sind sicher. Silarah macht genau dort weiter, wo Sie aufgehört haben, sobald Sie wieder online sind.';
 
   @override
   String get startup_connectivity_verifying => 'VERBINDUNG WIRD GEPRÜFT';
 
   @override
-  String get startup_connectivity_waiting => 'SICHERE VERBINDUNG · WARTEN';
+  String get startup_connectivity_waiting => 'WARTEN AUF NETZWERK';
 
   @override
-  String get startup_connectivity_still_waiting => 'WEITERHIN WARTEN';
+  String get startup_connectivity_still_waiting =>
+      'NOCH OFFLINE · NEUER VERSUCH';
 
   @override
-  String get startup_connectivity_check => 'Verbindung prüfen';
+  String get startup_connectivity_check => 'Erneut versuchen';
 
   @override
-  String get startup_connectivity_checking => 'Sichere Prüfung läuft';
+  String get startup_connectivity_checking => 'Wird geprüft…';
 
   @override
   String get startup_connectivity_auto =>
-      'Die Wiederverbindung erfolgt automatisch';
+      'Sobald das Netzwerk zurück ist, verbinden wir Sie automatisch.';
+
+  @override
+  String get startup_connectivity_tip =>
+      'Prüfen Sie, ob WLAN oder mobile Daten eingeschaltet sind.';
 
   @override
   String get startup_connectivity_protected => 'Geschützte Verbindung';

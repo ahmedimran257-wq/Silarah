@@ -345,10 +345,56 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get discovery_empty_subtitle =>
-      'अपने खोज फ़िल्टर का विस्तार करने का प्रयास करें\nया कल पुनः जाँच करें।';
+      'सिलाराह पर हर दिन नए सदस्य जुड़ते हैं। नई प्रोफ़ाइल के लिए कल फिर देखें, या अभी और लोगों से मिलने के लिए अपनी पसंद का दायरा बढ़ाएँ।';
 
   @override
-  String get discovery_empty_title => 'आपने सभी को आस-पास देखा है';
+  String get discovery_empty_filtered_eyebrow => 'अपनी खोज निखारें';
+
+  @override
+  String get discovery_empty_filtered_title =>
+      'इन फ़िल्टर से अभी कोई मेल नहीं खाता';
+
+  @override
+  String get discovery_empty_filtered_subtitle =>
+      'आपकी पसंद दायरे को छोटा कर रही है। सिर्फ़ एक फ़िल्टर में ढील देने से अक्सर तुरंत नई प्रोफ़ाइल दिखने लगती हैं।';
+
+  @override
+  String get discovery_empty_clear_filters => 'सभी फ़िल्टर हटाएँ';
+
+  @override
+  String get discovery_empty_refresh => 'प्रोफ़ाइल रीफ़्रेश करें';
+
+  @override
+  String get discovery_empty_adjust_filters => 'फ़िल्टर बदलें';
+
+  @override
+  String get discovery_empty_hint_trust => 'पहले भरोसा जाँच में ढील देकर देखें';
+
+  @override
+  String get discovery_empty_hint_deen => 'पहले दीन स्तर का दायरा बढ़ाकर देखें';
+
+  @override
+  String get discovery_empty_hint_family =>
+      'पहले परिवार का प्रकार बढ़ाकर देखें';
+
+  @override
+  String get discovery_empty_hint_sect => 'पहले संप्रदाय फ़िल्टर खोलकर देखें';
+
+  @override
+  String get discovery_empty_hint_location => 'पहले बड़ा इलाका चुनकर देखें';
+
+  @override
+  String get discovery_empty_hint_age => 'पहले आयु सीमा बढ़ाकर देखें';
+
+  @override
+  String get discovery_empty_hint_other =>
+      'एक बार में एक फ़िल्टर में ढील देकर देखें';
+
+  @override
+  String get discovery_empty_eyebrow => 'आपने सब देख लिया';
+
+  @override
+  String get discovery_empty_title => 'आज के लिए आपने सभी को देख लिया है';
 
   @override
   String get discovery_handoff_interest_subtitle =>
@@ -2214,29 +2260,35 @@ class AppLocalizationsHi extends AppLocalizations {
       'सिलाराह से सुरक्षित कनेक्शन स्थापित किया जा रहा है।';
 
   @override
-  String get startup_connectivity_offline_title => 'कनेक्शन उपलब्ध नहीं है';
+  String get startup_connectivity_offline_title => 'कनेक्शन की प्रतीक्षा है';
 
   @override
   String get startup_connectivity_offline_body =>
-      'सिलाराह में आपका स्थान सुरक्षित है। नेटवर्क लौटते ही हम जारी रखेंगे।';
+      'आपकी प्रोफ़ाइल, रुचियाँ और बातचीत सुरक्षित हैं। जैसे ही आप फिर से ऑनलाइन होंगे, सिलाराह वहीं से शुरू करेगा जहाँ आपने छोड़ा था।';
 
   @override
   String get startup_connectivity_verifying => 'कनेक्शन जाँचा जा रहा है';
 
   @override
-  String get startup_connectivity_waiting => 'सुरक्षित कनेक्शन · प्रतीक्षा में';
+  String get startup_connectivity_waiting => 'नेटवर्क की प्रतीक्षा';
 
   @override
-  String get startup_connectivity_still_waiting => 'अभी भी प्रतीक्षा में';
+  String get startup_connectivity_still_waiting =>
+      'अभी भी ऑफ़लाइन · फिर से कोशिश जारी';
 
   @override
-  String get startup_connectivity_check => 'कनेक्शन जाँचें';
+  String get startup_connectivity_check => 'फिर से कोशिश करें';
 
   @override
-  String get startup_connectivity_checking => 'सुरक्षित जाँच जारी है';
+  String get startup_connectivity_checking => 'जाँच हो रही है…';
 
   @override
-  String get startup_connectivity_auto => 'पुनः कनेक्शन स्वचालित है';
+  String get startup_connectivity_auto =>
+      'नेटवर्क लौटते ही हम अपने-आप फिर से जुड़ जाएँगे।';
+
+  @override
+  String get startup_connectivity_tip =>
+      'देखें कि Wi-Fi या मोबाइल डेटा चालू है।';
 
   @override
   String get startup_connectivity_protected => 'सुरक्षित कनेक्शन';
