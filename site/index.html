@@ -31,9 +31,9 @@
   <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preload" as="image" href="/assets/campaign/hero-768.webp" imagesrcset="/assets/campaign/hero-768.webp 768w, /assets/campaign/hero-1536.webp 1536w" imagesizes="(max-width: 900px) 100vw, 58vw" type="image/webp">
-  <link rel="stylesheet" href="/styles.css?v=20261024">
+  <link rel="stylesheet" href="/styles.css?v=20261106">
   <link rel="stylesheet" href="/motion.css?v=20260920-1">
-  <script defer src="/assets/site.js?v=20260920-1"></script>
+  <script defer src="/assets/site.js?v=20261106"></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -71,6 +71,15 @@
         "url": "https://app.silarah.com/",
         "inLanguage": "en-IN",
         "countriesSupported": "IN",
+        "availableLanguage": ["en", "hi", "ur"],
+        "screenshot": [
+          "https://silarah.com/assets/screens/discover-640.webp",
+          "https://silarah.com/assets/screens/profile-640.webp",
+          "https://silarah.com/assets/screens/filters-640.webp",
+          "https://silarah.com/assets/screens/privacy-640.webp",
+          "https://silarah.com/assets/screens/guardian-640.webp",
+          "https://silarah.com/assets/screens/chat-640.webp"
+        ],
         "audience": {"@type":"Audience","audienceType":"Adults seeking Muslim matrimonial introductions"},
         "offers": [
           {
@@ -118,6 +127,7 @@
       </button>
       <div class="site-menu" id="site-menu">
         <a href="#experience">Why Silarah</a>
+        <a href="#inside">The app</a>
         <a href="#trust">Trust</a>
         <a href="#pricing">Pricing</a>
         <a href="#roadmap">Availability</a>
@@ -235,34 +245,50 @@
       </div>
     </section>
 
-    <section class="section product-section">
-      <div class="shell product-layout">
-        <div class="product-copy">
-          <span class="eyebrow">A calmer product experience</span>
+    <section class="section app-showcase" id="inside">
+      <div class="shell">
+        <div class="section-heading centered narrow-heading">
+          <span class="eyebrow">Inside the app</span>
           <h2>Beautiful enough to enjoy.<br><em>Serious enough to trust.</em></h2>
-          <p>Every surface is designed around the next meaningful decision—not notifications, streaks or addictive swipe loops.</p>
-          <ul class="check-list">
-            <li><span>✓</span> Intentional profile cards with visible relationship states</li>
-            <li><span>✓</span> India-wide city, state and mother-tongue discovery</li>
-            <li><span>✓</span> Interest limits that discourage spam</li>
-            <li><span>✓</span> Read-only history after a conversation ends</li>
-            <li><span>✓</span> Blocking that permanently hides both profiles</li>
-          </ul>
+          <p>These are the real Android screens. Every surface is designed around the next meaningful decision—not streaks, badges or addictive swipe loops.</p>
         </div>
-        <div class="phone-stage" role="img" aria-label="Illustrated preview of Silarah discovery">
-          <div class="phone-shell">
-            <div class="phone-top"><span>سيلارا</span><b>SILARAH</b><i></i></div>
-            <div class="filter-row"><span>Filters</span><span>Age</span><span>Sect</span></div>
-            <div class="phone-profile">
-              <div class="profile-gradient"></div>
-              <span class="profile-state">Photo privacy enabled</span>
-              <div class="profile-copy"><strong>Values before volume</strong><span>Faith · family · future</span><div><b>SUNNI</b><b>Practising</b></div></div>
-            </div>
-            <button type="button" tabindex="-1">Send Interest</button>
-          </div>
-          <div class="floating-product-note note-one"><span>✓</span><div><b>Clear trust signals</b><small>One badge, one meaning</small></div></div>
-          <div class="floating-product-note note-two"><span>◉</span><div><b>Photo controls</b><small>Visibility stays yours</small></div></div>
-        </div>
+      </div>
+      <div class="screen-rail" tabindex="0" aria-label="Silarah app screens, scroll sideways for more">
+        <figure class="screen-card">
+          <div class="device"><img src="/assets/screens/discover-640.webp" srcset="/assets/screens/discover-360.webp 360w, /assets/screens/discover-640.webp 640w" sizes="(max-width: 760px) 72vw, 272px" width="640" height="1363" loading="lazy" alt="Discover screen showing a profile card with name, city, profession, sect and practice, and a Send Interest button"></div>
+          <figcaption><b>Discover with intention</b><span>One profile at a time, with faith, city and profession before photos or chat.</span></figcaption>
+        </figure>
+        <figure class="screen-card">
+          <div class="device"><img src="/assets/screens/profile-640.webp" srcset="/assets/screens/profile-360.webp 360w, /assets/screens/profile-640.webp 640w" sizes="(max-width: 760px) 72vw, 272px" width="640" height="1363" loading="lazy" alt="Verified profile with mutual compatibility insights listing aligned preferences such as age, sect, deen, mother tongue and height"></div>
+          <figcaption><b>Compatibility you can read</b><span>Mutual insights show which stated preferences align, and why.</span></figcaption>
+        </figure>
+        <figure class="screen-card">
+          <div class="device"><img src="/assets/screens/filters-640.webp" srcset="/assets/screens/filters-360.webp 360w, /assets/screens/filters-640.webp 640w" sizes="(max-width: 760px) 72vw, 272px" width="640" height="1363" loading="lazy" alt="Refine discovery sheet with deen level, education, family type, marital status, children and trust check filters"></div>
+          <figcaption><b>Filters that respect detail</b><span>Deen level, family type, marital status and trust checks—saved as presets.</span></figcaption>
+        </figure>
+        <figure class="screen-card">
+          <div class="device"><img src="/assets/screens/privacy-640.webp" srcset="/assets/screens/privacy-360.webp 360w, /assets/screens/privacy-640.webp 640w" sizes="(max-width: 760px) 72vw, 272px" width="640" height="1363" loading="lazy" alt="Profile card whose photo is hidden until an interest is accepted"></div>
+          <figcaption><b>Photos stay private</b><span>Show photos to everyone, after an accepted interest, or one approved request at a time.</span></figcaption>
+        </figure>
+        <figure class="screen-card">
+          <div class="device"><img src="/assets/screens/guardian-640.webp" srcset="/assets/screens/guardian-360.webp 360w, /assets/screens/guardian-640.webp 640w" sizes="(max-width: 760px) 72vw, 272px" width="640" height="1363" loading="lazy" alt="Guardian Mode settings with a guardian's name, email and relationship, and an option to let the guardian reply"></div>
+          <figcaption><b>A wali when you want one</b><span>Invite a guardian you trust to stay close to your conversations.</span></figcaption>
+        </figure>
+        <figure class="screen-card">
+          <div class="device"><img src="/assets/screens/chat-640.webp" srcset="/assets/screens/chat-360.webp 360w, /assets/screens/chat-640.webp 640w" sizes="(max-width: 760px) 72vw, 272px" width="640" height="1363" loading="lazy" alt="Private chat after a mutual match, where both people agree to involve their families"></div>
+          <figcaption><b>Conversations with adab</b><span>Private chat after a mutual match, without sharing a phone number.</span></figcaption>
+        </figure>
+      </div>
+      <div class="shell showcase-foot">
+        <ul class="check-list showcase-list">
+          <li><span>✓</span> Profile guidance that shows what helps you appear higher in Discover</li>
+          <li><span>✓</span> Guided photo verification with human review</li>
+          <li><span>✓</span> Interest limits that discourage spam</li>
+          <li><span>✓</span> Blocking that permanently hides both profiles</li>
+          <li><span>✓</span> Ivory, rose and true-black themes</li>
+          <li><span>✓</span> English, Hindi, Urdu and more languages</li>
+        </ul>
+        <p class="screen-disclosure">Screens are from the Silarah Android app with demo profiles and illustrated portraits. They do not show real members.</p>
       </div>
     </section>
 
@@ -283,7 +309,8 @@
             <li><span>✓</span> Full messaging for men with active Premium</li>
             <li><span>✓</span> Up to 25 interests per day</li>
             <li><span>✓</span> Unlimited profile browsing</li>
-            <li><span>✓</span> Advanced income and distance filters</li>
+            <li><span>✓</span> All-India, state, city and trust filters</li>
+            <li><span>✓</span> Save multiple filter presets</li>
             <li><span>✓</span> See everyone who viewed your profile</li>
             <li><span>✓</span> Mutual compatibility insights with clear reasons</li>
             <li><span>✓</span> Private shortlists, notes and one-time reminders</li>

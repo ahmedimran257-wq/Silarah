@@ -52,7 +52,7 @@ function configureMotion() {
   if (motionPreference.matches || !('IntersectionObserver' in window)) return;
   document.documentElement.classList.add('motion-ready');
   const revealTargets = document.querySelectorAll(
-    '.section-heading,.feature-card,.journey-grid article,.media-layout > *,.trust-card-grid article,.platform-card,.safety-link-grid > a,.knowledge-grid > a,.india-editorial,.india-map-card',
+    '.section-heading,.feature-card,.screen-card,.journey-grid article,.media-layout > *,.trust-card-grid article,.platform-card,.safety-link-grid > a,.knowledge-grid > a,.india-editorial,.india-map-card',
   );
   revealObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach((entry) => {

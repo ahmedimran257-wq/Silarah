@@ -207,7 +207,7 @@ def page(c):
   <meta property="og:image" content="https://silarah.com/assets/campaign/silarah-social-1200x630.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <title>{escape(c['title'])}</title>
-  <link rel="stylesheet" href="/styles.css?v=20261024">
+  <link rel="stylesheet" href="/styles.css?v=20261106">
   <script type="application/ld+json">{structured_data(c)}</script>
 </head>
 <body class="marketing-page">

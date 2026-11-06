@@ -964,3 +964,34 @@ html:lang(ur) .section-heading h2, html:lang(ur) .pricing-copy h2, html:lang(ur)
 .content-grid.four { grid-template-columns: repeat(4,1fr); }
 @media (max-width: 1100px) { .content-grid.four { grid-template-columns: repeat(2,1fr); } }
 @media (max-width: 640px) { .content-grid.four { grid-template-columns: 1fr; } }
+
+/* Inside the app: real Android screens in a calm, swipeable gallery. */
+.app-showcase { overflow: hidden; background: radial-gradient(ellipse 70% 55% at 50% 42%, rgba(33,133,103,.09), transparent 70%), linear-gradient(180deg, var(--ink), #f2ede1 55%, var(--ink)); }
+.app-showcase .section-heading p { max-width: 620px; margin: 0 auto; color: var(--muted); font-size: 17px; }
+.screen-rail { display: flex; gap: 32px; margin-top: 64px; padding: 12px max(24px, calc((100vw - 1180px) / 2)) 64px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: max(24px, calc((100vw - 1180px) / 2)); scrollbar-width: thin; scrollbar-color: rgba(23,92,69,.25) transparent; outline-offset: -6px; }
+.screen-rail::-webkit-scrollbar { height: 6px; }
+.screen-rail::-webkit-scrollbar-thumb { border-radius: 99px; background: rgba(23,92,69,.22); }
+.screen-card { flex: 0 0 272px; margin: 0; scroll-snap-align: start; }
+.screen-card:nth-child(even) { margin-top: 44px; }
+.device { position: relative; padding: 9px; border-radius: 46px; background: linear-gradient(150deg, #24342c, #0d1511 60%, #1b2721); box-shadow: 0 1px 0 rgba(255,255,255,.14) inset, 0 0 0 1px rgba(10,20,15,.6), 0 44px 70px -34px rgba(20,52,38,.55), 0 18px 34px -22px rgba(20,52,38,.35); transition: transform .5s cubic-bezier(.22,1,.36,1), box-shadow .5s ease; }
+.device::after { content: ""; position: absolute; inset: 9px; border-radius: 37px; pointer-events: none; box-shadow: 0 0 0 1px rgba(0,0,0,.18) inset; background: linear-gradient(125deg, rgba(255,255,255,.16), transparent 32%); }
+.device img { width: 100%; height: auto; border-radius: 37px; background: #f7f3ea; }
+.screen-card figcaption { display: grid; gap: 6px; padding: 26px 6px 0; }
+.screen-card figcaption b { color: var(--text); font: 500 21px/1.25 var(--serif); letter-spacing: -.01em; }
+.screen-card figcaption span { color: var(--muted); font-size: 14px; line-height: 1.55; }
+.showcase-foot { display: grid; grid-template-columns: 1.4fr 1fr; gap: 48px; align-items: end; margin-top: 8px; }
+.showcase-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 28px; margin: 0; }
+.showcase-list li { font-size: 14px; line-height: 1.5; }
+.screen-disclosure { margin: 0; padding: 16px 18px; border: 1px solid var(--hairline); border-radius: 16px; color: var(--muted); background: rgba(255,253,248,.7); font-size: 13px; line-height: 1.55; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .screen-card:hover .device { transform: translateY(-8px); box-shadow: 0 1px 0 rgba(255,255,255,.14) inset, 0 0 0 1px rgba(10,20,15,.6), 0 60px 80px -36px rgba(20,52,38,.6), 0 22px 40px -24px rgba(20,52,38,.4); }
+}
+@media (max-width: 900px) {
+  .showcase-foot { grid-template-columns: 1fr; gap: 28px; }
+}
+@media (max-width: 760px) {
+  .screen-rail { gap: 18px; margin-top: 40px; padding: 8px 24px 44px; scroll-padding-inline: 24px; }
+  .screen-card { flex-basis: min(72vw, 280px); }
+  .screen-card:nth-child(even) { margin-top: 0; }
+  .showcase-list { grid-template-columns: 1fr; }
+}
