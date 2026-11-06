@@ -207,4 +207,48 @@ void main() {
           completion, contains("char_length(btrim(coalesce(p.bio, ''))) < 50"));
     });
   });
+
+  // Regression (6 Nov 2026): the daily 10:00 run missed a member reminded
+  // three days earlier by 12 ms, so the gap became four days at random.
+  group('migration 290: the 3-day gap has an hour of slack', () {
+    late String slack;
+
+    setUpAll(() {
+      slack = File(
+        'supabase/migrations/290_profile_reminder_gap_slack.sql',
+      ).readAsStringSync();
+    });
+
+    test('all three comparisons use the slack, none the exact 3 days', () {
+      const relaxed = "<= now() - interval '3 days' + interval '1 hour'";
+      expect(relaxed.allMatches(slack).length, 3);
+      expect(
+        RegExp(r"<= now\(\) - interval '3 days'(?! \+)").hasMatch(slack),
+        isFalse,
+      );
+      for (final signature in [
+        'private.profile_nudge_audience(p_user_id uuid)',
+        'public.dispatch_profile_nudge(p_user_id uuid)',
+        'public.dispatch_profile_nudges()',
+      ]) {
+        expect(slack, contains('CREATE OR REPLACE FUNCTION $signature'));
+      }
+    });
+
+    test('every other reminder rule from 289 is unchanged', () {
+      expect(slack, contains('sent.sent_count < 3'));
+      expect(
+          slack, contains("sent.last_sent_at <= now() - interval '14 days'"));
+      expect(slack, contains('GET DIAGNOSTICS v_claimed = ROW_COUNT'));
+      expect(slack, contains('PERFORM public.queue_notification('));
+      expect(
+          slack, contains("coalesce(u.account_role, 'member') <> 'guardian'"));
+      expect(slack, contains('coalesce(prefs.inactive_nudge, true) = true'));
+      expect(slack, contains('LIMIT 500'));
+      expect(
+          slack,
+          contains(
+              'GRANT EXECUTE ON FUNCTION public.dispatch_profile_nudges() TO service_role;'));
+    });
+  });
 }
