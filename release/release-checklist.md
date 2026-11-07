@@ -2,15 +2,17 @@
 
 ## Latest checkpoint — 7 November 2026 (closed-testing gate)
 
-Candidate: `1.0.0+42048` (42047 was published to internal testing on 7 Nov;
-42048 adds the fixes found during this gate). Branch `release/42045`.
+Candidate: `1.0.0+42048`, published to Internal testing on 7 Nov (42047
+went out earlier the same day; 42048 adds the fixes found during this gate).
+Branch `release/42045`.
 
 | Gate | Result | Evidence |
 |---|---|---|
 | `flutter analyze` | PASS | no issues (42047 and 42048) |
 | Full Flutter suite | PASS | 841/841 on 42047; 850/850 on 42048 |
 | Release AAB 42047 | PASS | upload-key signed, 112.7 MB, no `[perf]` / `SILARAH_PERF_LOG` in any `libapp.so`, symbols uploaded |
-| Internal testing release | PASS | 42047 active on Internal testing with en-US / hi-IN / ur notes |
+| Internal testing release | PASS | 42047, then 42048 active on Internal testing with en-US / hi-IN / ur notes |
+| 42048 fixes on device | PASS | 44048 on the OnePlus: a woman with Premium sees "Silarah Premium · Active" and Manage Subscription, which opens Google Play Subscriptions to cancel |
 | Upgrade on OnePlus (44046 to 44047) | PASS | session and data kept |
 | Payment lifecycle (test card) | PASS | see `revenuecat-qa.md`, results 7 Nov |
 | Two-account flow | PASS with fixes | profile-menu Block did nothing (fixed in 42048); see `device-qa.md` |
@@ -40,7 +42,6 @@ Fixed in 42048:
 
 Before inviting the 12 closed testers:
 
-- Publish 42048 to internal testing and smoke it on the OnePlus.
 - Testers who are not license testers pay real money for Premium. Either
   add all 12 to License testing (test card) or tell them in the invite.
 - Complete the Google Payments identity verification (BillDesk email) and
