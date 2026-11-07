@@ -587,6 +587,7 @@ class ChatCubit extends Cubit<ChatState> {
       if (c.id != conversationId) return c;
       return c.copyWith(
         isMatchClosed: true,
+        unreadCount: 0,
         closureMessage: 'This member has been blocked.',
       );
     }).toList();
@@ -954,20 +955,24 @@ class ChatCubit extends Cubit<ChatState> {
           );
 
     final status = row['match_status'] as String? ?? 'active';
+    final matchClosed = status == 'closed' ||
+        status == 'expired' ||
+        status == 'blocked' ||
+        status == 'reported' ||
+        row['member_unavailable'] == true;
     return Conversation(
       id: row['match_id'].toString(),
       matchName: row['other_first_name'] as String? ?? 'Member',
       matchLastInitial: row['other_last_initial'] as String? ?? '',
       messages: lastMessage == null ? const [] : [lastMessage],
-      unreadCount: (row['unread_count'] as num?)?.toInt() ?? 0,
+      // A closed or blocked conversation cannot continue, so its leftover
+      // unread messages no longer count towards badges.
+      unreadCount:
+          matchClosed ? 0 : (row['unread_count'] as num?)?.toInt() ?? 0,
       matchId: row['match_id'].toString(),
       otherUserId: row['other_user_id']?.toString(),
       photoUrl: photoUrls[row['other_user_id']?.toString()],
-      isMatchClosed: status == 'closed' ||
-          status == 'expired' ||
-          status == 'blocked' ||
-          status == 'reported' ||
-          row['member_unavailable'] == true,
+      isMatchClosed: matchClosed,
       memberUnavailable: row['member_unavailable'] == true,
       closureMessage: row['closure_reason'] as String?,
       closedByMe: row['closed_by'] == null ? null : row['closed_by'] == me,

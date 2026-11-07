@@ -193,6 +193,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'لم نتمكن من إرسال رمز التحقق. تحقق من العنوان أو حاول مرة أخرى قريبًا.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'لم نتمكن من التحقق من بدلك اليومي. تحقق من اتصالك وحاول مرة أخرى.',
+    'We could not refresh your profile.': 'تعذر تحديث ملفك الشخصي.',
     'We could not block this member. Please try again.':
         'لم نتمكن من حظر هذا العضو. يرجى المحاولة مرة أخرى.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -431,6 +432,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'আমরা একটি যাচাইকরণ কোড পাঠাতে পারিনি৷ ঠিকানা চেক করুন বা শীঘ্রই আবার চেষ্টা করুন.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'আমরা আপনার দৈনিক ভাতা যাচাই করতে পারিনি। আপনার সংযোগ পরীক্ষা করুন এবং আবার চেষ্টা করুন.',
+    'We could not refresh your profile.':
+        'আমরা আপনার প্রোফাইল রিফ্রেশ করতে পারিনি।',
     'We could not block this member. Please try again.':
         'আমরা এই সদস্যকে ব্লক করতে পারিনি। আবার চেষ্টা করুন।',
     'Blocked. They can no longer see your profile or contact you.':
@@ -676,6 +679,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Wir konnten keinen Bestätigungscode senden. Überprüfen Sie die Adresse oder versuchen Sie es in Kürze noch einmal.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'Wir konnten Ihr Tagegeld nicht überprüfen. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+    'We could not refresh your profile.':
+        'Wir konnten Ihr Profil nicht aktualisieren.',
     'We could not block this member. Please try again.':
         'Wir konnten dieses Mitglied nicht blockieren. Bitte versuchen Sie es erneut.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -922,6 +927,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Nous n\'avons pas pu envoyer de code de vérification. Vérifiez l\'adresse ou réessayez sous peu.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'Nous n\'avons pas pu vérifier votre indemnité journalière. Vérifiez votre connexion et réessayez.',
+    'We could not refresh your profile.':
+        'Nous n’avons pas pu actualiser votre profil.',
     'We could not block this member. Please try again.':
         "Nous n'avons pas pu bloquer ce membre. Veuillez réessayer.",
     'Blocked. They can no longer see your profile or contact you.':
@@ -1163,6 +1170,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'हम सत्यापन कोड नहीं भेज सके. पता जाँचें या शीघ्र ही पुनः प्रयास करें।',
     'We could not verify your daily allowance. Check your connection and try again.':
         'हम आपके दैनिक भत्ते का सत्यापन नहीं कर सके। अपना कनेक्शन जांचें और पुनः प्रयास करें।',
+    'We could not refresh your profile.':
+        'हम आपकी प्रोफ़ाइल रीफ़्रेश नहीं कर सके।',
     'We could not block this member. Please try again.':
         'हम इस सदस्य को ब्लॉक नहीं कर सके। कृपया फिर से प्रयास करें।',
     'Blocked. They can no longer see your profile or contact you.':
@@ -1402,6 +1411,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Kami tidak dapat mengirimkan kode verifikasi. Periksa alamatnya atau coba lagi sebentar lagi.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'Kami tidak dapat memverifikasi tunjangan harian Anda. Periksa koneksi Anda dan coba lagi.',
+    'We could not refresh your profile.':
+        'Kami tidak dapat memuat ulang profil Anda.',
     'We could not block this member. Please try again.':
         'Kami tidak dapat memblokir anggota ini. Silakan coba lagi.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -1643,6 +1654,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Kami tidak dapat menghantar kod pengesahan. Semak alamat atau cuba sebentar lagi.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'Kami tidak dapat mengesahkan elaun harian anda. Semak sambungan anda dan cuba lagi.',
+    'We could not refresh your profile.':
+        'Kami tidak dapat memuat semula profil anda.',
     'We could not block this member. Please try again.':
         'Kami tidak dapat menyekat ahli ini. Sila cuba lagi.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -1883,6 +1896,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Doğrulama kodunu gönderemedik. Adresi kontrol edin veya kısa süre sonra tekrar deneyin.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'Günlük ödeneğinizi doğrulayamadık. Bağlantınızı kontrol edip tekrar deneyin.',
+    'We could not refresh your profile.': 'Profilinizi yenileyemedik.',
     'We could not block this member. Please try again.':
         'Bu üyeyi engelleyemedik. Lütfen tekrar deneyin.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -2122,6 +2136,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'ہم تصدیقی کوڈ نہیں بھیج سکے۔ پتہ چیک کریں یا جلد ہی دوبارہ کوشش کریں۔',
     'We could not verify your daily allowance. Check your connection and try again.':
         'ہم آپ کے یومیہ الاؤنس کی تصدیق نہیں کر سکے۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔',
+    'We could not refresh your profile.': 'ہم آپ کی پروفائل تازہ نہیں کر سکے۔',
     'We could not block this member. Please try again.':
         'ہم اس رکن کو بلاک نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں۔',
     'Blocked. They can no longer see your profile or contact you.':

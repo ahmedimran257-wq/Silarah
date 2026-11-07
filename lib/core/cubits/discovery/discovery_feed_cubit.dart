@@ -402,6 +402,50 @@ class DiscoveryFeedCubit extends Cubit<DiscoveryFeedState> {
     }
   }
 
+  /// A new match unlocks "visible after acceptance" photos on the server,
+  /// but cards already in the feed were built while they were locked. Fetch
+  /// the now-authorised main photo for those members and unlock the card in
+  /// place, without reloading the whole feed.
+  Future<void> revealPhotosForMatches(Set<String> matchedUserIds) async {
+    if (matchedUserIds.isEmpty || isClosed) return;
+    final locked = state.profiles
+        .where((entry) =>
+            matchedUserIds.contains(entry.profile.id) &&
+            entry.profile.photoUrl == null &&
+            entry.profile.photoCount > 0)
+        .map((entry) => entry.profile.id)
+        .toSet();
+    if (locked.isEmpty) return;
+    final revealed = <String, String>{};
+    for (final userId in locked) {
+      try {
+        final url = await ProfilePhotoService.instance.getAuthorizedPhotoUrl(
+          ownerUserId: userId,
+          forceRefresh: true,
+        );
+        if (url != null && url.isNotEmpty) revealed[userId] = url;
+      } catch (error) {
+        debugPrint('DiscoveryFeedCubit: photo reveal skipped: $error');
+      }
+    }
+    if (revealed.isEmpty || isClosed) return;
+    emit(state.copyWith(
+      profiles: [
+        for (final entry in state.profiles)
+          revealed.containsKey(entry.profile.id)
+              ? FeedProfile(
+                  profile: entry.profile.copyWith(
+                    photoUrl: revealed[entry.profile.id],
+                    isPhotoPrivate: false,
+                  ),
+                  isWildCard: entry.isWildCard,
+                  lastActiveAt: entry.lastActiveAt,
+                )
+              : entry,
+      ],
+    ));
+  }
+
   Future<_ProfileViewQuota> _loadServerViewQuota() async {
     if (!SupabaseService.isInitialized) {
       throw StateError('Discovery quota requires an authenticated session.');

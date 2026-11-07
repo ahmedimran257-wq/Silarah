@@ -271,83 +271,93 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
     final hiddenProfileIds = context.select<BlockReportCubit, Set<String>>(
       (cubit) => cubit.state.hiddenProfileIds,
     );
-    return BlocConsumer<DiscoveryFeedCubit, DiscoveryFeedState>(
+    return BlocListener<InterestsCubit, InterestsState>(
       listenWhen: (previous, current) =>
-          previous.activeFilter != current.activeFilter ||
-          previous.profiles != current.profiles,
-      listener: (context, state) {
-        if (_lastObservedFilter != state.activeFilter) {
-          _lastObservedFilter = state.activeFilter;
-          _currentPage = 0;
-        }
-        _scheduleRematchCountdown(state.profiles);
-        if (_currentPage >= state.profiles.length &&
-            state.profiles.isNotEmpty) {
-          _currentPage = state.profiles.length - 1;
-        }
-        if (_pageCtrl.positions.length == 1 &&
-            _currentPage < state.profiles.length) {
-          _pageCtrl.jumpToPage(_currentPage);
-        }
+          current.matches.length > previous.matches.length,
+      listener: (context, current) {
+        final ids = {for (final m in current.matches) m.profile.id};
+        unawaited(
+            context.read<DiscoveryFeedCubit>().revealPhotosForMatches(ids));
       },
-      builder: (context, feedState) {
-        return RefreshIndicator(
-          color: AppColors.champagneGold,
-          backgroundColor: AppColors.obsidianNight,
-          onRefresh: () async {
-            _recordedViewIds.clear();
-            await context.read<DiscoveryFeedCubit>().loadInitial(force: true);
-          },
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppDimensions.space24,
-                    AppDimensions.space16,
-                    AppDimensions.space24,
-                    AppDimensions.space12,
-                  ),
-                  child: Row(
-                    children: [
-                      UiText('سيلارا',
-                          style: AppTypography.wordmark.copyWith(fontSize: 26)),
-                      const SizedBox(width: AppDimensions.space8),
-                      UiText('SILARAH', style: AppTypography.wordmark),
-                      const Spacer(),
-                      // Free-tier counter badge
-                      if ((feedState.status == FeedStatus.loaded ||
-                              feedState.status == FeedStatus.refreshing ||
-                              feedState.status == FeedStatus.loadingMore) &&
-                          feedState.dailyLimit < 1000000)
-                        _FreeTierCounter(remaining: feedState.remainingToday),
-                      const SizedBox(width: AppDimensions.space12),
-                      _NotificationButton(),
-                    ],
+      child: BlocConsumer<DiscoveryFeedCubit, DiscoveryFeedState>(
+        listenWhen: (previous, current) =>
+            previous.activeFilter != current.activeFilter ||
+            previous.profiles != current.profiles,
+        listener: (context, state) {
+          if (_lastObservedFilter != state.activeFilter) {
+            _lastObservedFilter = state.activeFilter;
+            _currentPage = 0;
+          }
+          _scheduleRematchCountdown(state.profiles);
+          if (_currentPage >= state.profiles.length &&
+              state.profiles.isNotEmpty) {
+            _currentPage = state.profiles.length - 1;
+          }
+          if (_pageCtrl.positions.length == 1 &&
+              _currentPage < state.profiles.length) {
+            _pageCtrl.jumpToPage(_currentPage);
+          }
+        },
+        builder: (context, feedState) {
+          return RefreshIndicator(
+            color: AppColors.champagneGold,
+            backgroundColor: AppColors.obsidianNight,
+            onRefresh: () async {
+              _recordedViewIds.clear();
+              await context.read<DiscoveryFeedCubit>().loadInitial(force: true);
+            },
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppDimensions.space24,
+                      AppDimensions.space16,
+                      AppDimensions.space24,
+                      AppDimensions.space12,
+                    ),
+                    child: Row(
+                      children: [
+                        UiText('سيلارا',
+                            style:
+                                AppTypography.wordmark.copyWith(fontSize: 26)),
+                        const SizedBox(width: AppDimensions.space8),
+                        UiText('SILARAH', style: AppTypography.wordmark),
+                        const Spacer(),
+                        // Free-tier counter badge
+                        if ((feedState.status == FeedStatus.loaded ||
+                                feedState.status == FeedStatus.refreshing ||
+                                feedState.status == FeedStatus.loadingMore) &&
+                            feedState.dailyLimit < 1000000)
+                          _FreeTierCounter(remaining: feedState.remainingToday),
+                        const SizedBox(width: AppDimensions.space12),
+                        _NotificationButton(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              // Filter bar
-              const SliverToBoxAdapter(child: DiscoveryFilterBar()),
-              const SliverToBoxAdapter(
-                  child: SizedBox(height: AppDimensions.space16)),
+                // Filter bar
+                const SliverToBoxAdapter(child: DiscoveryFilterBar()),
+                const SliverToBoxAdapter(
+                    child: SizedBox(height: AppDimensions.space16)),
 
-              // Card carousel
-              SliverFillRemaining(
-                hasScrollBody: true,
-                child: _buildCarousel(
-                  feedState,
-                  interests,
-                  canMessage,
-                  hiddenProfileIds,
+                // Card carousel
+                SliverFillRemaining(
+                  hasScrollBody: true,
+                  child: _buildCarousel(
+                    feedState,
+                    interests,
+                    canMessage,
+                    hiddenProfileIds,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 

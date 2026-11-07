@@ -83,15 +83,20 @@ void main() {
     expect(sheetResult, isTrue);
   });
 
-  test('women who pay see Premium status and Manage Subscription', () {
+  test('paying members see Premium status near the top of Profile', () {
     final source = File('lib/features/home/screens/my_profile_screen.dart')
         .readAsStringSync();
-    // Only the upgrade prompt is hidden for women; active and grace cards,
-    // which carry Manage Subscription, are shown to everyone.
+    final statusAt = source.indexOf('const _SubscriptionCard.status()');
+    final qualityAt = source.indexOf('// Profile card preview');
+    final upgradeAt = source.indexOf('const _SubscriptionCard.upgrade()');
+    expect(statusAt, greaterThan(0));
+    // Status sits above the profile quality card; the upsell stays lower.
+    expect(statusAt, lessThan(qualityAt));
+    expect(upgradeAt, greaterThan(qualityAt));
+    // Only the upgrade prompt is hidden for women; their paid status shows.
     expect(
       source,
-      contains(
-          "if (gender == 'female' && state.status == SubscriptionStatus.none)"),
+      contains("state.status != SubscriptionStatus.none || gender == 'female'"),
     );
     expect(source, isNot(contains('!state.includesReferral &&')));
   });

@@ -116,6 +116,11 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   String? _accountEmail;
   String? _primaryPhotoUrl;
   int _approvedPhotoCount = 0;
+  // False until the server has answered once, so a failed read is never
+  // shown as "you have no photos".
+  bool _photoCountKnown = false;
+  bool _profileRefreshFailed = false;
+  Timer? _profileRetryTimer;
   bool _photoRefreshInFlight = false;
   bool _profilePreviewOpening = false;
   bool _profileRefreshInFlight = false;
@@ -156,6 +161,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
 
   @override
   void dispose() {
+    _profileRetryTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -421,6 +427,20 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         _loadIncognito(force: force),
       ]);
       _lastProfileRefreshAt = DateTime.now();
+      if (mounted && _profileRefreshFailed) {
+        setState(() => _profileRefreshFailed = false);
+      }
+    } catch (error) {
+      // Usually the network waking up after unlock or resume. Say so and
+      // try again shortly instead of showing an empty-looking profile.
+      debugPrint('[MyProfile] Profile refresh failed: $error');
+      if (mounted) {
+        setState(() => _profileRefreshFailed = true);
+        _profileRetryTimer?.cancel();
+        _profileRetryTimer = Timer(const Duration(seconds: 8), () {
+          if (mounted) unawaited(_refreshProfileFromDb(force: true));
+        });
+      }
     } finally {
       _profileRefreshInFlight = false;
     }
@@ -480,9 +500,14 @@ class _MyProfileScreenState extends State<MyProfileScreen>
           .eq('status', 'active')
           .eq('admin_approved', true)
           .eq('nsfw_cleared', true);
-      if (mounted) setState(() => _approvedPhotoCount = rows.length);
+      if (mounted) {
+        setState(() {
+          _approvedPhotoCount = rows.length;
+          _photoCountKnown = true;
+        });
+      }
     } catch (_) {
-      if (mounted) setState(() => _approvedPhotoCount = 0);
+      // Keep the last known count; an unreachable server is not zero photos.
     }
   }
 
@@ -569,6 +594,9 @@ class _MyProfileScreenState extends State<MyProfileScreen>
 
             const SizedBox(height: AppDimensions.space16),
 
+            // Paid Premium status and Manage Subscription, near the top.
+            const _SubscriptionCard.status(),
+
             BlocBuilder<SubscriptionCubit, SubscriptionState>(
               builder: (context, subscription) {
                 if (!subscription.isTemporaryPromotional) {
@@ -585,6 +613,14 @@ class _MyProfileScreenState extends State<MyProfileScreen>
               },
             ),
 
+            if (_profileRefreshFailed)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+                child: _ProfileRefreshNotice(
+                  onRetry: () => _refreshProfileFromDb(force: true),
+                ),
+              ),
+
             // Profile card preview (live completeness)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -597,7 +633,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                   );
                   return _ProfilePreviewCard(
                     score: result.score,
-                    nextStep: result.next,
+                    nextStep: _photoCountKnown ? result.next : null,
                     data: data,
                     guardianManaged: guardianManaged,
                     hasVerificationBadge: _hasVerificationBadge,
@@ -645,13 +681,8 @@ class _MyProfileScreenState extends State<MyProfileScreen>
 
             const SizedBox(height: AppDimensions.space16),
 
-            // Subscription card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: _SubscriptionCard(),
-            ),
-
-            const SizedBox(height: AppDimensions.space16),
+            // Upgrade prompt for members without Premium.
+            const _SubscriptionCard.upgrade(),
 
             // Boost Section
             Padding(
@@ -1846,7 +1877,19 @@ class _ReferralPremiumProfileBanner extends StatelessWidget {
 }
 
 // Subscription Card
+/// Paid Premium status (and payment problems) sit near the top of Profile,
+/// where a member looks first; the upgrade prompt for non-members stays
+/// lower, beside the Premium features it unlocks.
+enum _SubscriptionCardPlacement { status, upgrade }
+
 class _SubscriptionCard extends StatelessWidget {
+  const _SubscriptionCard.status()
+      : placement = _SubscriptionCardPlacement.status;
+  const _SubscriptionCard.upgrade()
+      : placement = _SubscriptionCardPlacement.upgrade;
+
+  final _SubscriptionCardPlacement placement;
+
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthCubit>().state;
@@ -1855,17 +1898,30 @@ class _SubscriptionCard extends StatelessWidget {
 
     return BlocBuilder<SubscriptionCubit, SubscriptionState>(
       builder: (context, state) {
-        // Women message free, so they are not shown the upgrade prompt. A
-        // woman who does subscribe still needs to see that Premium is on
-        // and to reach Manage Subscription, where Google Play cancels it.
-        if (gender == 'female' && state.status == SubscriptionStatus.none) {
-          return const SizedBox.shrink();
+        final Widget card;
+        if (placement == _SubscriptionCardPlacement.upgrade) {
+          // Women message free, so they are not shown the upgrade prompt.
+          if (state.status != SubscriptionStatus.none || gender == 'female') {
+            return const SizedBox.shrink();
+          }
+          card = _buildUpgrade(context);
+        } else {
+          // Referral and test Premium have their own banner at the top.
+          if (state.status == SubscriptionStatus.none ||
+              (state.status == SubscriptionStatus.active &&
+                  state.isTemporaryPromotional)) {
+            return const SizedBox.shrink();
+          }
+          // Every paying member, women included, sees Premium is on and can
+          // reach Manage Subscription, where Google Play cancels it.
+          card = state.status == SubscriptionStatus.grace
+              ? _buildGrace(context)
+              : _buildActive(context, state);
         }
-        return switch (state.status) {
-          SubscriptionStatus.active => _buildActive(context, state),
-          SubscriptionStatus.grace => _buildGrace(context),
-          SubscriptionStatus.none => _buildUpgrade(context),
-        };
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+          child: card,
+        );
       },
     );
   }
@@ -2632,6 +2688,45 @@ class _IFoundMyMatchButton extends StatelessWidget {
             const SizedBox(height: AppDimensions.space8),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ProfileRefreshNotice extends StatelessWidget {
+  const _ProfileRefreshNotice({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGlass,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.cloud_off_rounded,
+              color: AppColors.slateMist, size: AppDimensions.iconSizeSmall),
+          const SizedBox(width: 10),
+          Expanded(
+            child: UiText(
+              context.uiCopy('We could not refresh your profile.'),
+              style: AppTypography.caption,
+            ),
+          ),
+          TextButton(
+            onPressed: onRetry,
+            child: UiText(
+              context.uiCopy('Retry'),
+              style: AppTypography.captionMedium
+                  .copyWith(color: AppColors.champagneGold),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -95,10 +95,18 @@ void main() {
   });
 
   test('at the expiry moment the store is asked fresh, once', () async {
-    expiresAt = DateTime.now().add(const Duration(milliseconds: 300));
+    // Leave room for a slow login under a busy full-suite run: if login took
+    // longer than the time to expiry, the timer would arm for an already
+    // overdue expiry (the one-minute retry) and this check would be flaky.
+    final expiry = DateTime.now().add(const Duration(milliseconds: 1500));
+    expiresAt = expiry;
     await cubit.loginUser('fixture-user');
     final readsAfterLogin = serverReads;
-    await Future<void>.delayed(const Duration(milliseconds: 1800));
+    final untilExpiry = expiry.difference(DateTime.now());
+    await Future<void>.delayed(
+      (untilExpiry.isNegative ? Duration.zero : untilExpiry) +
+          const Duration(milliseconds: 1500),
+    );
     expect(cacheInvalidations, 1);
     expect(serverReads - readsAfterLogin, 1);
   });
