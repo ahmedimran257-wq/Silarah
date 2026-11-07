@@ -63,6 +63,22 @@ void main() {
             '!(eventType === "EXPIRATION" && applyResult?.access_kept === true)'));
   });
 
+  // Play renews at the period end and the RENEWAL webhook follows about 37
+  // seconds later; a renewing member must not read as expired meanwhile.
+  test('paid access carries renewal slack, grace keeps the store expiry', () {
+    final sql =
+        File('supabase/migrations/291_renewal_slack_for_paid_access.sql')
+            .readAsStringSync();
+    expect(
+        sql,
+        contains("subscription_expires_at = CASE WHEN v_status = 'active'\n"
+            "        THEN v_expires_at + interval '10 minutes' ELSE v_expires_at END,"));
+    // The ledger and emails keep the store's own expiry.
+    expect(
+        sql, contains('p_product_id, p_currency, p_price, p_event_expires_at'));
+    expect(sql, contains("'expires_at', p_event_expires_at"));
+  });
+
   // RevenueCat retries every non-2xx response. Transfers carry no product to
   // validate and, with "transfer if there are no active subscriptions", move
   // no access.

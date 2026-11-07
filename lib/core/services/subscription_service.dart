@@ -210,6 +210,14 @@ class UnconfirmedPurchaseMemory {
     return null;
   }
 
+  /// Whether the fresh unconfirmed payment is one Play holds as pending
+  /// (a restore cannot settle it), rather than a lost result.
+  static Future<bool> isPending(String userId, {DateTime? now}) async {
+    if (await plan(userId, now: now) == null) return false;
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_key(userId))?.endsWith('|pending') ?? false;
+  }
+
   /// Premium became active, or a restore found nothing (which settles a lost
   /// result but not a payment Play still holds as pending).
   static Future<void> clear(String userId, {bool keepPending = false}) async {
@@ -333,8 +341,10 @@ class SubscriptionService {
             outcome: SubscriptionPurchaseOutcome.failed);
       }
       if (unconfirmedPlan != null && unconfirmedPlan != plan) {
-        return const SubscriptionPurchaseResult(
+        final pending = await UnconfirmedPurchaseMemory.isPending(userId!);
+        return SubscriptionPurchaseResult(
           outcome: SubscriptionPurchaseOutcome.otherPlanUnconfirmed,
+          errorCode: pending ? PurchasesErrorCode.paymentPendingError : null,
         );
       }
 

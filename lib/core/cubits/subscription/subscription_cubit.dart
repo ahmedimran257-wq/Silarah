@@ -239,6 +239,9 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
       final message = switch (purchase.outcome) {
         SubscriptionPurchaseOutcome.unconfirmed =>
           'The connection dropped before Google Play confirmed. If you were charged, Premium switches on automatically once you are back online. Please tap Restore Purchase rather than paying again.',
+        SubscriptionPurchaseOutcome.otherPlanUnconfirmed
+            when purchase.errorCode == PurchasesErrorCode.paymentPendingError =>
+          _pendingPaymentMessage,
         SubscriptionPurchaseOutcome.otherPlanUnconfirmed =>
           'Your last Google Play payment has not been confirmed yet. To avoid paying twice, wait for it to finish or tap Restore Purchase before choosing a different plan.',
         SubscriptionPurchaseOutcome.billingIssue =>
@@ -258,6 +261,9 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
       return false;
     }
   }
+
+  static const _pendingPaymentMessage =
+      'Your Google Play payment is still pending. Premium switches on automatically once Google Play confirms it. To avoid paying twice, please wait for it, or cancel it in Google Play, before choosing a different plan.';
 
   String _purchaseErrorMessage(PurchasesErrorCode? code) {
     return switch (code) {
@@ -322,9 +328,16 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
           successMessage: 'Alhamdulillah! Your subscription has been restored.',
         );
       } else {
+        // Play holds a pending payment outside the purchases a restore
+        // returns; "nothing found" would invite paying again.
+        final pending =
+            await UnconfirmedPurchaseMemory.isPending(_loggedInUserId!);
+        if (!_isCurrentSession(generation)) return;
         emit(state.copyWith(
           isLoading: false,
-          error: 'No previous purchases found for this account.',
+          error: pending
+              ? _pendingPaymentMessage
+              : 'No previous purchases found for this account.',
         ));
       }
     } catch (e) {
@@ -465,18 +478,32 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
     _armExpiryRefresh(expiry);
   }
 
+  // RevenueCat's cached copy can still read as active after its expiry date
+  // (for minutes, or days offline). An expiry that is already past is
+  // re-checked once a minute, not in a tight loop of server reads.
+  static const _overdueExpiryRetry = Duration(minutes: 1);
+
   void _armExpiryRefresh(DateTime? expiresAt) {
     _expiryTimer?.cancel();
     if (expiresAt == null || _loggedInUserId == null) return;
     final delay = expiresAt.difference(DateTime.now());
     _expiryTimer = Timer(
-      delay.isNegative ? const Duration(milliseconds: 250) : delay,
+      delay.isNegative ? _overdueExpiryRetry : delay,
       () {
         if (!isClosed && _loggedInUserId != null) {
-          unawaited(refreshEntitlement());
+          unawaited(_refreshAfterExpiry());
         }
       },
     );
+  }
+
+  Future<void> _refreshAfterExpiry() async {
+    try {
+      await Purchases.invalidateCustomerInfoCache();
+    } catch (e) {
+      debugPrint('[SubscriptionCubit] Cache invalidation skipped: $e');
+    }
+    await refreshEntitlement();
   }
 
   // Login and the listener replay at startup used to read this twice.

@@ -177,9 +177,12 @@ void main() {
     expect(cubit.state.isLoading, isFalse);
 
     await cubit.restore();
+    // "No purchases found" would invite paying again.
+    expect(cubit.state.error, contains('still pending'));
     purchased.clear();
     expect(await cubit.purchase(threeMonth), isFalse);
     expect(purchased, isEmpty);
+    expect(cubit.state.error, contains('still pending'));
     expect(cubit.state.error, contains('avoid paying twice'));
 
     // Play itself refuses a duplicate of the same plan.
