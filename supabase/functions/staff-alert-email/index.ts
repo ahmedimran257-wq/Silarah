@@ -106,12 +106,17 @@ async function sendAlert(alert: QueuedAlert, recipients: string[]) {
     ? `Silarah: free-plan limit at ${level}`
     : "Silarah: system alert";
   const when = new Date(alert.created_at).toUTCString();
-  const html = `<!doctype html><html><body style="margin:0;padding:24px;background:#F7F3EA;font-family:Arial,sans-serif;color:#1E2B26">
+  const html =
+    `<!doctype html><html><body style="margin:0;padding:24px;background:#F7F3EA;font-family:Arial,sans-serif;color:#1E2B26">
 <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #E5DCCB;border-radius:12px;padding:24px">
 <p style="margin:0 0 6px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#A3402C">Staff alert</p>
 <h1 style="margin:0 0 16px;font-size:20px">${escapeHtml(subject)}</h1>
-<p style="margin:0 0 16px;font-size:16px;line-height:24px">${escapeHtml(alert.message)}</p>
-<p style="margin:0 0 16px;font-size:13px;color:#6B6458">Raised ${escapeHtml(when)}.</p>
+<p style="margin:0 0 16px;font-size:16px;line-height:24px">${
+      escapeHtml(alert.message)
+    }</p>
+<p style="margin:0 0 16px;font-size:13px;color:#6B6458">Raised ${
+      escapeHtml(when)
+    }.</p>
 <p style="margin:0"><a href="${ADMIN_URL}" style="color:#175C45;font-weight:bold">Open System health</a></p>
 </div>
 <p style="max-width:560px;margin:12px auto 0;font-size:12px;color:#8A8274">You receive this because you are active Silarah staff. One email is sent when an alert first fires.</p>
