@@ -1,21 +1,52 @@
 # First production release checklist
 
-## Latest checkpoint — 23 September 2026
+## Latest checkpoint — 7 November 2026 (closed-testing gate)
 
-The historical checks below are not blanket sign-off for the current candidate.
-The working tree is still unfrozen, and deployment/payment gates remain open.
+Candidate: `1.0.0+42048` (42047 was published to internal testing on 7 Nov;
+42048 adds the fixes found during this gate). Branch `release/42045`.
 
-- Full Flutter suite: **603 tests passed** on 22 September after the privacy
-  localization fixes (`tmp-release-full-tests.log`).
-- Dart format: 306 files checked, zero changes on 22 September.
-- Flutter analysis rerun on 23 September: **no issues found**
-  (`tmp-release-analysis.log`).
-- Play product/entitlement/offering setup completed; see `revenuecat-qa.md`.
-  Actual Play-delivered purchase lifecycle testing is still pending.
-- New candidate source version is `1.0.0+42043`, selected after checking Play's
-  latest uploaded bundle (`42042`). Older artifact/version references below
-  describe historical tests only. The new candidate still needs exact-commit
-  CI, signed bundle validation and internal-track delivery.
+| Gate | Result | Evidence |
+|---|---|---|
+| `flutter analyze` | PASS | no issues (42047 and 42048) |
+| Full Flutter suite | PASS | 841/841 on 42047; 850/850 on 42048 |
+| Release AAB 42047 | PASS | upload-key signed, 112.7 MB, no `[perf]` / `SILARAH_PERF_LOG` in any `libapp.so`, symbols uploaded |
+| Internal testing release | PASS | 42047 active on Internal testing with en-US / hi-IN / ur notes |
+| Upgrade on OnePlus (44046 to 44047) | PASS | session and data kept |
+| Payment lifecycle (test card) | PASS | see `revenuecat-qa.md`, results 7 Nov |
+| Two-account flow | PASS with fixes | profile-menu Block did nothing (fixed in 42048); see `device-qa.md` |
+| New-user path | PASS | one sign-up code email; 5 steps saved; resume after force-stop; photo uploaded |
+| Crashlytics | PASS | controlled non-fatal `uncaught:network_unreachable` from 46047 (42047 source); 0 crashes in 24 h |
+| Android 9 (API 28 emulator) | PASS | launch, sign-in, Discover, paywall render (plans need Play, absent on emulator) |
+| Delete account | PASS | `pending_deletion`, signed out, 30-day recovery shown |
+| Payments profile | BLOCKED (owner) | see "Requires the Google Play developer account" |
+
+Fixed in 42048:
+
+- Profile → ⋮ → Block confirmed but never called `block_member` (the
+  sheet's context was gone after it closed). Covered by
+  `test/profile_block_flow_test.dart`.
+- Women who pay for Premium saw no Premium status card and no Manage
+  Subscription (Google Play cancel) link; the card was hidden for all women.
+- After a report, a member who cannot open the chat (men without Premium)
+  had no way to block; the report confirmation now offers "Block {name}".
+- Push notifications showed a grey disc as the status-bar icon; a
+  monochrome `ic_stat_silarah` icon is now the FCM default.
+- "Messages" title wrapped mid-word next to the unread badge.
+- "We could not verify your daily allowance" popped up after any
+  background allowance refresh failed (usually the network waking after
+  unlock). The server never failed (34/34 OK in 24 h). Background refreshes
+  now retry quietly; the message shows only when sending an interest
+  cannot be checked.
+
+Before inviting the 12 closed testers:
+
+- Publish 42048 to internal testing and smoke it on the OnePlus.
+- Testers who are not license testers pay real money for Premium. Either
+  add all 12 to License testing (test card) or tell them in the invite.
+- Complete the Google Payments identity verification (BillDesk email) and
+  add a payout bank account; without them Google holds payouts.
+- Dismiss the QA report "QA testing report - please dismiss" against
+  Khatun in the admin moderation queue.
 
 ## Automated and repository gates
 
@@ -29,9 +60,8 @@ The working tree is still unfrozen, and deployment/payment gates remain open.
       Flutter plugin-registration, Firebase Messaging, App Check or Shared
       Preferences startup errors (ABI-split local test build `34029`; not a
       store artifact). Offline cold start and automatic online recovery pass.
-- [ ] Rebuild the final release AAB with the permanent upload certificate;
-      the previous AAB predates the latest Gradle/source changes and is invalid.
-- [ ] Review the size and signature of that exact final AAB.
+- [x] Release AAB built with the upload certificate (42047, 7 Nov).
+- [x] Size (112.7 MB) and upload-key signature checked for 42047.
 - [ ] Source is committed, pushed and tagged from a clean worktree.
 
 ## External configuration that can be completed before Play purchase
@@ -43,9 +73,8 @@ The working tree is still unfrozen, and deployment/payment gates remain open.
 - [x] `/.well-known/assetlinks.json` contains the upload certificate until Play
       App Signing provides the production app-signing certificate.
 - [x] Support, safety, privacy and grievance addresses receive transactional mail.
-- [ ] Crashlytics initializes and the release mapping upload is wired. Upload
-      symbols and confirm a controlled event in Firebase for the exact final
-      candidate (current source version `1.0.0+42045`) before widening testers.
+- [x] Crashlytics symbols uploaded with the 42047 build; a controlled
+      non-fatal from the 42047 source reached Firebase on 7 Nov.
 - [x] RevenueCat Test Store exposes the current monthly and three-month packages;
       Android purchase, restore, cancellation, forced failure and accelerated
       renewal/expiry pass. Production webhook state remains a Play sandbox/staging
@@ -67,17 +96,22 @@ The working tree is still unfrozen, and deployment/payment gates remain open.
 ## Requires the Google Play developer account
 
 - [x] Create the Play app with package `com.silarah.app`.
-- [ ] Complete the standard Google Payments merchant profile, bank and tax setup required for Google Play Billing in India. Do not configure BillDesk or alternative billing for this India-only release.
+- [ ] Google Payments merchant profile: 7 Nov check found both payments
+      accounts flagged "Issue with account", a critical alert "Verify your
+      identity" (BillDesk PA-CB verification email to imranahmed8341@gmail.com,
+      status In progress), no payout bank account under Payment methods and
+      no tax section shown. Owner action; does not block test purchases but
+      Google will not pay out until done.
 - [x] Enrol in Play App Signing and save the app-signing SHA-1/SHA-256
       (SHA-1 `45aa2bee3fdcb5ef78f84ef89c0a3e58a7dbd5b5`, SHA-256
       `14e804148c62926d54d00024f97374cbfb4c6bd122e8c7dc6375539d7f7fe50c`).
 - [x] Replace/add the Play app-signing SHA-256 in Digital Asset Links and Firebase
       (2026-10-24: live assetlinks lists both keys and Android verifies
       silarah.com; both Play SHAs registered on the Firebase Android app).
-- [ ] Create `silarah_monthly` and `silarah_three_month` subscription base plans
-      at INR 299/month and INR 749/3 months.
-- [ ] Import production products into RevenueCat and attach them to the Silarah
-      entitlement/current offering.
+- [x] `silarah_monthly` and `silarah_three_month` base plans live at INR 299 /
+      INR 749 (prices load in the app, 7 Nov).
+- [x] Products imported into RevenueCat and attached to the entitlement and
+      current offering.
 - [ ] Complete App content: Data safety, content rating, target audience, ads,
       account deletion, privacy policy and reviewer access.
 - [ ] Capture the final-build screenshots and upload them with the

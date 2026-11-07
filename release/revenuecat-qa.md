@@ -176,3 +176,24 @@ Resolved: three-month receipts were titled "Silarah Premium Monthly"
 
 After QA: the production RevenueCat webhook is back on "Production only"
 (24 October). Still to do by the owner: delete `REVENUECAT_SANDBOX_TESTER_IDS`.
+
+### Results — 7 November 2026 (build 42047, production backend)
+
+Tester Khatun (`3a9a91ec-…`, ahmedimran257, license tester) on the OnePlus 8
+with `1.0.0 (44047)`, Google Play sandbox, "Test card, always approves".
+
+| Scenario | Result |
+|---|---|
+| Monthly purchase | Premium unlocked in the app at 07:14 UTC; RevenueCat recorded New Sub |
+| Server state | The production webhook was on "Production only", so the sandbox purchase went to staging (`user_not_found`). With the user's OK it was set to "Both" and `REVENUECAT_SANDBOX_TESTER_IDS` was set to this one ID for the test |
+| Renewals | Each 5-minute `RENEWAL` recorded once; status `active`; expiry kept 10 min of slack (migration 291); one email and one in-app notice each. A retried older renewal arrived out of order and neither shortened the expiry nor sent a second email |
+| Restore | Signed out and back in: Premium returned without a purchase |
+| Cancellation | `CANCELLATION` once at 07:37; access kept until period end; one email, one notice |
+| Expiry | `EXPIRATION` once at 07:39; status `none`; one email, one notice; the app dropped Premium |
+| Non-tester rejection | Before the secret was set, production rejected the sandbox renewal (`Rejected non-production event: environment`) |
+
+After the test the webhook was set back to "Production only" and
+`REVENUECAT_SANDBOX_TESTER_IDS` was deleted (7 Nov).
+
+Found and fixed in 42048: a woman who pays saw no Premium status card and no
+Manage Subscription link (the card was hidden for all women).
