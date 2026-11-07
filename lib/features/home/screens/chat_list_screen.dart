@@ -185,17 +185,21 @@ class _ChatListScreenState extends State<ChatListScreen>
                           : Align(
                               key: const ValueKey('messages_title'),
                               alignment: Alignment.centerLeft,
-                              child: UiText(
-                                context.uiCopy('Messages'),
-                                style: AppTypography.screenTitle,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: UiText(
+                                  context.uiCopy('Messages'),
+                                  style: AppTypography.screenTitle,
+                                  maxLines: 1,
+                                ),
                               ),
                             ),
                     ),
                   ),
-                  if (_isSearching)
-                    const SizedBox(width: AppDimensions.space8)
-                  else
-                    const Spacer(),
+                  // The title is already Expanded; a Spacer here took half the
+                  // width and wrapped "Messages" mid-word beside the badge.
+                  const SizedBox(width: AppDimensions.space8),
                   // Total unread badge on header
                   if (state.totalUnread > 0)
                     Container(

@@ -493,6 +493,61 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     );
   }
 
+  Future<void> _confirmAndBlock() async {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
+    final profile = widget.profile;
+    final confirmed = await showSilarahDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: UiText(l10n.safety_blockTitle(profile.firstName)),
+            content: UiText(l10n.safety_blockBody(profile.firstName)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: UiText(l10n.common_button_cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: UiText(l10n.safety_blockAction),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed || !mounted) return;
+    final blocked = await context.read<BlockReportCubit>().blockUser(
+          userId: profile.id,
+          name: profile.firstName,
+          lastInitial: profile.lastNameInitial,
+        );
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    if (!blocked) {
+      messenger.showSnackBar(SnackBar(
+        behavior: SnackBarBehavior.floating,
+        content: UiText(context
+            .uiCopy('We could not block this member. Please try again.')),
+      ));
+      return;
+    }
+    messenger.showSnackBar(
+      SnackBar(
+        content: UiText(
+          l10n.safety_blocked(profile.firstName),
+          style: AppTypography.body.copyWith(
+            color: AppColors.readableOn(AppColors.surfaceGlassHover),
+          ),
+        ),
+        backgroundColor: AppColors.surfaceGlassHover,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+    // A blocked profile should not stay on screen, as after a report.
+    Navigator.of(context).maybePop();
+  }
+
   void _showMoreMenu() {
     HapticFeedback.selectionClick();
     showSilarahBottomSheet<void>(
@@ -507,13 +562,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
         value: context.read<BlockReportCubit>(),
         child: _ReportBlockSheet(
           profile: widget.profile,
-          onBlock: () async {
-            return context.read<BlockReportCubit>().blockUser(
-                  userId: widget.profile.id,
-                  name: widget.profile.firstName,
-                  lastInitial: widget.profile.lastNameInitial,
-                );
-          },
+          onBlock: _confirmAndBlock,
           onReport: () async {
             final reported = await ReportBottomSheet.show(
               context,
@@ -2749,7 +2798,7 @@ class _ReportBlockSheet extends StatelessWidget {
   });
 
   final DiscoveryProfile profile;
-  final Future<bool> Function() onBlock;
+  final Future<void> Function() onBlock;
   final Future<void> Function() onReport;
 
   @override
@@ -2797,43 +2846,11 @@ class _ReportBlockSheet extends StatelessWidget {
             icon: Icons.block_rounded,
             label: l10n.safety_blockMember(profile.firstName),
             color: AppColors.softCoral,
-            onTap: () async {
+            onTap: () {
+              // This sheet's context is gone once it pops, so the confirm
+              // dialog and the block itself run on the profile screen.
               Navigator.pop(context);
-              final confirmed = await showSilarahDialog<bool>(
-                    context: context,
-                    builder: (dialogContext) => AlertDialog(
-                      title: UiText(l10n.safety_blockTitle(profile.firstName)),
-                      content: UiText(l10n.safety_blockBody(profile.firstName)),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(dialogContext, false),
-                          child: UiText(l10n.common_button_cancel),
-                        ),
-                        FilledButton(
-                          onPressed: () => Navigator.pop(dialogContext, true),
-                          child: UiText(l10n.safety_blockAction),
-                        ),
-                      ],
-                    ),
-                  ) ??
-                  false;
-              if (!confirmed || !context.mounted) return;
-              final blocked = await onBlock();
-              if (!blocked || !context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: UiText(
-                    l10n.safety_blocked(profile.firstName),
-                    style: AppTypography.body.copyWith(
-                      color: AppColors.readableOn(AppColors.surfaceGlassHover),
-                    ),
-                  ),
-                  backgroundColor: AppColors.surfaceGlassHover,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-              );
+              unawaited(Future<void>.microtask(onBlock));
             },
           ),
           const SizedBox(height: AppDimensions.space12),

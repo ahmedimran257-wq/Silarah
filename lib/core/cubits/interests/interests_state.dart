@@ -118,6 +118,7 @@ class InterestsState extends Equatable {
     this.isPremium = false,
     this.limitError = false,
     this.quotaUnavailable = false,
+    this.quotaCheckFailed = false,
   });
 
   final List<InterestEntry> received;
@@ -131,6 +132,10 @@ class InterestsState extends Equatable {
   final bool isPremium;
   final bool limitError; // true only after hitting the daily cap
   final bool quotaUnavailable;
+
+  /// The member tried to start an interest and the allowance could not be
+  /// checked. Only this is surfaced; background refreshes fail silently.
+  final bool quotaCheckFailed;
 
   // Computed getters
   /// Pending received interests (shown with action buttons)
@@ -200,6 +205,7 @@ class InterestsState extends Equatable {
     bool? isPremium,
     bool? limitError,
     bool? quotaUnavailable,
+    bool? quotaCheckFailed,
     bool clearLimitError = false,
     bool clearQuotaUnavailable = false,
   }) {
@@ -216,6 +222,9 @@ class InterestsState extends Equatable {
       quotaUnavailable: clearQuotaUnavailable
           ? false
           : (quotaUnavailable ?? this.quotaUnavailable),
+      quotaCheckFailed: clearQuotaUnavailable
+          ? false
+          : (quotaCheckFailed ?? this.quotaCheckFailed),
     );
   }
 
@@ -231,5 +240,6 @@ class InterestsState extends Equatable {
         isPremium,
         limitError,
         quotaUnavailable,
+        quotaCheckFailed,
       ];
 }

@@ -247,7 +247,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         child: BlocListener<InterestsCubit, InterestsState>(
           listenWhen: (previous, current) =>
               (!previous.limitError && current.limitError) ||
-              (!previous.quotaUnavailable && current.quotaUnavailable),
+              // Background refreshes (start-up, resume, entitlement reloads)
+              // retry quietly; only a failed check while starting an
+              // interest is worth interrupting the member for.
+              (!previous.quotaCheckFailed && current.quotaCheckFailed),
           listener: (context, quota) {
             if (quota.limitError) {
               InterestQuotaSheet.show(context, quota: quota);

@@ -9,6 +9,7 @@
 // On submit:
 //   - blockReportCubit.reportUser(reason, description)
 //   - blockReportCubit.hideProfile(profileId)  [auto-hidden]
+import 'package:silarah/l10n/generated/app_localizations.dart';
 import 'package:silarah/l10n/ui_copy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -57,6 +58,35 @@ class _ReportContent extends StatefulWidget {
 class _ReportContentState extends State<_ReportContent> {
   // Step 1 | 2 | 3
   int _step = 1;
+  bool _blocking = false;
+
+  Future<void> _blockAfterReport() async {
+    if (_blocking) return;
+    setState(() => _blocking = true);
+    final blocked = await context.read<BlockReportCubit>().blockUser(
+          userId: widget.reportedUserId,
+          name: widget.reportedName,
+          lastInitial: '',
+        );
+    if (!mounted) return;
+    setState(() => _blocking = false);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (!blocked) {
+      messenger?.showSnackBar(SnackBar(
+        behavior: SnackBarBehavior.floating,
+        content: UiText(context
+            .uiCopy('We could not block this member. Please try again.')),
+      ));
+      return;
+    }
+    Navigator.pop(context, true);
+    messenger?.showSnackBar(SnackBar(
+      behavior: SnackBarBehavior.floating,
+      content: UiText(context.uiCopy(
+          'Blocked. They can no longer see your profile or contact you.')),
+    ));
+  }
+
   ReportReason? _selected;
   final _descController = TextEditingController();
 
@@ -152,7 +182,12 @@ class _ReportContentState extends State<_ReportContent> {
                         : _Step3(
                             key: const ValueKey(3),
                             reportedName: widget.reportedName,
+                            isBlocking: _blocking,
                             onDone: () => Navigator.pop(context, true),
+                            // Some members cannot open the chat or profile
+                            // again after a report (it is hidden from their
+                            // feed), so blocking is offered right here.
+                            onBlock: _blockAfterReport,
                           ),
               ),
             ],
@@ -375,12 +410,16 @@ class _Step2 extends StatelessWidget {
 // Step 3: Confirmation
 class _Step3 extends StatelessWidget {
   final String reportedName;
+  final bool isBlocking;
   final VoidCallback onDone;
+  final VoidCallback onBlock;
 
   const _Step3({
     super.key,
     required this.reportedName,
+    required this.isBlocking,
     required this.onDone,
+    required this.onBlock,
   });
 
   @override
@@ -435,6 +474,19 @@ class _Step3 extends StatelessWidget {
               elevation: 0,
             ),
             child: UiText(context.uiCopy('Done'), style: AppTypography.button),
+          ),
+        ),
+        const SizedBox(height: AppDimensions.space8),
+        SizedBox(
+          width: double.infinity,
+          child: TextButton.icon(
+            key: const ValueKey('report-also-block'),
+            onPressed: isBlocking ? null : onBlock,
+            icon: Icon(Icons.block_rounded, color: AppColors.softCoral),
+            label: UiText(
+              AppLocalizations.of(context).safety_blockMember(reportedName),
+              style: AppTypography.button.copyWith(color: AppColors.softCoral),
+            ),
           ),
         ),
       ],

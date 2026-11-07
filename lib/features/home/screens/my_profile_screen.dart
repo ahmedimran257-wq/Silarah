@@ -1855,9 +1855,10 @@ class _SubscriptionCard extends StatelessWidget {
 
     return BlocBuilder<SubscriptionCubit, SubscriptionState>(
       builder: (context, state) {
-        if (gender == 'female' &&
-            !state.includesReferral &&
-            !state.isTestOnly) {
+        // Women message free, so they are not shown the upgrade prompt. A
+        // woman who does subscribe still needs to see that Premium is on
+        // and to reach Manage Subscription, where Google Play cancels it.
+        if (gender == 'female' && state.status == SubscriptionStatus.none) {
           return const SizedBox.shrink();
         }
         return switch (state.status) {

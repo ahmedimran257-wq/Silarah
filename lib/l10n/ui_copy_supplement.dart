@@ -193,6 +193,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'لم نتمكن من إرسال رمز التحقق. تحقق من العنوان أو حاول مرة أخرى قريبًا.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'لم نتمكن من التحقق من بدلك اليومي. تحقق من اتصالك وحاول مرة أخرى.',
+    'We could not block this member. Please try again.':
+        'لم نتمكن من حظر هذا العضو. يرجى المحاولة مرة أخرى.',
+    'Blocked. They can no longer see your profile or contact you.':
+        'تم الحظر. لم يعد بإمكانه رؤية ملفك أو التواصل معك.',
     'We review every report within 48 hours.\n':
         'نقوم بمراجعة كل تقرير خلال 48 ساعة.',
     'We\'d hate to see you go. Before you proceed, here\'s what will happen:':
@@ -427,6 +431,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'আমরা একটি যাচাইকরণ কোড পাঠাতে পারিনি৷ ঠিকানা চেক করুন বা শীঘ্রই আবার চেষ্টা করুন.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'আমরা আপনার দৈনিক ভাতা যাচাই করতে পারিনি। আপনার সংযোগ পরীক্ষা করুন এবং আবার চেষ্টা করুন.',
+    'We could not block this member. Please try again.':
+        'আমরা এই সদস্যকে ব্লক করতে পারিনি। আবার চেষ্টা করুন।',
+    'Blocked. They can no longer see your profile or contact you.':
+        'ব্লক করা হয়েছে। তিনি আর আপনার প্রোফাইল দেখতে বা আপনার সাথে যোগাযোগ করতে পারবেন না।',
     'We review every report within 48 hours.\n':
         'আমরা 48 ঘন্টার মধ্যে প্রতিটি রিপোর্ট পর্যালোচনা করি।',
     'We\'d hate to see you go. Before you proceed, here\'s what will happen:':
@@ -668,6 +676,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Wir konnten keinen Bestätigungscode senden. Überprüfen Sie die Adresse oder versuchen Sie es in Kürze noch einmal.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'Wir konnten Ihr Tagegeld nicht überprüfen. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+    'We could not block this member. Please try again.':
+        'Wir konnten dieses Mitglied nicht blockieren. Bitte versuchen Sie es erneut.',
+    'Blocked. They can no longer see your profile or contact you.':
+        'Blockiert. Diese Person kann Ihr Profil nicht mehr sehen und Sie nicht mehr kontaktieren.',
     'We review every report within 48 hours.\n':
         'Wir überprüfen jede Meldung innerhalb von 48 Stunden.',
     'We\'d hate to see you go. Before you proceed, here\'s what will happen:':
@@ -910,6 +922,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Nous n\'avons pas pu envoyer de code de vérification. Vérifiez l\'adresse ou réessayez sous peu.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'Nous n\'avons pas pu vérifier votre indemnité journalière. Vérifiez votre connexion et réessayez.',
+    'We could not block this member. Please try again.':
+        "Nous n'avons pas pu bloquer ce membre. Veuillez réessayer.",
+    'Blocked. They can no longer see your profile or contact you.':
+        'Bloqué. Cette personne ne peut plus voir votre profil ni vous contacter.',
     'We review every report within 48 hours.\n':
         'Nous examinons chaque rapport dans les 48 heures.',
     'We\'d hate to see you go. Before you proceed, here\'s what will happen:':
@@ -1147,6 +1163,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'हम सत्यापन कोड नहीं भेज सके. पता जाँचें या शीघ्र ही पुनः प्रयास करें।',
     'We could not verify your daily allowance. Check your connection and try again.':
         'हम आपके दैनिक भत्ते का सत्यापन नहीं कर सके। अपना कनेक्शन जांचें और पुनः प्रयास करें।',
+    'We could not block this member. Please try again.':
+        'हम इस सदस्य को ब्लॉक नहीं कर सके। कृपया फिर से प्रयास करें।',
+    'Blocked. They can no longer see your profile or contact you.':
+        'ब्लॉक कर दिया गया। वे अब आपकी प्रोफ़ाइल नहीं देख सकते या आपसे संपर्क नहीं कर सकते।',
     'We review every report within 48 hours.\n':
         'हम 48 घंटों के भीतर हर रिपोर्ट की समीक्षा करते हैं।',
     'We\'d hate to see you go. Before you proceed, here\'s what will happen:':
@@ -1382,6 +1402,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Kami tidak dapat mengirimkan kode verifikasi. Periksa alamatnya atau coba lagi sebentar lagi.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'Kami tidak dapat memverifikasi tunjangan harian Anda. Periksa koneksi Anda dan coba lagi.',
+    'We could not block this member. Please try again.':
+        'Kami tidak dapat memblokir anggota ini. Silakan coba lagi.',
+    'Blocked. They can no longer see your profile or contact you.':
+        'Diblokir. Mereka tidak dapat lagi melihat profil Anda atau menghubungi Anda.',
     'We review every report within 48 hours.\n':
         'Kami meninjau setiap laporan dalam waktu 48 jam.',
     'We\'d hate to see you go. Before you proceed, here\'s what will happen:':
@@ -1619,6 +1643,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Kami tidak dapat menghantar kod pengesahan. Semak alamat atau cuba sebentar lagi.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'Kami tidak dapat mengesahkan elaun harian anda. Semak sambungan anda dan cuba lagi.',
+    'We could not block this member. Please try again.':
+        'Kami tidak dapat menyekat ahli ini. Sila cuba lagi.',
+    'Blocked. They can no longer see your profile or contact you.':
+        'Disekat. Mereka tidak lagi dapat melihat profil anda atau menghubungi anda.',
     'We review every report within 48 hours.\n':
         'Kami menyemak setiap laporan dalam masa 48 jam.',
     'We\'d hate to see you go. Before you proceed, here\'s what will happen:':
@@ -1855,6 +1883,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Doğrulama kodunu gönderemedik. Adresi kontrol edin veya kısa süre sonra tekrar deneyin.',
     'We could not verify your daily allowance. Check your connection and try again.':
         'Günlük ödeneğinizi doğrulayamadık. Bağlantınızı kontrol edip tekrar deneyin.',
+    'We could not block this member. Please try again.':
+        'Bu üyeyi engelleyemedik. Lütfen tekrar deneyin.',
+    'Blocked. They can no longer see your profile or contact you.':
+        'Engellendi. Artık profilinizi göremez veya sizinle iletişime geçemez.',
     'We review every report within 48 hours.\n':
         'Her raporu 48 saat içinde inceliyoruz.',
     'We\'d hate to see you go. Before you proceed, here\'s what will happen:':
@@ -2090,6 +2122,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'ہم تصدیقی کوڈ نہیں بھیج سکے۔ پتہ چیک کریں یا جلد ہی دوبارہ کوشش کریں۔',
     'We could not verify your daily allowance. Check your connection and try again.':
         'ہم آپ کے یومیہ الاؤنس کی تصدیق نہیں کر سکے۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔',
+    'We could not block this member. Please try again.':
+        'ہم اس رکن کو بلاک نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں۔',
+    'Blocked. They can no longer see your profile or contact you.':
+        'بلاک کر دیا گیا۔ وہ اب آپ کی پروفائل نہیں دیکھ سکتے اور نہ ہی آپ سے رابطہ کر سکتے ہیں۔',
     'We review every report within 48 hours.\n':
         'ہم 48 گھنٹوں کے اندر ہر رپورٹ کا جائزہ لیتے ہیں۔',
     'We\'d hate to see you go. Before you proceed, here\'s what will happen:':

@@ -37,6 +37,33 @@ class InterestsCubit extends Cubit<InterestsState> {
   InterestsCubit() : super(const InterestsState());
 
   bool _loadInFlight = false;
+  Timer? _quietQuotaRetry;
+
+  /// A background allowance read usually fails only because the network is
+  /// waking up (after unlock or resume). Try once more without telling the
+  /// member; a real attempt to send an interest still checks for itself.
+  void _scheduleQuietQuotaRetry() {
+    if (isClosed || _quietQuotaRetry != null) return;
+    _quietQuotaRetry = Timer(const Duration(seconds: 6), () async {
+      if (isClosed) return;
+      try {
+        final quota = await _loadServerQuota();
+        if (isClosed) return;
+        emit(state.copyWith(
+          interestsSentToday: quota.sentToday,
+          dailyLimit: quota.dailyLimit,
+          quotaResetsAt: quota.resetsAt,
+          isPremium: quota.isPremium,
+          clearQuotaUnavailable: true,
+        ));
+      } catch (_) {
+        // Still offline; the next load or interest attempt checks again.
+      } finally {
+        _quietQuotaRetry = null;
+      }
+    });
+  }
+
   bool _forceReloadQueued = false;
   DateTime? _lastLoadedAt;
   String? _loadedUserId;
@@ -270,6 +297,7 @@ class InterestsCubit extends Cubit<InterestsState> {
           isPremium: quota?.isPremium ?? state.isPremium,
           quotaUnavailable: quota == null,
         ));
+        if (quota == null) _scheduleQuietQuotaRetry();
       }
     } catch (e) {
       debugPrint('[InterestsCubit] Error loading from DB: $e');
@@ -284,6 +312,7 @@ class InterestsCubit extends Cubit<InterestsState> {
           quotaUnavailable: quota == null,
           clearQuotaUnavailable: quota != null,
         ));
+        if (quota == null) _scheduleQuietQuotaRetry();
       }
     }
   }
@@ -408,6 +437,7 @@ class InterestsCubit extends Cubit<InterestsState> {
         dailyLimit: 0,
         quotaUnavailable: true,
       ));
+      _scheduleQuietQuotaRetry();
       return;
     }
     if (isClosed) return;
@@ -484,7 +514,9 @@ class InterestsCubit extends Cubit<InterestsState> {
       ));
       return quota.sentToday < quota.dailyLimit;
     } catch (_) {
-      if (!isClosed) emit(state.copyWith(quotaUnavailable: true));
+      if (!isClosed) {
+        emit(state.copyWith(quotaUnavailable: true, quotaCheckFailed: true));
+      }
       return false;
     }
   }
@@ -651,11 +683,19 @@ class InterestsCubit extends Cubit<InterestsState> {
     emit(state.copyWith(clearLimitError: true));
   }
 
+  @override
+  Future<void> close() {
+    _quietQuotaRetry?.cancel();
+    return super.close();
+  }
+
   void clearQuotaUnavailable() {
     emit(state.copyWith(clearQuotaUnavailable: true));
   }
 
   void clear() {
+    _quietQuotaRetry?.cancel();
+    _quietQuotaRetry = null;
     _loadInFlight = false;
     _forceReloadQueued = false;
     _lastLoadedAt = null;
