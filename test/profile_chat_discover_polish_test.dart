@@ -26,12 +26,32 @@ void main() {
         profile, contains('nextStep: _photoCountKnown ? result.next : null'));
     expect(profile, isNot(contains('setState(() => _approvedPhotoCount = 0)')));
     expect(profile, contains('_profileRetryTimer = Timer('));
+    // One quiet retry per failure streak, never a loop while offline.
+    expect(profile, contains('if (!_profileQuietRetryUsed) {'));
+    expect(profile, contains('_profileQuietRetryUsed = false;'));
   });
 
   test('a new match unlocks locked photos already in the Discover feed', () {
     final screen =
         _read('lib/features/home/screens/discovery_feed_screen.dart');
     expect(screen, contains('revealPhotosForMatches(ids)'));
+  });
+
+  test('a restricted account sees no cached Discover cards', () {
+    final screen =
+        _read('lib/features/home/screens/discovery_feed_screen.dart');
+    // Suspended, banned or deactivated: the server returns no profiles and
+    // refuses interests, so the screen must not keep showing old cards.
+    expect(screen, contains('cubit.state.isRestricted'));
+    expect(screen, contains("ValueKey('discovery-restricted')"));
+    // Lifting the restriction reloads instead of reusing stale cards.
+    expect(screen, contains('previous.isRestricted && !current.isRestricted'));
+  });
+
+  test('Settings loads the blocked count instead of assuming none', () {
+    final settings = _read('lib/features/home/screens/settings_screen.dart');
+    expect(settings,
+        contains('unawaited(context.read<BlockReportCubit>().loadData())'));
   });
 
   test('photo reveal is a no-op without matches', () async {

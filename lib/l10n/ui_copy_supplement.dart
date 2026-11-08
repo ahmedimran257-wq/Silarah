@@ -194,6 +194,9 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'We could not verify your daily allowance. Check your connection and try again.':
         'لم نتمكن من التحقق من بدلك اليومي. تحقق من اتصالك وحاول مرة أخرى.',
     'We could not refresh your profile.': 'تعذر تحديث ملفك الشخصي.',
+    'Discovery unavailable': 'الاكتشاف غير متاح',
+    'Profiles are hidden while your account is restricted. Support can review this decision.':
+        'الملفات الشخصية مخفية أثناء تقييد حسابك. يمكن لفريق الدعم مراجعة هذا القرار.',
     'We could not block this member. Please try again.':
         'لم نتمكن من حظر هذا العضو. يرجى المحاولة مرة أخرى.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -434,6 +437,9 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'আমরা আপনার দৈনিক ভাতা যাচাই করতে পারিনি। আপনার সংযোগ পরীক্ষা করুন এবং আবার চেষ্টা করুন.',
     'We could not refresh your profile.':
         'আমরা আপনার প্রোফাইল রিফ্রেশ করতে পারিনি।',
+    'Discovery unavailable': 'ডিসকভারি উপলভ্য নয়',
+    'Profiles are hidden while your account is restricted. Support can review this decision.':
+        'আপনার অ্যাকাউন্ট সীমাবদ্ধ থাকাকালীন প্রোফাইলগুলো লুকানো থাকবে। সাপোর্ট এই সিদ্ধান্ত পর্যালোচনা করতে পারে।',
     'We could not block this member. Please try again.':
         'আমরা এই সদস্যকে ব্লক করতে পারিনি। আবার চেষ্টা করুন।',
     'Blocked. They can no longer see your profile or contact you.':
@@ -681,6 +687,9 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Wir konnten Ihr Tagegeld nicht überprüfen. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
     'We could not refresh your profile.':
         'Wir konnten Ihr Profil nicht aktualisieren.',
+    'Discovery unavailable': 'Entdecken nicht verfügbar',
+    'Profiles are hidden while your account is restricted. Support can review this decision.':
+        'Profile sind ausgeblendet, solange dein Konto eingeschränkt ist. Der Support kann diese Entscheidung prüfen.',
     'We could not block this member. Please try again.':
         'Wir konnten dieses Mitglied nicht blockieren. Bitte versuchen Sie es erneut.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -929,6 +938,9 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Nous n\'avons pas pu vérifier votre indemnité journalière. Vérifiez votre connexion et réessayez.',
     'We could not refresh your profile.':
         'Nous n’avons pas pu actualiser votre profil.',
+    'Discovery unavailable': 'Découverte indisponible',
+    'Profiles are hidden while your account is restricted. Support can review this decision.':
+        'Les profils sont masqués tant que votre compte est restreint. L’assistance peut réexaminer cette décision.',
     'We could not block this member. Please try again.':
         "Nous n'avons pas pu bloquer ce membre. Veuillez réessayer.",
     'Blocked. They can no longer see your profile or contact you.':
@@ -1172,6 +1184,9 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'हम आपके दैनिक भत्ते का सत्यापन नहीं कर सके। अपना कनेक्शन जांचें और पुनः प्रयास करें।',
     'We could not refresh your profile.':
         'हम आपकी प्रोफ़ाइल रीफ़्रेश नहीं कर सके।',
+    'Discovery unavailable': 'डिस्कवरी उपलब्ध नहीं है',
+    'Profiles are hidden while your account is restricted. Support can review this decision.':
+        'आपका खाता प्रतिबंधित रहने तक प्रोफ़ाइल छिपी रहेंगी। सपोर्ट इस निर्णय की समीक्षा कर सकता है।',
     'We could not block this member. Please try again.':
         'हम इस सदस्य को ब्लॉक नहीं कर सके। कृपया फिर से प्रयास करें।',
     'Blocked. They can no longer see your profile or contact you.':
@@ -1413,6 +1428,9 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Kami tidak dapat memverifikasi tunjangan harian Anda. Periksa koneksi Anda dan coba lagi.',
     'We could not refresh your profile.':
         'Kami tidak dapat memuat ulang profil Anda.',
+    'Discovery unavailable': 'Penjelajahan tidak tersedia',
+    'Profiles are hidden while your account is restricted. Support can review this decision.':
+        'Profil disembunyikan selama akun Anda dibatasi. Tim dukungan dapat meninjau keputusan ini.',
     'We could not block this member. Please try again.':
         'Kami tidak dapat memblokir anggota ini. Silakan coba lagi.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -1656,6 +1674,9 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Kami tidak dapat mengesahkan elaun harian anda. Semak sambungan anda dan cuba lagi.',
     'We could not refresh your profile.':
         'Kami tidak dapat memuat semula profil anda.',
+    'Discovery unavailable': 'Penerokaan tidak tersedia',
+    'Profiles are hidden while your account is restricted. Support can review this decision.':
+        'Profil disembunyikan semasa akaun anda dihadkan. Pihak sokongan boleh menyemak keputusan ini.',
     'We could not block this member. Please try again.':
         'Kami tidak dapat menyekat ahli ini. Sila cuba lagi.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -1897,6 +1918,9 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'We could not verify your daily allowance. Check your connection and try again.':
         'Günlük ödeneğinizi doğrulayamadık. Bağlantınızı kontrol edip tekrar deneyin.',
     'We could not refresh your profile.': 'Profilinizi yenileyemedik.',
+    'Discovery unavailable': 'Keşfet kullanılamıyor',
+    'Profiles are hidden while your account is restricted. Support can review this decision.':
+        'Hesabın kısıtlıyken profiller gizlenir. Destek ekibi bu kararı inceleyebilir.',
     'We could not block this member. Please try again.':
         'Bu üyeyi engelleyemedik. Lütfen tekrar deneyin.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -2137,6 +2161,9 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'We could not verify your daily allowance. Check your connection and try again.':
         'ہم آپ کے یومیہ الاؤنس کی تصدیق نہیں کر سکے۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔',
     'We could not refresh your profile.': 'ہم آپ کی پروفائل تازہ نہیں کر سکے۔',
+    'Discovery unavailable': 'ڈسکوری دستیاب نہیں',
+    'Profiles are hidden while your account is restricted. Support can review this decision.':
+        'آپ کا اکاؤنٹ محدود رہنے تک پروفائلز چھپی رہیں گی۔ سپورٹ اس فیصلے کا جائزہ لے سکتی ہے۔',
     'We could not block this member. Please try again.':
         'ہم اس رکن کو بلاک نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں۔',
     'Blocked. They can no longer see your profile or contact you.':

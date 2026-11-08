@@ -8,6 +8,8 @@
 //   6. SAFETY    — block list, report history
 //   7. LEGAL     — ToS, Privacy Policy
 //   8. DANGER ZONE — account deletion
+import 'dart:async';
+
 import 'package:silarah/l10n/ui_copy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -109,6 +111,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _loadAppVersion();
+    // The Safety rows show blocked and reported counts. Without this they
+    // read "None" after a restart until the block list screen was opened.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(context.read<BlockReportCubit>().loadData());
+    });
     if (widget.initialSection != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToSection());
     }

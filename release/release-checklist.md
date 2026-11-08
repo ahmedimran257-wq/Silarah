@@ -46,8 +46,31 @@ Before inviting the 12 closed testers:
   add all 12 to License testing (test card) or tell them in the invite.
 - Complete the Google Payments identity verification (BillDesk email) and
   add a payout bank account; without them Google holds payouts.
-- Dismiss the QA report "QA testing report - please dismiss" against
-  Khatun in the admin moderation queue.
+- Done 8 Nov: the QA report against Khatun was dismissed through the admin
+  queue (audited `report_dismissed`).
+
+### 8 November follow-up (remaining device QA items)
+
+Builds: 44048 on the OnePlus (f4c62d1); 46048 on the Android 9 emulator
+with this run's fixes. Details in `device-qa.md`, run of 8 November.
+
+| Item | Result |
+|---|---|
+| Profile ⋮ → Block on device, both directions | PASS; unblock also works |
+| Clean install, no missing-services warning | PASS (emulator) |
+| Offline cold start, then reconnect keeps the session | PASS (emulator) |
+| `https://silarah.com/auth/...` app link | PASS (domain verified, opens the app) |
+| Unfinished OTP sign-up resumes; replaced code rejected | PASS (owner typed the codes); time-expired code not waited out |
+| Discovery scopes and filters | PASS on the server; outside-India controls hidden |
+| Interest limits, reset and Premium prompt | PASS |
+| Multiple photos swipe, owner and viewer | PASS |
+| Chat translation | N/A, retired |
+| Photo-review evidence and 48-hour limit | PASS by server review (no live submission yet) |
+| Pause, suspend and appeal UI | PASS after fixing Discover for restricted members |
+| Idle network and image refetching | PASS after fixing a Profile retry loop |
+| 15-minute session | No ANR, crash, kill or memory growth (2 GB emulator); frame timing not instrumented |
+| Android 8 | NOT RUN (owner skipped the 981 MB image) |
+| QA report against Khatun | DONE, dismissed and audited |
 
 ## Automated and repository gates
 

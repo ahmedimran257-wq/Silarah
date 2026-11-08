@@ -121,6 +121,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   bool _photoCountKnown = false;
   bool _profileRefreshFailed = false;
   Timer? _profileRetryTimer;
+  bool _profileQuietRetryUsed = false;
   bool _photoRefreshInFlight = false;
   bool _profilePreviewOpening = false;
   bool _profileRefreshInFlight = false;
@@ -427,19 +428,26 @@ class _MyProfileScreenState extends State<MyProfileScreen>
         _loadIncognito(force: force),
       ]);
       _lastProfileRefreshAt = DateTime.now();
+      _profileQuietRetryUsed = false;
       if (mounted && _profileRefreshFailed) {
         setState(() => _profileRefreshFailed = false);
       }
     } catch (error) {
       // Usually the network waking up after unlock or resume. Say so and
-      // try again shortly instead of showing an empty-looking profile.
+      // try again once, shortly, instead of showing an empty-looking
+      // profile. Only once per failure streak: while offline a repeating
+      // timer would keep re-reading seven endpoints every few seconds. The
+      // notice's Retry button, resume and tab revisits still refresh.
       debugPrint('[MyProfile] Profile refresh failed: $error');
       if (mounted) {
         setState(() => _profileRefreshFailed = true);
         _profileRetryTimer?.cancel();
-        _profileRetryTimer = Timer(const Duration(seconds: 8), () {
-          if (mounted) unawaited(_refreshProfileFromDb(force: true));
-        });
+        if (!_profileQuietRetryUsed) {
+          _profileQuietRetryUsed = true;
+          _profileRetryTimer = Timer(const Duration(seconds: 8), () {
+            if (mounted) unawaited(_refreshProfileFromDb(force: true));
+          });
+        }
       }
     } finally {
       _profileRefreshInFlight = false;

@@ -16,6 +16,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/cubits/account_standing/account_standing_cubit.dart';
+import '../../../core/cubits/account_standing/account_standing_state.dart';
 import '../../../core/cubits/auth/auth_cubit.dart';
 import '../../../core/cubits/auth/auth_state.dart';
 import '../../../core/cubits/block_report/block_report_cubit.dart';
@@ -271,14 +273,35 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
     final hiddenProfileIds = context.select<BlockReportCubit, Set<String>>(
       (cubit) => cubit.state.hiddenProfileIds,
     );
-    return BlocListener<InterestsCubit, InterestsState>(
-      listenWhen: (previous, current) =>
-          current.matches.length > previous.matches.length,
-      listener: (context, current) {
-        final ids = {for (final m in current.matches) m.profile.id};
-        unawaited(
-            context.read<DiscoveryFeedCubit>().revealPhotosForMatches(ids));
-      },
+    // A suspended, banned or deactivated member gets no profiles from the
+    // server and cannot send interests, so cards cached from before the
+    // restriction must not stay on screen with a working-looking button.
+    final restricted = context.select<AccountStandingCubit, bool>(
+      (cubit) => cubit.state.isRestricted,
+    );
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<InterestsCubit, InterestsState>(
+          listenWhen: (previous, current) =>
+              current.matches.length > previous.matches.length,
+          listener: (context, current) {
+            final ids = {for (final m in current.matches) m.profile.id};
+            unawaited(
+                context.read<DiscoveryFeedCubit>().revealPhotosForMatches(ids));
+          },
+        ),
+        BlocListener<AccountStandingCubit, AccountStandingState>(
+          // When a restriction is lifted, reload rather than show the
+          // cards cached from before it.
+          listenWhen: (previous, current) =>
+              previous.isRestricted && !current.isRestricted,
+          listener: (context, _) {
+            _recordedViewIds.clear();
+            unawaited(
+                context.read<DiscoveryFeedCubit>().loadInitial(force: true));
+          },
+        ),
+      ],
       child: BlocConsumer<DiscoveryFeedCubit, DiscoveryFeedState>(
         listenWhen: (previous, current) =>
             previous.activeFilter != current.activeFilter ||
@@ -326,7 +349,8 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
                         UiText('SILARAH', style: AppTypography.wordmark),
                         const Spacer(),
                         // Free-tier counter badge
-                        if ((feedState.status == FeedStatus.loaded ||
+                        if (!restricted &&
+                            (feedState.status == FeedStatus.loaded ||
                                 feedState.status == FeedStatus.refreshing ||
                                 feedState.status == FeedStatus.loadingMore) &&
                             feedState.dailyLimit < 1000000)
@@ -346,12 +370,20 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
                 // Card carousel
                 SliverFillRemaining(
                   hasScrollBody: true,
-                  child: _buildCarousel(
-                    feedState,
-                    interests,
-                    canMessage,
-                    hiddenProfileIds,
-                  ),
+                  child: restricted
+                      ? const SilarahEmptyState(
+                          key: ValueKey('discovery-restricted'),
+                          visual: SilarahEmptyVisual.neutral,
+                          title: 'Discovery unavailable',
+                          subtitle:
+                              'Profiles are hidden while your account is restricted. Support can review this decision.',
+                        )
+                      : _buildCarousel(
+                          feedState,
+                          interests,
+                          canMessage,
+                          hiddenProfileIds,
+                        ),
                 ),
               ],
             ),
