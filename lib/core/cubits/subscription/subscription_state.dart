@@ -24,6 +24,10 @@ class SubscriptionState extends Equatable {
   final SubscriptionStatus status;
   final PremiumEntitlementSource source;
   final DateTime? expiresAt;
+
+  /// Whether the store will renew at [expiresAt]. False once cancelled; null
+  /// when the store has not answered.
+  final bool? willRenew;
   final bool isLoading;
   final String? error;
   final String? successMessage;
@@ -32,6 +36,7 @@ class SubscriptionState extends Equatable {
     this.status = SubscriptionStatus.none,
     this.source = PremiumEntitlementSource.none,
     this.expiresAt,
+    this.willRenew,
     this.isLoading = false,
     this.error,
     this.successMessage,
@@ -86,10 +91,12 @@ class SubscriptionState extends Equatable {
     SubscriptionStatus? status,
     PremiumEntitlementSource? source,
     DateTime? expiresAt,
+    bool? willRenew,
     bool? isLoading,
     String? error,
     String? successMessage,
     bool clearExpiresAt = false,
+    bool clearWillRenew = false,
     bool clearError = false,
     bool clearSuccess = false,
   }) {
@@ -97,6 +104,7 @@ class SubscriptionState extends Equatable {
       status: status ?? this.status,
       source: source ?? this.source,
       expiresAt: clearExpiresAt ? null : (expiresAt ?? this.expiresAt),
+      willRenew: clearWillRenew ? null : (willRenew ?? this.willRenew),
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
       successMessage:
@@ -106,5 +114,5 @@ class SubscriptionState extends Equatable {
 
   @override
   List<Object?> get props =>
-      [status, source, expiresAt, isLoading, error, successMessage];
+      [status, source, expiresAt, willRenew, isLoading, error, successMessage];
 }

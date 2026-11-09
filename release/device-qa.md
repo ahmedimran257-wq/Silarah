@@ -85,9 +85,9 @@ Fixed in this run (in the next build):
       location filters need Premium on the server (`premium_filter_required`
       for a free member); `get_launch_configuration` is `single_country` IN,
       which hides Browse Countries and Diaspora in the filter sheet).
-- [ ] Filter and bottom-tab transitions remain smooth under repeated use
-      (no ANR or kill over 15 minutes, see Performance; frame timing not
-      instrumented).
+- [x] Filter and bottom-tab transitions remain smooth under repeated use
+      (no ANR or kill over 15 minutes, see Performance; frame timing on the
+      OnePlus 8 at 60 Hz, 9 Nov, below).
 - [x] Interest limits, reset time and premium prompt match server entitlements
       (8 Nov: `get_interest_quota` and the insert trigger both use 5 free /
       25 Premium per UTC day, reset 00:00 UTC; the app reads limit and reset
@@ -154,13 +154,17 @@ Fixed in this run (in the next build):
 - [x] Images load from cached/signed URLs without unbounded refetching
       (8 Nov: one photo-URL signing per 5 minutes across a 15-minute
       navigation session).
-- [ ] A 15-minute navigation/chat/photo session has no ANR, memory kill or visible
+- [x] Frame timing, 9 Nov, release-mode measurement APK on the OnePlus 8 at
+      60 Hz, from SurfaceFlinger present times: Profile 0 of 252 frames late,
+      Discover 0 of 123, opened profile 0 of 124. Dart build time p99 5 ms.
+      First entry to Profile or Discover has one 46 ms raster frame. A
+      budget phone was not measured.
+- [x] A 15-minute navigation/chat/photo session has no ANR, memory kill or visible
       sustained jank in Android Studio profiler. 8 Nov, 2 GB emulator,
       22 loops of tabs, Discover photo carousel, list scrolling and
       Settings: same process throughout, PSS 134–143 MB with no growth, no
-      ANR, crash or low-memory kill. Frame timing needs a profile build with
-      DevTools (`gfxinfo` does not see Flutter frames); the OnePlus was in
-      use, so the chat part was not scripted there.
+      ANR, crash or low-memory kill. The OnePlus was in use, so the chat
+      part was not scripted there.
 - [x] Android 9 (API 28 emulator) and Android 13 (OnePlus) pass (7 and 8 Nov).
       Low-memory stand-in: the 2 GB emulator above. Android 8 (API 26) not
       tested: the owner chose not to download its 981 MB system image.

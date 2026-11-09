@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:silarah/core/cubits/subscription/subscription_state.dart';
 import 'package:silarah/core/theme/app_colors.dart';
 import 'package:silarah/features/home/widgets/profile_quality_card.dart';
 import 'package:silarah/l10n/generated/app_localizations.dart';
@@ -240,5 +241,53 @@ void main() {
     expect(screen, contains('onGuardian: _openGuardianSettings'));
     expect(screen, contains('onVerify: onVerify'));
     expect(screen, isNot(contains('to reach \${score')));
+  });
+
+  group('ProfileMembershipStrip', () {
+    testWidgets('shows the date and opens the manage action', (tester) async {
+      var taps = 0;
+      await tester.pumpWidget(_host(
+        ProfileMembershipStrip(
+          detail: 'Renews 9 Nov 2026',
+          actionLabel: 'Manage or cancel',
+          onTap: () => taps++,
+        ),
+        reduceMotion: true,
+      ));
+      await tester.pump();
+
+      expect(find.text('Silarah Premium'), findsOneWidget);
+      expect(find.text('Renews 9 Nov 2026'), findsOneWidget);
+      expect(find.text('Manage or cancel'), findsOneWidget);
+
+      await tester.tap(find.text('Manage or cancel'));
+      await tester.pump();
+      expect(taps, 1);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('long translations do not overflow on a narrow phone',
+        (tester) async {
+      tester.view.physicalSize = const Size(320, 700);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(_host(
+        ProfileMembershipStrip(
+          detail: 'Erneuert sich am 29 Nov 2026',
+          actionLabel: 'Verwalten oder verlängern',
+          onTap: () {},
+        ),
+        reduceMotion: true,
+      ));
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  test('renewal state can be cleared when the store has no answer', () {
+    const renewing = SubscriptionState(willRenew: true);
+    expect(renewing.copyWith().willRenew, isTrue);
+    expect(renewing.copyWith(willRenew: false).willRenew, isFalse);
+    expect(renewing.copyWith(clearWillRenew: true).willRenew, isNull);
   });
 }

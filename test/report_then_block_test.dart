@@ -83,17 +83,19 @@ void main() {
     expect(sheetResult, isTrue);
   });
 
-  test('paying members see Premium status near the top of Profile', () {
+  test('Premium status is inside the profile card; failed renewals stand apart',
+      () {
     final source = File('lib/features/home/screens/my_profile_screen.dart')
         .readAsStringSync();
     final statusAt = source.indexOf('const _SubscriptionCard.status()');
     final qualityAt = source.indexOf('// Profile card preview');
     final upgradeAt = source.indexOf('const _SubscriptionCard.upgrade()');
     expect(statusAt, greaterThan(0));
-    // Status sits above the profile quality card; the upsell stays lower.
+    // The failed-renewal warning sits above the card; the upsell stays lower.
     expect(statusAt, lessThan(qualityAt));
     expect(upgradeAt, greaterThan(qualityAt));
-    // Only the upgrade prompt is hidden for women; their paid status shows.
+    expect(source, contains('membership: const _PremiumMembership()'));
+    // Only the upgrade prompt is hidden for women; paid status is not gendered.
     expect(
       source,
       contains("state.status != SubscriptionStatus.none || gender == 'female'"),

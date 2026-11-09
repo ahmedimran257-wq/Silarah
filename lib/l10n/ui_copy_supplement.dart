@@ -147,6 +147,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Review every request individually. Access can be revoked whenever you choose.':
         'مراجعة كل طلب على حدة. يمكن إلغاء الوصول وقتما تشاء.',
     'Silarah Premium · Active': 'Silarah بريميوم · نشط',
+    'Manage or cancel': 'إدارة أو إلغاء',
+    'Manage or renew': 'إدارة أو تجديد',
     'Say bismillah and begin a conversation.': 'قل بسم الله وابدأ المحادثة.',
     'Searching cities...': 'بحث المدن...',
     'Searching regions...': 'مناطق البحث...',
@@ -425,6 +427,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Review every request individually. Access can be revoked whenever you choose.':
         'প্রতিটি অনুরোধ পৃথকভাবে পর্যালোচনা করুন। আপনি যখনই পছন্দ করেন তখনই অ্যাক্সেস প্রত্যাহার করা যেতে পারে।',
     'Silarah Premium · Active': 'Silarah প্রিমিয়াম · সক্রিয়',
+    'Manage or cancel': 'পরিচালনা বা বাতিল',
+    'Manage or renew': 'পরিচালনা বা নবায়ন',
     'Say bismillah and begin a conversation.':
         'বিসমিল্লাহ বলুন এবং কথোপকথন শুরু করুন।',
     'Searching cities...': 'শহর অনুসন্ধান করা হচ্ছে...',
@@ -709,6 +713,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Review every request individually. Access can be revoked whenever you choose.':
         'Überprüfen Sie jede Anfrage einzeln. Der Zugriff kann jederzeit widerrufen werden.',
     'Silarah Premium · Active': 'Silarah Premium · Aktiv',
+    'Manage or cancel': 'Verwalten oder kündigen',
+    'Manage or renew': 'Verwalten oder verlängern',
     'Say bismillah and begin a conversation.':
         'Sagen Sie Bismillah und beginnen Sie ein Gespräch.',
     'Searching cities...': 'Suche nach Städten...',
@@ -996,6 +1002,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Review every request individually. Access can be revoked whenever you choose.':
         'Examinez chaque demande individuellement. L\'accès peut être révoqué à tout moment.',
     'Silarah Premium · Active': 'Silarah Premium · Actif',
+    'Manage or cancel': 'Gérer ou annuler',
+    'Manage or renew': 'Gérer ou renouveler',
     'Say bismillah and begin a conversation.':
         'Dites bismillah et commencez une conversation.',
     'Searching cities...': 'Recherche de villes...',
@@ -1280,6 +1288,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Review every request individually. Access can be revoked whenever you choose.':
         'प्रत्येक अनुरोध की व्यक्तिगत रूप से समीक्षा करें. जब भी आप चाहें पहुंच रद्द की जा सकती है।',
     'Silarah Premium · Active': 'सिलाराह प्रीमियम · सक्रिय',
+    'Manage or cancel': 'प्रबंधित या रद्द करें',
+    'Manage or renew': 'प्रबंधित या नवीनीकृत करें',
     'Say bismillah and begin a conversation.':
         'बिस्मिल्लाह कहें और बातचीत शुरू करें।',
     'Searching cities...': 'शहर खोज रहे हैं...',
@@ -1560,6 +1570,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Review every request individually. Access can be revoked whenever you choose.':
         'Tinjau setiap permintaan satu per satu. Akses dapat dicabut kapan pun Anda mau.',
     'Silarah Premium · Active': 'Silarah Premium · Aktif',
+    'Manage or cancel': 'Kelola atau batalkan',
+    'Manage or renew': 'Kelola atau perpanjang',
     'Say bismillah and begin a conversation.':
         'Ucapkan bismillah dan mulailah percakapan.',
     'Searching cities...': 'Mencari kota...',
@@ -1842,6 +1854,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Review every request individually. Access can be revoked whenever you choose.':
         'Semak setiap permintaan secara individu. Akses boleh dibatalkan bila-bila masa anda memilih.',
     'Silarah Premium · Active': 'Silarah Premium · Aktif',
+    'Manage or cancel': 'Urus atau batal',
+    'Manage or renew': 'Urus atau perbaharui',
     'Say bismillah and begin a conversation.':
         'Ucap bismillah dan mulakan perbualan.',
     'Searching cities...': 'Mencari bandar...',
@@ -2122,6 +2136,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Review every request individually. Access can be revoked whenever you choose.':
         'Her isteği ayrı ayrı inceleyin. Erişim istediğiniz zaman iptal edilebilir.',
     'Silarah Premium · Active': 'Silarah Premium · Aktif',
+    'Manage or cancel': 'Yönet veya iptal et',
+    'Manage or renew': 'Yönet veya yenile',
     'Say bismillah and begin a conversation.':
         'Bismillah deyin ve sohbete başlayın.',
     'Searching cities...': 'Şehirler aranıyor...',
@@ -2403,6 +2419,8 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Review every request individually. Access can be revoked whenever you choose.':
         'ہر درخواست کا انفرادی طور پر جائزہ لیں۔ جب بھی آپ انتخاب کریں رسائی کو منسوخ کیا جا سکتا ہے۔',
     'Silarah Premium · Active': 'Silarah پریمیم · فعال',
+    'Manage or cancel': 'نظم کریں یا منسوخ کریں',
+    'Manage or renew': 'نظم کریں یا تجدید کریں',
     'Say bismillah and begin a conversation.':
         'بسم اللہ کہو اور گفتگو شروع کرو۔',
     'Searching cities...': 'شہر تلاش کر رہے ہیں...',

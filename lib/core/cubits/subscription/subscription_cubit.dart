@@ -430,13 +430,12 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
     final refreshId = ++_entitlementRefreshId;
     final revenueCatActive = customerInfo != null &&
         SubscriptionEntitlements.isPremiumActive(customerInfo);
-    final revenueCatExpiry = revenueCatActive
-        ? DateTime.tryParse(
-            SubscriptionEntitlements.activePremium(customerInfo)
-                    ?.expirationDate ??
-                '',
-          )
+    final storePremium = revenueCatActive
+        ? SubscriptionEntitlements.activePremium(customerInfo)
         : null;
+    final revenueCatExpiry = storePremium == null
+        ? null
+        : DateTime.tryParse(storePremium.expirationDate ?? '');
 
     final server = await _loadServerEntitlement(allowRecent: allowRecent);
     if (!_isCurrentSession(generation) || refreshId != _entitlementRefreshId) {
@@ -467,12 +466,28 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
       serverSource: server.source,
     );
 
+    // Without a store answer, keep what it last said about renewal.
+    final willRenew = customerInfo == null
+        ? (active ? state.willRenew : null)
+        : storePremium?.willRenew;
+    final SubscriptionStatus status;
+    if (!active) {
+      status = SubscriptionStatus.none;
+    } else if (storePremium?.billingIssueDetectedAt != null) {
+      // A failed renewal still inside Google Play's grace period.
+      status = SubscriptionStatus.grace;
+    } else {
+      status = SubscriptionStatus.active;
+    }
+
     emit(state.copyWith(
       isLoading: isLoading ?? false,
-      status: active ? SubscriptionStatus.active : SubscriptionStatus.none,
+      status: status,
       source: source,
       expiresAt: expiry,
       clearExpiresAt: expiry == null,
+      willRenew: willRenew,
+      clearWillRenew: willRenew == null,
       successMessage: successMessage,
     ));
     _armExpiryRefresh(expiry);

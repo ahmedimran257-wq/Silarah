@@ -602,7 +602,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
 
             const SizedBox(height: AppDimensions.space16),
 
-            // Paid Premium status and Manage Subscription, near the top.
+            // A failed renewal needs attention, so it stands apart at the top.
             const _SubscriptionCard.status(),
 
             BlocBuilder<SubscriptionCubit, SubscriptionState>(
@@ -1914,78 +1914,18 @@ class _SubscriptionCard extends StatelessWidget {
           }
           card = _buildUpgrade(context);
         } else {
-          // Referral and test Premium have their own banner at the top.
-          if (state.status == SubscriptionStatus.none ||
-              (state.status == SubscriptionStatus.active &&
-                  state.isTemporaryPromotional)) {
+          // Healthy paid Premium lives inside the profile card; referral and
+          // test Premium have their own banner.
+          if (state.status != SubscriptionStatus.grace) {
             return const SizedBox.shrink();
           }
-          // Every paying member, women included, sees Premium is on and can
-          // reach Manage Subscription, where Google Play cancels it.
-          card = state.status == SubscriptionStatus.grace
-              ? _buildGrace(context)
-              : _buildActive(context, state);
+          card = _buildGrace(context);
         }
         return Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
           child: card,
         );
       },
-    );
-  }
-
-  Widget _buildActive(BuildContext context, SubscriptionState state) {
-    final l10n = AppLocalizations.of(context);
-    final expiry = state.expiresAt;
-    final referralOnly = state.isReferralOnly;
-    final testOnly = state.isTestOnly;
-    final temporary = referralOnly || testOnly;
-    return _CardShell(
-      borderColor: AppColors.verifiedTeal,
-      glowColor: AppColors.verifiedTeal.withValues(alpha: 0.1),
-      child: Row(children: [
-        Icon(Icons.workspace_premium_rounded,
-            color: AppColors.verifiedTeal, size: 22),
-        const SizedBox(width: 10),
-        Expanded(
-            child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            UiText(
-                testOnly
-                    ? context.uiCopy('Test Premium is active')
-                    : referralOnly
-                        ? l10n.referral_premiumActiveTitle
-                        : 'Silarah Premium · Active',
-                style: AppTypography.bodyMedium
-                    .copyWith(color: AppColors.verifiedTeal)),
-            if (expiry != null)
-              UiText(
-                  temporary
-                      ? l10n.referral_premiumEndsAt(_fmtDate(expiry))
-                      : context.uiRenewsDate(_fmtDate(expiry)),
-                  style: AppTypography.caption),
-          ],
-        )),
-        TextButton(
-          onPressed: temporary
-              ? () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const SubscriptionScreen(),
-                    ),
-                  )
-              : () => _manageSubscription(context),
-          child: UiText(
-            context.uiCopy(
-              temporary
-                  ? l10n.referral_premiumViewReward
-                  : 'Manage Subscription',
-            ),
-            style: AppTypography.captionMedium
-                .copyWith(color: AppColors.verifiedTeal),
-          ),
-        ),
-      ]),
     );
   }
 
@@ -2002,7 +1942,7 @@ class _SubscriptionCard extends StatelessWidget {
                 context.uiCopy('Payment issue — subscription in grace period.'),
                 style: AppTypography.caption)),
         TextButton(
-          onPressed: () => _manageSubscription(context),
+          onPressed: () => _openGooglePlaySubscriptions(context),
           child: UiText(context.uiCopy('Manage Subscription'),
               style: AppTypography.captionMedium
                   .copyWith(color: AppColors.premiumGold)),
@@ -2048,23 +1988,26 @@ class _SubscriptionCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Future<void> _manageSubscription(BuildContext context) async {
-    final opened = await BillingPortalService.openGooglePlaySubscriptions();
-    if (opened || !context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: UiText(
-          context.uiCopy(
-            'Unable to open Google Play subscriptions. Try again.',
-          ),
+/// Google Play's subscription page, where members cancel or renew.
+Future<void> _openGooglePlaySubscriptions(BuildContext context) async {
+  final opened = await BillingPortalService.openGooglePlaySubscriptions();
+  if (opened || !context.mounted) return;
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: UiText(
+        context.uiCopy(
+          'Unable to open Google Play subscriptions. Try again.',
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
-  String _fmtDate(DateTime dt) =>
-      '${dt.day} ${_months[dt.month - 1]} ${dt.year}';
+/// Paid Premium inside the profile card, for men and women alike.
+class _PremiumMembership extends StatelessWidget {
+  const _PremiumMembership();
 
   static const _months = [
     'Jan',
@@ -2080,6 +2023,46 @@ class _SubscriptionCard extends StatelessWidget {
     'Nov',
     'Dec',
   ];
+
+  static String _date(DateTime value) {
+    final date = value.toLocal();
+    return '${date.day} ${_months[date.month - 1]} ${date.year}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<SubscriptionCubit, SubscriptionState>(
+      builder: (context, state) {
+        final expiry = state.expiresAt;
+        if (state.status != SubscriptionStatus.active ||
+            !state.hasPaidPremium ||
+            expiry == null) {
+          return const SizedBox.shrink();
+        }
+        final cancelled = state.willRenew == false;
+        final String detail;
+        if (cancelled) {
+          detail = AppLocalizations.of(context)
+              .referral_premiumEndsAt(_date(expiry));
+        } else if (state.willRenew == true) {
+          detail = context.uiRenewsDate(_date(expiry));
+        } else {
+          // The store has not answered, so promise neither renewal nor end.
+          detail = _date(expiry);
+        }
+        return Padding(
+          padding: const EdgeInsets.only(top: AppDimensions.space16),
+          child: ProfileMembershipStrip(
+            detail: detail,
+            actionLabel: context.uiCopy(
+              cancelled ? 'Manage or renew' : 'Manage or cancel',
+            ),
+            onTap: () => _openGooglePlaySubscriptions(context),
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _CardShell extends StatelessWidget {
@@ -2233,6 +2216,7 @@ class _ProfilePreviewCard extends StatelessWidget {
               isVerified: hasVerificationBadge,
               onVerify: onVerify,
             ),
+      membership: const _PremiumMembership(),
       tips: verificationLoading
           ? null
           : ProfileRankTips(

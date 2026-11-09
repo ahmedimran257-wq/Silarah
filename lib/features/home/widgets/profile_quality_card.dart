@@ -94,6 +94,7 @@ class ProfileQualityCard extends StatefulWidget {
     required this.subtitle,
     this.nameBadge,
     this.identityStatus,
+    this.membership,
     this.tips,
   });
 
@@ -113,6 +114,9 @@ class ProfileQualityCard extends StatefulWidget {
 
   /// Photo verification seal or link; null while the status loads.
   final Widget? identityStatus;
+
+  /// Paid Premium status, directly under the member's identity.
+  final Widget? membership;
 
   /// Discover ranking checklist; null while verification status loads.
   final ProfileRankTips? tips;
@@ -292,6 +296,8 @@ class _ProfileQualityCardState extends State<ProfileQualityCard>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeader(context, l10n),
+                  if (widget.membership != null)
+                    _reveal(0.15, widget.membership!),
                   const SizedBox(height: AppDimensions.space20),
                   _reveal(
                     0.25,
@@ -462,6 +468,129 @@ class _PercentBadge extends StatelessWidget {
           height: 1.25,
           fontFeatures: const [FontFeature.tabularFigures()],
         ),
+      ),
+    );
+  }
+}
+
+class ProfileMembershipStrip extends StatelessWidget {
+  const ProfileMembershipStrip({
+    super.key,
+    required this.detail,
+    required this.actionLabel,
+    required this.onTap,
+  });
+
+  /// The renewal or end date line.
+  final String detail;
+  final String actionLabel;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = AppColors.premiumGold;
+    return SilarahPressable(
+      onTap: onTap,
+      semanticLabel: 'Silarah Premium. $detail. $actionLabel',
+      child: DecoratedBox(
+        // Fades out at both ends, so the row reads as part of the card.
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [
+            gold.withValues(alpha: 0),
+            gold.withValues(alpha: 0.07),
+            gold.withValues(alpha: 0),
+          ]),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _hairline(gold),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: AppDimensions.space12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: gold.withValues(alpha: 0.12),
+                      border: Border.all(color: gold.withValues(alpha: 0.34)),
+                    ),
+                    child: Center(
+                      child: CustomPaint(
+                        size: const Size.square(17),
+                        painter: _KhatamGlyphPainter(color: gold),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppDimensions.space12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        UiText.verbatim(
+                          'Silarah Premium',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.sectionLabel.copyWith(
+                            color: gold,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                        const SizedBox(height: AppDimensions.space2),
+                        UiText.verbatim(
+                          detail,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.userName.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: AppDimensions.space8),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 80),
+                    child: UiText.verbatim(
+                      actionLabel,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                      style: AppTypography.captionMedium.copyWith(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.champagneGold,
+                        height: 1.25,
+                      ),
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded,
+                      color: AppColors.slateMist, size: 20),
+                ],
+              ),
+            ),
+            _hairline(gold),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _hairline(Color gold) {
+    return Container(
+      height: 1,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [
+          gold.withValues(alpha: 0),
+          gold.withValues(alpha: 0.42),
+          gold.withValues(alpha: 0),
+        ]),
       ),
     );
   }
