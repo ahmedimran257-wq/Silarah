@@ -145,6 +145,7 @@ Future<void> _installCrashReporting() async {
 void main() async {
   perfStart();
   WidgetsFlutterBinding.ensureInitialized();
+  perfWatchFrames();
   // Flutter Inspector paint toggles can persist for the lifetime of a debug
   // process and draw colored text baselines over otherwise-correct UI. Always
   // start every flavor from a clean render surface; release builds keep these
