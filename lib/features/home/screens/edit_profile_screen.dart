@@ -1042,7 +1042,8 @@ class _LocationEditor extends StatelessWidget {
             initialValue: initialCity,
             hint: region == null
                 ? 'Search your city or area'
-                : 'Search city in ${region!.name}',
+                : context.uiCopyWith(
+                    'Search city in {region}', {'region': region!.name}),
             onSelected: onCitySelected,
             onCleared: onCityCleared,
           ),
@@ -1071,7 +1072,8 @@ class _LocationEditor extends StatelessWidget {
                         const SizedBox(width: AppDimensions.space8),
                         Expanded(
                           child: UiText(
-                            'Matching from $locationLabel',
+                            context.uiCopyWith('Matching from {location}',
+                                {'location': locationLabel}),
                             style: AppTypography.caption.copyWith(
                               color: AppColors.verifiedTeal,
                               fontWeight: FontWeight.w600,

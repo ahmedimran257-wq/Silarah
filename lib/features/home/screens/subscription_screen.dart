@@ -271,6 +271,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
+          tooltip: context.uiCopy('Back'),
           onPressed: _closeScreen,
           icon: Icon(
             Icons.arrow_back_ios_new_rounded,
@@ -699,7 +700,8 @@ class _PricingStatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       liveRegion: true,
-      label: isLoading ? 'Loading subscription plans' : 'Plans unavailable',
+      label: context.uiCopy(
+          isLoading ? 'Loading subscription plans' : 'Plans unavailable'),
       child: Container(
         padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
         decoration: BoxDecoration(
@@ -873,7 +875,8 @@ class _PlanCard extends StatelessWidget {
                 ),
                 child: UiText(
                   savings != null && savings! > 0
-                      ? 'SAVE $savings%'
+                      ? context
+                          .uiCopyWith('SAVE {percent}%', {'percent': savings!})
                       : 'BEST VALUE',
                   style: AppTypography.sectionLabel.copyWith(
                     color: AppColors.obsidianNight,
@@ -972,7 +975,6 @@ class _IncludedFeatures extends StatelessWidget {
     (Icons.rocket_launch_outlined, 'Weekly profile boost'),
     (Icons.visibility_rounded, 'See everyone who viewed your profile'),
     (Icons.bookmark_border_rounded, 'Save multiple filter presets'),
-    (Icons.trending_up_rounded, 'Priority in search results'),
   ];
 
   @override

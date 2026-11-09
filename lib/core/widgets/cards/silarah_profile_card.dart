@@ -426,7 +426,12 @@ class _PrivatePhotoPlaceholder extends StatelessWidget {
             if (isPrivate && photoCount > 0) ...[
               const SizedBox(height: AppDimensions.space12),
               UiText(
-                '$photoCount photo${photoCount > 1 ? 's' : ''} · visible after acceptance',
+                context.uiCopyWith(
+                  photoCount > 1
+                      ? '{count} photos · visible after acceptance'
+                      : '{count} photo · visible after acceptance',
+                  {'count': photoCount},
+                ),
                 style: AppTypography.caption,
                 textAlign: TextAlign.center,
               ),

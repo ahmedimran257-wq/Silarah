@@ -25,6 +25,10 @@ class SubscriptionState extends Equatable {
   final PremiumEntitlementSource source;
   final DateTime? expiresAt;
 
+  /// The paid plan's own period end. [expiresAt] can be later when a referral
+  /// reward runs past it, which is not when the plan renews.
+  final DateTime? paidExpiresAt;
+
   /// Whether the store will renew at [expiresAt]. False once cancelled; null
   /// when the store has not answered.
   final bool? willRenew;
@@ -36,6 +40,7 @@ class SubscriptionState extends Equatable {
     this.status = SubscriptionStatus.none,
     this.source = PremiumEntitlementSource.none,
     this.expiresAt,
+    this.paidExpiresAt,
     this.willRenew,
     this.isLoading = false,
     this.error,
@@ -91,11 +96,13 @@ class SubscriptionState extends Equatable {
     SubscriptionStatus? status,
     PremiumEntitlementSource? source,
     DateTime? expiresAt,
+    DateTime? paidExpiresAt,
     bool? willRenew,
     bool? isLoading,
     String? error,
     String? successMessage,
     bool clearExpiresAt = false,
+    bool clearPaidExpiresAt = false,
     bool clearWillRenew = false,
     bool clearError = false,
     bool clearSuccess = false,
@@ -104,6 +111,8 @@ class SubscriptionState extends Equatable {
       status: status ?? this.status,
       source: source ?? this.source,
       expiresAt: clearExpiresAt ? null : (expiresAt ?? this.expiresAt),
+      paidExpiresAt:
+          clearPaidExpiresAt ? null : (paidExpiresAt ?? this.paidExpiresAt),
       willRenew: clearWillRenew ? null : (willRenew ?? this.willRenew),
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
@@ -113,6 +122,14 @@ class SubscriptionState extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [status, source, expiresAt, willRenew, isLoading, error, successMessage];
+  List<Object?> get props => [
+        status,
+        source,
+        expiresAt,
+        paidExpiresAt,
+        willRenew,
+        isLoading,
+        error,
+        successMessage,
+      ];
 }

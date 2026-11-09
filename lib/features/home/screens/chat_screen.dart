@@ -69,6 +69,7 @@ class _ChatScreenState extends State<ChatScreen>
   ChatAccessDecision? _accessDecision;
   bool _profileOpening = false;
   int _openGeneration = 0;
+  StreamSubscription<NotificationsState>? _notificationsSubscription;
 
   // A store purchase reaches the server through the RevenueCat webhook a few
   // seconds later; until then the server still says subscription_required.
@@ -102,9 +103,27 @@ class _ChatScreenState extends State<ChatScreen>
         CurvedAnimation(parent: _openersAnim, curve: Curves.easeInOut);
     _inputCtrl.addListener(_handleComposerChanged);
     _scrollCtrl.addListener(_handleScroll);
+    _watchNotifications();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _authorizeAndOpen();
     });
+  }
+
+  /// A message that arrives in the open chat is read as it lands, so its
+  /// notification must not stay on the bell.
+  void _watchNotifications() {
+    try {
+      final notifications = context.read<NotificationsCubit>();
+      _notificationsSubscription = notifications.stream.listen((_) {
+        notifications.markHandled(
+          (n) =>
+              n.type == 'new_message' &&
+              _chatCubit.isViewingConversationLink(n.deepLink),
+        );
+      });
+    } catch (_) {
+      // Embedded or test hosts may not provide notifications.
+    }
   }
 
   Future<void> _authorizeAndOpen() async {
@@ -203,6 +222,7 @@ class _ChatScreenState extends State<ChatScreen>
   @override
   void dispose() {
     _activationRetry?.cancel();
+    _notificationsSubscription?.cancel();
     _openGeneration++;
     _chatCubit.updateTyping(widget.conversationId, isTyping: false);
     _chatCubit.leaveConversation(widget.conversationId);
@@ -690,11 +710,16 @@ class _ClosedBanner extends StatelessWidget {
             child: UiText(
           memberUnavailable
               ? context.uiCopy('This profile is unavailable right now.')
-              : switch (closedByMe) {
-                  true => 'You ended this match.',
-                  false => '$name ended this match.',
-                  null => 'This match has ended.',
-                },
+              : context.uiCopyWith(
+                  switch (closedByMe) {
+                    true => 'You ended this match.',
+                    false => '$name ended this match.',
+                    null => 'This match has ended.',
+                  }
+                      .replaceFirst(RegExp('^${RegExp.escape(name)} ended'),
+                          '{name} ended'),
+                  {'name': name},
+                ),
           style: AppTypography.caption.copyWith(color: AppColors.softCoral),
         )),
       ]),
@@ -739,8 +764,11 @@ class _SuspendedBanner extends StatelessWidget {
     final hours = diff.inHours.clamp(0, 24);
     final minutes = diff.inMinutes % 60;
     final remainingStr = hours > 0
-        ? '$hours hour${hours == 1 ? '' : 's'}'
-        : '$minutes minute${minutes == 1 ? '' : 's'}';
+        ? context.uiCopyWith(
+            hours == 1 ? '{count} hour' : '{count} hours', {'count': hours})
+        : context.uiCopyWith(
+            minutes == 1 ? '{count} minute' : '{count} minutes',
+            {'count': minutes});
 
     return Container(
       width: double.infinity,
@@ -754,7 +782,10 @@ class _SuspendedBanner extends StatelessWidget {
         const SizedBox(width: AppDimensions.space8),
         Expanded(
             child: UiText(
-          'Messaging suspended for violating community guidelines. Unlocks in $remainingStr.',
+          context.uiCopyWith(
+            'Messaging suspended for violating community guidelines. Unlocks in {time}.',
+            {'time': remainingStr},
+          ),
           style: AppTypography.caption.copyWith(color: AppColors.softCoral),
         )),
       ]),
@@ -1150,6 +1181,7 @@ class _ChatAccessGate extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.obsidianNight,
         leading: IconButton(
+          tooltip: context.uiCopy('Back'),
           onPressed: onBack,
           icon: const Icon(Icons.arrow_back_rounded),
         ),
@@ -1280,19 +1312,23 @@ class _ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         border: Border(bottom: BorderSide(color: AppColors.cardBorder)),
       ),
       child: Row(children: [
-        GestureDetector(
-          onTap: onBack,
-          child: Container(
-            margin: const EdgeInsets.all(AppDimensions.space8),
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-                color: AppColors.surfaceGlass,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.cardBorder)),
-            child: Icon(Icons.arrow_back_rounded,
-                color: AppColors.pearlWhite,
-                size: AppDimensions.iconSizeMedium),
+        Semantics(
+          button: true,
+          label: context.uiCopy('Back'),
+          child: GestureDetector(
+            onTap: onBack,
+            child: Container(
+              margin: const EdgeInsets.all(AppDimensions.space8),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                  color: AppColors.surfaceGlass,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.cardBorder)),
+              child: Icon(Icons.arrow_back_rounded,
+                  color: AppColors.pearlWhite,
+                  size: AppDimensions.iconSizeMedium),
+            ),
           ),
         ),
         Expanded(
@@ -1382,6 +1418,7 @@ class _ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
         PopupMenuButton<String>(
+          tooltip: context.uiCopy('Chat options'),
           icon: Container(
             margin: const EdgeInsets.all(AppDimensions.space8),
             width: 40,
@@ -1669,11 +1706,11 @@ class _MessageBubble extends StatelessWidget {
     // messages read as one grouped thought.
     const round = Radius.circular(18);
     final tail = sameAsPrev ? round : const Radius.circular(6);
-    final radius = BorderRadius.only(
-      topLeft: isMe ? round : tail,
-      topRight: isMe ? tail : round,
-      bottomLeft: round,
-      bottomRight: round,
+    final radius = BorderRadiusDirectional.only(
+      topStart: isMe ? round : tail,
+      topEnd: isMe ? tail : round,
+      bottomStart: round,
+      bottomEnd: round,
     );
     final fill = isMe ? AppColors.champagneGold : AppColors.surfaceElevated;
 
@@ -1794,7 +1831,7 @@ class _StatusIcon extends StatelessWidget {
       case MessageStatus.failed:
         return Semantics(
           button: true,
-          label: 'Message failed. Tap to retry.',
+          label: context.uiCopy('Message failed. Tap to retry.'),
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: onRetry,
@@ -1919,7 +1956,8 @@ class _InputBarState extends State<_InputBar> {
           curve: AppCurves.transition,
           child: widget.canSend
               ? Padding(
-                  padding: const EdgeInsets.only(left: AppDimensions.space10),
+                  padding: const EdgeInsetsDirectional.only(
+                      start: AppDimensions.space10),
                   child: SilarahPressable(
                     semanticLabel: context.uiCopy('Send message'),
                     onTap: widget.onSend,

@@ -94,15 +94,24 @@ class AuthAuthenticated extends AuthState {
 
 /// Session check found no active session.
 class AuthUnauthenticated extends AuthState {
-  const AuthUnauthenticated();
+  const AuthUnauthenticated({this.notice});
+
+  /// Why the session ended, when the member has to be told.
+  final String? notice;
+
+  @override
+  List<Object?> get props => [notice];
 }
+
+enum AuthErrorKind { general, invalidEmail, legalConsentRequired }
 
 /// Any auth error (invalid OTP, network, etc.)
 class AuthError extends AuthState {
-  const AuthError({required this.message});
+  const AuthError({required this.message, this.kind = AuthErrorKind.general});
 
   final String message;
+  final AuthErrorKind kind;
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, kind];
 }

@@ -461,7 +461,12 @@ class _DailyLimitBanner extends StatelessWidget {
               const SizedBox(width: AppDimensions.space6),
               Expanded(
                 child: UiText(
-                  '${state.isPremium ? 'Premium' : 'Free'} · $sent of $limit sent today',
+                  context.uiCopyWith('{tier} · {sent} of {limit} sent today', {
+                    'tier':
+                        context.uiCopy(state.isPremium ? 'Premium' : 'Free'),
+                    'sent': sent,
+                    'limit': limit,
+                  }),
                   style: AppTypography.caption.copyWith(
                     color:
                         atLimit ? AppColors.softCoral : AppColors.champagneGold,
@@ -471,7 +476,8 @@ class _DailyLimitBanner extends StatelessWidget {
               ),
               if (!atLimit)
                 UiText(
-                  '${state.remainingToday} remaining',
+                  context.uiCopyWith(
+                      '{count} remaining', {'count': state.remainingToday}),
                   style: AppTypography.caption,
                 ),
             ],
@@ -634,7 +640,8 @@ class _ReceivedTile extends StatelessWidget {
           // Top row: avatar + name/city + time
           Semantics(
             button: true,
-            label: 'View ${p.displayName} profile',
+            label: context
+                .uiCopyWith('View {name} profile', {'name': p.displayName}),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: onOpen,
@@ -673,7 +680,8 @@ class _ReceivedTile extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      UiText(entry.timeAgo, style: AppTypography.caption),
+                      UiText(context.uiRelativeTime(entry.timeAgo),
+                          style: AppTypography.caption),
                       const SizedBox(height: AppDimensions.space4),
                       if (isAccepted)
                         _StatusPill(
@@ -840,7 +848,9 @@ class _ExpiryRow extends StatelessWidget {
     final days = entry.daysRemaining ?? 0;
     final text = isUrgent
         ? 'Expires today'
-        : 'Expires in $days day${days == 1 ? '' : 's'}';
+        : context.uiCopyWith(
+            days == 1 ? 'Expires in {count} day' : 'Expires in {count} days',
+            {'count': days});
 
     return Padding(
       padding: const EdgeInsets.only(top: AppDimensions.space10),
@@ -951,7 +961,8 @@ class _SentTile extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              UiText(entry.timeAgo, style: AppTypography.caption),
+              UiText(context.uiRelativeTime(entry.timeAgo),
+                  style: AppTypography.caption),
               const SizedBox(height: AppDimensions.space6),
               if (isPending)
                 GestureDetector(

@@ -33,6 +33,7 @@ import '../../../core/services/photo_access_service.dart';
 import '../../../core/services/profile_photo_service.dart';
 import '../../../core/services/profile_view_service.dart';
 import '../../../core/services/platform_action_service.dart';
+import '../../../core/services/referral_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
@@ -342,7 +343,11 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     } finally {
       _sendingInterest = false;
     }
-    if (!mounted || !sent) return;
+    if (!mounted) return;
+    if (!sent) {
+      showInterestSendFailure(context);
+      return;
+    }
     HapticFeedback.mediumImpact();
     await showInterestCeremony(context, firstName: widget.profile.firstName);
   }
@@ -484,12 +489,16 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
   Future<void> _handleShare() async {
     HapticFeedback.selectionClick();
-    // TD4: Copy a share link to clipboard
-    final shareText = 'Check out ${widget.profile.firstName} on Silarah — '
-        'silarah.com/profile/${widget.profile.id}';
+    final firstName = widget.profile.firstName;
+    final code = await ReferralService.instance.getCodeOrNull();
+    if (!mounted) return;
     await PlatformActionService.instance.shareText(
-      text: shareText,
-      subject: 'Silarah profile',
+      text: ReferralService.profileShareText(
+        firstName: firstName,
+        code: code,
+        translate: context.uiCopy,
+      ),
+      subject: context.uiCopy('Silarah profile'),
     );
   }
 
@@ -1084,8 +1093,8 @@ class _PhotoCarousel extends StatelessWidget {
             ),
           ),
           if (currentPage > 0)
-            Positioned(
-              left: AppDimensions.space12,
+            PositionedDirectional(
+              start: AppDimensions.space12,
               top: 0,
               bottom: 0,
               child: _GalleryNavButton(
@@ -1098,8 +1107,8 @@ class _PhotoCarousel extends StatelessWidget {
               ),
             ),
           if (currentPage < totalPhotos - 1)
-            Positioned(
-              right: AppDimensions.space12,
+            PositionedDirectional(
+              end: AppDimensions.space12,
               top: 0,
               bottom: 0,
               child: _GalleryNavButton(
@@ -1861,8 +1870,19 @@ class _NameBlock extends StatelessWidget {
               Expanded(
                 child: UiText(
                   profile.priorMatchCount > 1
-                      ? 'Previously matched ${profile.priorMatchCount} times · most recently ${MaterialLocalizations.of(context).formatMediumDate(profile.previousMatchAt!.toLocal())}'
-                      : 'Previously matched on ${MaterialLocalizations.of(context).formatMediumDate(profile.previousMatchAt!.toLocal())}',
+                      ? context.uiCopyWith(
+                          'Previously matched {count} times · most recently {date}',
+                          {
+                              'count': profile.priorMatchCount,
+                              'date': MaterialLocalizations.of(context)
+                                  .formatMediumDate(
+                                      profile.previousMatchAt!.toLocal()),
+                            })
+                      : context.uiCopyWith('Previously matched on {date}', {
+                          'date': MaterialLocalizations.of(context)
+                              .formatMediumDate(
+                                  profile.previousMatchAt!.toLocal()),
+                        }),
                   style: AppTypography.caption.copyWith(
                     color: AppColors.champagneLight,
                     fontWeight: FontWeight.w600,
@@ -1994,7 +2014,12 @@ class _OwnProfilePreviewNotice extends StatelessWidget {
                     style: AppTypography.bodyMedium),
                 const SizedBox(height: AppDimensions.space4),
                 UiText(
-                  'This is the profile members see in discovery. Swipe through all $photoCount ${photoCount == 1 ? 'photo' : 'photos'} to review the full experience.',
+                  context.uiCopyWith(
+                    photoCount == 1
+                        ? 'This is the profile members see in discovery. Swipe through all {count} photo to review the full experience.'
+                        : 'This is the profile members see in discovery. Swipe through all {count} photos to review the full experience.',
+                    {'count': photoCount},
+                  ),
                   style: AppTypography.caption.copyWith(
                     color: AppColors.slateMist,
                     height: 1.45,
@@ -2641,14 +2666,20 @@ class _CtaBar extends StatelessWidget {
     final normalizedName = firstName.trim();
     final (label, icon) = isCooldown
         ? (
-            'Rematch available in $rematchCooldownDays day${rematchCooldownDays == 1 ? '' : 's'}',
+            context.uiCopyWith(
+              rematchCooldownDays == 1
+                  ? 'Rematch available in {count} day'
+                  : 'Rematch available in {count} days',
+              {'count': '$rematchCooldownDays'},
+            ),
             Icons.schedule_rounded,
           )
         : switch (interaction) {
             ProfileInteractionState.pendingSent => (
                 normalizedName.isEmpty
                     ? 'Interest sent · Awaiting response'
-                    : 'Interest sent · Awaiting $normalizedName',
+                    : context.uiCopyWith('Interest sent · Awaiting {name}',
+                        {'name': normalizedName}),
                 Icons.schedule_rounded,
               ),
             ProfileInteractionState.pendingReceived => (
@@ -2662,7 +2693,8 @@ class _CtaBar extends StatelessWidget {
             ProfileInteractionState.none => (
                 isRematchCandidate
                     ? 'Send interest again'
-                    : 'Send interest to $firstName',
+                    : context.uiCopyWith(
+                        'Send interest to {name}', {'name': firstName}),
                 Icons.favorite_outline_rounded,
               ),
           };
@@ -2694,36 +2726,43 @@ class _CtaBar extends StatelessWidget {
       child: Row(
         children: [
           // Bookmark button — left
-          GestureDetector(
-            onTap: onBookmark,
-            child: AnimatedContainer(
-              duration: AppDimensions.durationTransition,
-              width: AppDimensions.buttonHeight,
-              height: AppDimensions.buttonHeight,
-              decoration: BoxDecoration(
-                color:
-                    isBookmarked ? AppColors.onMedia : AppColors.overlayBlack87,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
-                border: Border.all(
+          Semantics(
+            button: true,
+            label: context.uiCopy(isBookmarked ? 'Saved' : 'Save'),
+            child: GestureDetector(
+              onTap: onBookmark,
+              child: AnimatedContainer(
+                duration: AppDimensions.durationTransition,
+                width: AppDimensions.buttonHeight,
+                height: AppDimensions.buttonHeight,
+                decoration: BoxDecoration(
                   color: isBookmarked
-                      ? AppColors.overlayBlack45
-                      : AppColors.onMedia.withValues(alpha: 0.72),
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: AppColors.overlayBlack55,
-                    blurRadius: 14,
-                    offset: Offset(0, 7),
+                      ? AppColors.onMedia
+                      : AppColors.overlayBlack87,
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.radiusButton),
+                  border: Border.all(
+                    color: isBookmarked
+                        ? AppColors.overlayBlack45
+                        : AppColors.onMedia.withValues(alpha: 0.72),
                   ),
-                ],
-              ),
-              child: Icon(
-                isBookmarked
-                    ? Icons.bookmark_rounded
-                    : Icons.bookmark_outline_rounded,
-                color:
-                    isBookmarked ? AppColors.overlayBlack87 : AppColors.onMedia,
-                size: AppDimensions.iconSizeLarge,
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AppColors.overlayBlack55,
+                      blurRadius: 14,
+                      offset: Offset(0, 7),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  isBookmarked
+                      ? Icons.bookmark_rounded
+                      : Icons.bookmark_outline_rounded,
+                  color: isBookmarked
+                      ? AppColors.overlayBlack87
+                      : AppColors.onMedia,
+                  size: AppDimensions.iconSizeLarge,
+                ),
               ),
             ),
           ),

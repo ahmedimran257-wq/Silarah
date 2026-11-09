@@ -2588,7 +2588,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String referral_shareText(String code) {
-    return 'Rejoignez Silarah, l’application matrimoniale musulmane de confiance. Utilisez mon code : $code\n\nTéléchargement : https://silarah.com/r/$code';
+    return 'Rejoignez Silarah, l’application matrimoniale musulmane de confiance. Utilisez mon code : $code\n\nTéléchargement : https://silarah.com';
   }
 
   @override

@@ -156,7 +156,8 @@ function event(overrides: Record<string, unknown> = {}) {
       entitlement_ids: ["premium"],
       store: "PLAY_STORE",
       currency: "INR",
-      price: 299,
+      price: 3.15,
+      price_in_purchased_currency: 299,
       ...overrides,
     },
   };
@@ -167,6 +168,14 @@ const applyCall = (db: Backend) =>
     ?.body;
 const notified = (db: Backend) =>
   db.rpcCalls.some((call) => call.fn === "queue_notification");
+
+Deno.test("records what the member paid, not the USD equivalent", async () => {
+  const db = backend();
+  const response = await deliver(db, event());
+  assertEquals(response.status, 200);
+  assertEquals(applyCall(db)?.p_price, 299);
+  assertEquals(applyCall(db)?.p_currency, "INR");
+});
 
 Deno.test("only RevenueCat's exact secret is accepted", async () => {
   for (

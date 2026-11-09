@@ -1510,7 +1510,7 @@
   "referral_shareButton": "Code mit Freunden teilen",
   "referral_copied": "Empfehlungscode kopiert!",
   "referral_shareSubject": "Silarah beitreten",
-  "referral_shareText": "Tritt Silarah bei, der vertrauenswürdigen muslimischen Heirats-App. Nutze meinen Empfehlungscode: {code}\n\nDownload: https://silarah.com/r/{code}",
+  "referral_shareText": "Tritt Silarah bei, der vertrauenswürdigen muslimischen Heirats-App. Nutze meinen Empfehlungscode: {code}\n\nDownload: https://silarah.com",
   "profile_share": "Profil teilen",
   "safety_reportMember": "{name} melden",
   "safety_blockMember": "{name} blockieren",

@@ -98,6 +98,41 @@ class InterestsCubit extends Cubit<InterestsState> {
   static bool _isInterestUnavailable(Object error) =>
       error.toString().contains('interest_unavailable');
 
+  /// Maps a send_interest rejection to what the member should be told.
+  @visibleForTesting
+  static InterestSendFailure classifySendFailure(Object error) {
+    final message = error.toString();
+    if (message.contains('rematch_cooldown')) {
+      return InterestSendFailure.rematchCooldown;
+    }
+    if (message.contains('interest_note_too_long') ||
+        message.contains('interests_note_check')) {
+      return InterestSendFailure.noteTooLong;
+    }
+    if (isRelationshipAlreadyActive(error)) {
+      return InterestSendFailure.alreadyConnected;
+    }
+    if (message.contains('profile_unavailable')) {
+      return InterestSendFailure.profileUnavailable;
+    }
+    if (message.contains('account_restricted')) {
+      return InterestSendFailure.accountRestricted;
+    }
+    return InterestSendFailure.generic;
+  }
+
+  // Why the latest send failed. Kept off the state so a cancelled note sheet
+  // or a double tap can never replay an earlier failure as a new message.
+  InterestSendFailure? _lastSendFailure;
+
+  /// Returns the failure from the latest send once, then forgets it. Null
+  /// means there is nothing to tell the member.
+  InterestSendFailure? takeSendFailure() {
+    final failure = _lastSendFailure;
+    _lastSendFailure = null;
+    return failure;
+  }
+
   // Init
   Future<void> loadData({bool force = false}) async {
     if (!SupabaseService.isInitialized) return;
@@ -117,11 +152,15 @@ class InterestsCubit extends Cubit<InterestsState> {
     _loadInFlight = true;
     final revisionAtStart = RelationshipRevisionService.readToken();
     try {
-      await _loadFromDb();
-      _loadedUserId = userId;
-      _lastLoadedAt = DateTime.now();
-      _loadedRelationshipRevision = await revisionAtStart;
-      _lastRelationshipRevisionCheckAt = DateTime.now();
+      final loaded = await _loadFromDb();
+      final revision = await revisionAtStart;
+      // A failed load must stay stale so the next open tries again.
+      if (loaded) {
+        _loadedUserId = userId;
+        _lastLoadedAt = DateTime.now();
+        _loadedRelationshipRevision = revision;
+        _lastRelationshipRevisionCheckAt = DateTime.now();
+      }
     } finally {
       _loadInFlight = false;
       if (_forceReloadQueued && !isClosed) {
@@ -167,12 +206,13 @@ class InterestsCubit extends Cubit<InterestsState> {
     await loadData(force: true);
   }
 
-  /// Load interests, sent interests, and matches from Supabase.
-  Future<void> _loadFromDb() async {
+  /// Load interests, sent interests, and matches from Supabase. Returns
+  /// whether the relationship rows were actually read.
+  Future<bool> _loadFromDb() async {
     final userId = SupabaseService.currentUserId;
     if (userId == null) {
       if (!isClosed) emit(const InterestsState());
-      return;
+      return false;
     }
 
     // Quota and relationship rows are independent reads. Starting them
@@ -299,6 +339,7 @@ class InterestsCubit extends Cubit<InterestsState> {
         ));
         if (quota == null) _scheduleQuietQuotaRetry();
       }
+      return true;
     } catch (e) {
       debugPrint('[InterestsCubit] Error loading from DB: $e');
       final quota = await quotaFuture;
@@ -314,6 +355,7 @@ class InterestsCubit extends Cubit<InterestsState> {
         ));
         if (quota == null) _scheduleQuietQuotaRetry();
       }
+      return false;
     }
   }
 
@@ -372,11 +414,7 @@ class InterestsCubit extends Cubit<InterestsState> {
         .whereType<String>()
         .toList(growable: false);
     final signedUrlBatchResults = await Future.wait(
-      _batches(photoOwners, 50).map(
-        (batch) => ProfilePhotoService.instance.getAuthorizedPhotoUrls(
-          ownerUserIds: batch,
-        ),
-      ),
+      _batches(photoOwners, 50).map(_signPhotoBatchOrEmpty),
     );
     final signedUrls = <String, String>{
       for (final batch in signedUrlBatchResults) ...batch,
@@ -399,6 +437,19 @@ class InterestsCubit extends Cubit<InterestsState> {
       }
     }
     return result;
+  }
+
+  Future<Map<String, String>> _signPhotoBatchOrEmpty(
+      List<String> owners) async {
+    try {
+      return await ProfilePhotoService.instance.getAuthorizedPhotoUrls(
+        ownerUserIds: owners,
+      );
+    } catch (error) {
+      // A photo must never prevent interests from loading.
+      debugPrint('[InterestsCubit] Error signing photos: $error');
+      return const {};
+    }
   }
 
   static List<List<T>> _batches<T>(Iterable<T> values, int size) {
@@ -486,6 +537,7 @@ class InterestsCubit extends Cubit<InterestsState> {
   /// sheet. A still-valid quota snapshot is reused; the send_interest RPC is
   /// the authoritative security boundary and rejects stale or concurrent use.
   Future<bool> canStartInterest() async {
+    _lastSendFailure = null;
     final resetsAt = state.quotaResetsAt;
     if (!state.quotaUnavailable &&
         state.dailyLimit > 0 &&
@@ -538,27 +590,70 @@ class InterestsCubit extends Cubit<InterestsState> {
         if (_isInterestUnavailable(e)) {
           // Show the server's answer: accepted elsewhere is still a match.
           await loadData(force: true);
-          return state.matches.any((entry) => entry.id == id);
+          return _interestHasActiveMatch(id);
         }
         return false;
       }
     }
 
+    final senderId = _receivedInterest(id)?.profile.id;
+    if (senderId == null) {
+      await loadData(force: true);
+      return _interestHasActiveMatch(id);
+    }
+
+    final matchId = await _activeMatchIdWith(senderId);
+    if (isClosed) return true;
+
     final updated = List<InterestEntry>.from(state.received);
     final idx = updated.indexWhere((e) => e.id == id);
     if (idx == -1) {
       await loadData(force: true);
-      return state.matches.any((entry) => entry.id == id);
+      return _interestHasActiveMatch(id);
     }
 
     final accepted = updated[idx].copyWith(status: InterestStatus.accepted);
     updated[idx] = accepted;
 
+    // A match row has its own id, which is what closing the match looks up.
     final updatedMatches = List<InterestEntry>.from(state.matches)
-      ..add(accepted);
+      ..add(matchId == null ? accepted : accepted.copyWith(id: matchId));
 
     emit(state.copyWith(received: updated, matches: updatedMatches));
+    if (matchId == null) unawaited(loadData(force: true));
     return true;
+  }
+
+  InterestEntry? _receivedInterest(String id) =>
+      state.received.where((entry) => entry.id == id).firstOrNull;
+
+  /// Whether the member who sent interest [id] is now an active match.
+  /// Interest and match rows have different ids, so compare the member.
+  bool _interestHasActiveMatch(String id) {
+    final senderId = _receivedInterest(id)?.profile.id;
+    return senderId != null &&
+        state.matches.any((entry) => entry.profile.id == senderId);
+  }
+
+  /// The id of the active match with [otherUserId], or null if it could not
+  /// be read. New matches sort first, so a short page is enough.
+  Future<String?> _activeMatchIdWith(String otherUserId) async {
+    try {
+      final rows = await SupabaseService.client.rpc(
+        'get_my_matches',
+        params: {'p_limit': 20},
+      ) as List<dynamic>;
+      for (final raw in rows) {
+        final row = raw as Map;
+        if (row['status'] == 'active' &&
+            (row['user_a'] == otherUserId || row['user_b'] == otherUserId)) {
+          return row['id']?.toString();
+        }
+      }
+    } catch (error) {
+      debugPrint('[InterestsCubit] Error reading new match: $error');
+    }
+    return null;
   }
 
   /// Decline an incoming interest.
@@ -590,11 +685,16 @@ class InterestsCubit extends Cubit<InterestsState> {
   // Sent actions
   /// Send an interest from the discovery feed or profile detail.
   Future<bool> sendInterest(DiscoveryProfile profile, {String? note}) async {
-    if (!SupabaseService.isInitialized) return false;
+    _lastSendFailure = null;
+    if (!SupabaseService.isInitialized) {
+      _lastSendFailure = InterestSendFailure.generic;
+      return false;
+    }
 
     // One active relationship owns this pair. Repeated interests would be
     // spam and are also rejected by the database constraint.
     if (state.interactionWith(profile.id) != ProfileInteractionState.none) {
+      _lastSendFailure = InterestSendFailure.alreadyConnected;
       return false;
     }
     // A second tap while the first send is on the wire is not a new send.
@@ -614,7 +714,10 @@ class InterestsCubit extends Cubit<InterestsState> {
     String? interestId;
 
     final myId = SupabaseService.currentUserId;
-    if (myId == null) return false;
+    if (myId == null) {
+      _lastSendFailure = InterestSendFailure.generic;
+      return false;
+    }
     try {
       final result = await SupabaseService.client.rpc('send_interest', params: {
         'p_receiver_id': profile.id,
@@ -643,16 +746,19 @@ class InterestsCubit extends Cubit<InterestsState> {
         }
         return false;
       }
+      _lastSendFailure = classifySendFailure(e);
       // Refresh stale UI when the server already owns this relationship. A
       // duplicate is not a new successful send and must not replay ceremony.
       if (isRelationshipAlreadyActive(e)) {
         await loadData(force: true);
-        return false;
       }
       return false;
     }
 
-    if (interestId == null || interestId.isEmpty) return false;
+    if (interestId == null || interestId.isEmpty) {
+      _lastSendFailure = InterestSendFailure.generic;
+      return false;
+    }
 
     final entry = InterestEntry(
       id: interestId,

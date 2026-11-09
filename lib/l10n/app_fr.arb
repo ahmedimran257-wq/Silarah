@@ -1510,7 +1510,7 @@
   "referral_shareButton": "Partager le code avec des amis",
   "referral_copied": "Code de parrainage copié !",
   "referral_shareSubject": "Rejoignez Silarah",
-  "referral_shareText": "Rejoignez Silarah, l’application matrimoniale musulmane de confiance. Utilisez mon code : {code}\n\nTéléchargement : https://silarah.com/r/{code}",
+  "referral_shareText": "Rejoignez Silarah, l’application matrimoniale musulmane de confiance. Utilisez mon code : {code}\n\nTéléchargement : https://silarah.com",
   "profile_share": "Partager le profil",
   "safety_reportMember": "Signaler {name}",
   "safety_blockMember": "Bloquer {name}",

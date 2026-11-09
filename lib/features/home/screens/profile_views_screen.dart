@@ -248,7 +248,10 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
                                         padding: const EdgeInsets.fromLTRB(
                                             24, 8, 24, 16),
                                         child: UiText(
-                                          '${_loadedViewers.length} people viewed your profile this week',
+                                          context.uiCopyWith(
+                                            '{count} people viewed your profile this week',
+                                            {'count': _loadedViewers.length},
+                                          ),
                                           style: AppTypography.screenTitle
                                               .copyWith(fontSize: 18),
                                         ),
@@ -329,7 +332,12 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
                                                               const SizedBox(
                                                                   width: 8),
                                                               UiText(
-                                                                  'Interest sent to ${p.firstName}',
+                                                                  context.uiCopyWith(
+                                                                      'Interest sent to {name}',
+                                                                      {
+                                                                        'name':
+                                                                            p.firstName
+                                                                      }),
                                                                   style: AppTypography
                                                                       .body
                                                                       .copyWith(

@@ -23,9 +23,13 @@ wording immediately before submission.
 | Name | First/last name, profile identity | Yes | Service providers | Account, matching, safety | Yes |
 | Email address | Sign-in and service contact | Yes | Supabase, Brevo | Authentication, account, transactional messages | Yes |
 | User IDs | Supabase user/profile/device IDs | Yes | Service providers | Account, security, analytics-free operations | Yes |
-| Address/location | City, state, country, coordinates | Yes | Supabase; location lookup provider receives query/location | Matching, app functionality | City/country required; precise device location optional |
+| Approximate location | City, state, country; optional coarse device coordinates (`ACCESS_COARSE_LOCATION`, rounded by the server) | Yes | Supabase; location lookup provider receives query/location | Matching, app functionality | City/country required; device location optional |
+| Precise location | Not collected: the app does not request `ACCESS_FINE_LOCATION` | No | No | Not applicable | Not applicable |
 | Photos | Profile photos and temporary optional photo-check captures | Yes | Supabase; on-device ML does not upload model input | Profile, safety, verification | Profile photo required; photo check optional |
-| Personal info | DOB/age, gender, marital/family details, faith, education, work, income preferences, languages, bio | Yes | Supabase | Profile and matching | Mix of required and optional |
+| Political or religious beliefs | Sect and religious practice | Yes | Supabase | Profile and matching | Mix of required and optional |
+| Race and ethnicity | Biradari/community | Yes | Supabase | Profile and matching | Optional |
+| Other financial info | Income range and income preferences | Yes | Supabase | Profile and matching | Optional |
+| Other personal info | DOB/age, gender, marital/family details, education, work, languages, bio | Yes | Supabase | Profile and matching | Mix of required and optional |
 | Messages | Chats, interests, reports and guardian data | Yes | Supabase | App functionality and safety | Feature-dependent |
 | Purchase history | Product, entitlement, transaction status, price/currency metadata | Yes | Google Play, RevenueCat, Supabase | Purchases, entitlement, support, fraud prevention | Purchase-dependent |
 | App activity | Interests, matches, profile views, saved profiles, notification state | Yes | Supabase | App functionality, personalization, security | Feature-dependent |

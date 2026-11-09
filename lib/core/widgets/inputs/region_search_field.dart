@@ -220,7 +220,7 @@ class _RegionSearchFieldState extends State<RegionSearchField> {
           style: AppTypography.inputText,
           textInputAction: TextInputAction.search,
           decoration: InputDecoration(
-            hintText: widget.hint ?? 'Search state or region',
+            hintText: context.uiCopy(widget.hint ?? 'Search state or region'),
             hintStyle: AppTypography.inputLabel,
             prefixIcon: Icon(
               Icons.map_outlined,

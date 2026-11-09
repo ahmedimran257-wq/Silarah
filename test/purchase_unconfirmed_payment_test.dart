@@ -270,13 +270,13 @@ void main() {
         now.subtract(Duration(days: days)).toIso8601String();
     CustomerInfo held({
       int expiredDaysAgo = 5,
-      bool willRenew = true,
       String? unsubscribed,
     }) =>
         CustomerInfo.fromJson(info(
           entitlement: premium(
             active: false,
-            willRenew: willRenew,
+            // RevenueCat reports false whenever a billing issue exists.
+            willRenew: false,
             billingIssueDetectedAt: daysAgo(expiredDaysAgo),
             unsubscribeDetectedAt: unsubscribed,
             expirationDate: daysAgo(expiredDaysAgo),
@@ -291,10 +291,6 @@ void main() {
     test('a lapsed or cancelled subscription can be bought again', () {
       expect(
           SubscriptionEntitlements.isOnAccountHold(held(expiredDaysAgo: 61),
-              now: now),
-          isFalse);
-      expect(
-          SubscriptionEntitlements.isOnAccountHold(held(willRenew: false),
               now: now),
           isFalse);
       expect(

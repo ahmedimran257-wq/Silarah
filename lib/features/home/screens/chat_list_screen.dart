@@ -184,10 +184,10 @@ class _ChatListScreenState extends State<ChatListScreen>
                             )
                           : Align(
                               key: const ValueKey('messages_title'),
-                              alignment: Alignment.centerLeft,
+                              alignment: AlignmentDirectional.centerStart,
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
+                                alignment: AlignmentDirectional.centerStart,
                                 child: UiText(
                                   context.uiCopy('Messages'),
                                   style: AppTypography.screenTitle,
@@ -213,7 +213,8 @@ class _ChatListScreenState extends State<ChatListScreen>
                             BorderRadius.circular(AppDimensions.radiusTiny),
                       ),
                       child: UiText(
-                        '${state.totalUnread} unread',
+                        context.uiCopyWith(
+                            '{count} unread', {'count': state.totalUnread}),
                         style: AppTypography.badge.copyWith(fontSize: 11),
                       ),
                     ),
@@ -426,12 +427,12 @@ class _ConversationTile extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              // Gold left accent bar — animates in/out for unread state
-              AnimatedPositioned(
+              // Gold leading accent bar — animates in/out for unread state
+              AnimatedPositionedDirectional(
                 duration: AppDimensions.durationTransition,
                 top: 0,
                 bottom: 0,
-                left: 0,
+                start: 0,
                 width: hasUnread ? 3.0 : 0.0,
                 child: AnimatedContainer(
                   duration: AppDimensions.durationTransition,
@@ -442,8 +443,8 @@ class _ConversationTile extends StatelessWidget {
 
               // Tile content
               Padding(
-                padding: EdgeInsets.fromLTRB(
-                  // Shift content right to clear the accent bar
+                padding: EdgeInsetsDirectional.fromSTEB(
+                  // Shift content in from the start to clear the accent bar
                   hasUnread ? AppDimensions.space16 + 3 : AppDimensions.space16,
                   AppDimensions.space16,
                   AppDimensions.space16,
@@ -552,7 +553,7 @@ class _ConversationTile extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         UiText(
-                          conversation.lastMessageTime,
+                          context.uiRelativeTime(conversation.lastMessageTime),
                           style: AppTypography.caption.copyWith(
                             color: hasUnread
                                 ? AppColors.champagneGold

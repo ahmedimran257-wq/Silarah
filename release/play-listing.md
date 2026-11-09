@@ -27,7 +27,7 @@ mutual interest or shared only after approval.
 
 Built for serious introductions:
 
-- Thoughtful filters for faith, family, education and marriage intentions
+- Thoughtful filters for faith, family, education and marital status
 - India-wide state, city and distance discovery
 - Interests before conversation, with clear consent from both people
 - Real-time messages and typing presence after a connection is accepted

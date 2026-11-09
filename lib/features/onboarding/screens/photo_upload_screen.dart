@@ -359,19 +359,23 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
     final copy = switch (progress.stage) {
       PhotoSyncStage.safetyScan => (
           'Final safety check',
-          'Verifying photo ${progress.slot + 1} before upload'
+          context.uiCopyWith('Verifying photo {number} before upload',
+              {'number': progress.slot + 1})
         ),
       PhotoSyncStage.preparingUpload => (
           'Securing upload',
-          'Creating a protected upload for photo ${progress.slot + 1}'
+          context.uiCopyWith('Creating a protected upload for photo {number}',
+              {'number': progress.slot + 1})
         ),
       PhotoSyncStage.transferring => (
           'Uploading photo',
-          'Transferring photo ${progress.slot + 1} securely'
+          context.uiCopyWith('Transferring photo {number} securely',
+              {'number': progress.slot + 1})
         ),
       PhotoSyncStage.publishing => (
           'Publishing photo',
-          'Adding photo ${progress.slot + 1} to your protected gallery'
+          context.uiCopyWith('Adding photo {number} to your protected gallery',
+              {'number': progress.slot + 1})
         ),
       PhotoSyncStage.complete => (
           progress.fraction >= 1 ? 'Photos saved' : 'Photo saved',

@@ -2531,7 +2531,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String referral_shareText(String code) {
-    return 'انضم إلى سيلاراه، تطبيق الزواج الإسلامي الموثوق. استخدم رمز إحالتي: $code\n\nالتنزيل: https://silarah.com/r/$code';
+    return 'انضم إلى سيلاراه، تطبيق الزواج الإسلامي الموثوق. استخدم رمز إحالتي: $code\n\nالتنزيل: https://silarah.com';
   }
 
   @override

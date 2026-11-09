@@ -202,6 +202,9 @@ class ChatCubit extends Cubit<ChatState> {
         conversations: _mergeLoadedConversations(state.conversations, loaded),
         isLoading: false,
         messagingSuspendedUntil: suspendedUntil,
+        // A suspension lifted early comes back as null. No account row means
+        // nothing was learned, so that keeps what is already known.
+        clearMessagingSuspendedUntil: userRow != null && suspendedUntil == null,
       ));
       _loadedUserId = me;
       _lastInboxLoadedAt = DateTime.now();

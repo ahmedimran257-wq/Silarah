@@ -1597,9 +1597,16 @@ class _BoostSectionState extends State<_BoostSection> {
     final days = remaining.inDays;
     final hours = remaining.inHours % 24;
     final minutes = remaining.inMinutes % 60;
-    if (days > 0) return 'Available in ${days}d ${hours}h';
-    if (hours > 0) return 'Available in ${hours}h ${minutes}m';
-    return 'Available in ${remaining.inMinutes + 1}m';
+    if (days > 0) {
+      return context.uiCopyWith(
+          'Available in {days}d {hours}h', {'days': days, 'hours': hours});
+    }
+    if (hours > 0) {
+      return context.uiCopyWith('Available in {hours}h {minutes}m',
+          {'hours': hours, 'minutes': minutes});
+    }
+    return context.uiCopyWith(
+        'Available in {minutes}m', {'minutes': remaining.inMinutes + 1});
   }
 
   @override
@@ -2033,7 +2040,7 @@ class _PremiumMembership extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SubscriptionCubit, SubscriptionState>(
       builder: (context, state) {
-        final expiry = state.expiresAt;
+        final expiry = state.paidExpiresAt ?? state.expiresAt;
         if (state.status != SubscriptionStatus.active ||
             !state.hasPaidPremium ||
             expiry == null) {
@@ -2256,7 +2263,7 @@ class _VerificationIdentityStatus extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isVerified) {
       return Semantics(
-        label: 'Profile photo verified',
+        label: context.uiCopy('Profile photo verified'),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -2278,7 +2285,8 @@ class _VerificationIdentityStatus extends StatelessWidget {
       onTap: onVerify,
       child: Semantics(
         button: true,
-        label: 'Verify profile photo with guided smile and blink captures',
+        label: context.uiCopy(
+            'Verify profile photo with guided smile and blink captures'),
         child: Container(
           padding: const EdgeInsets.fromLTRB(
             AppDimensions.space10,

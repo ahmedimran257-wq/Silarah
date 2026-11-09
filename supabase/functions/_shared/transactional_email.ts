@@ -409,7 +409,10 @@ function formatAmount(
   price?: number | null,
   currency?: string | null,
 ): string | null {
-  if (price == null || !Number.isFinite(price) || !currency) return null;
+  // Cancellation, expiry and billing-issue events carry no charge.
+  if (price == null || !Number.isFinite(price) || price === 0 || !currency) {
+    return null;
+  }
   try {
     return new Intl.NumberFormat("en", {
       style: "currency",

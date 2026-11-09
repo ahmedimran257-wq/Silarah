@@ -2568,7 +2568,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String referral_shareText(String code) {
-    return 'বিশ্বস্ত মুসলিম বিবাহ অ্যাপ Silarah-এ যোগ দিন। আমার রেফারেল কোড ব্যবহার করুন: $code\n\nডাউনলোড: https://silarah.com/r/$code';
+    return 'বিশ্বস্ত মুসলিম বিবাহ অ্যাপ Silarah-এ যোগ দিন। আমার রেফারেল কোড ব্যবহার করুন: $code\n\nডাউনলোড: https://silarah.com';
   }
 
   @override

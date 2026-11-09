@@ -119,7 +119,7 @@ abstract final class LegalDocuments {
       ),
       LegalSection(
         '3. Data generated when you use Silarah',
-        'We process authentication and consent records, device and app version, notification tokens, language and settings, feature activity, matches, message delivery and typing state, moderation and fraud signals, subscription status and transaction events, crash diagnostics, IP-derived security information, timestamps and audit logs. Precise device location is requested only for location-based discovery and can be denied; city-based discovery remains available.',
+        'We process authentication and consent records, device and app version, notification tokens, language and settings, feature activity, matches, message delivery and typing state, moderation and fraud signals, subscription status and transaction events, crash diagnostics, IP-derived security information, timestamps and audit logs. Approximate device location is requested only for location-based discovery and can be denied; city-based discovery remains available.',
       ),
       LegalSection(
         '4. Sensitive and verification data',

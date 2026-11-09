@@ -1510,7 +1510,7 @@
   "referral_shareButton": "Bagikan Kode kepada Teman",
   "referral_copied": "Kode referal disalin!",
   "referral_shareSubject": "Bergabung dengan Silarah",
-  "referral_shareText": "Bergabunglah dengan Silarah, aplikasi pernikahan Muslim tepercaya. Gunakan kode referal saya: {code}\n\nUnduh: https://silarah.com/r/{code}",
+  "referral_shareText": "Bergabunglah dengan Silarah, aplikasi pernikahan Muslim tepercaya. Gunakan kode referal saya: {code}\n\nUnduh: https://silarah.com",
   "profile_share": "Bagikan profil",
   "safety_reportMember": "Laporkan {name}",
   "safety_blockMember": "Blokir {name}",

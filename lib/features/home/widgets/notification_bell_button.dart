@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:silarah/l10n/ui_copy.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/cubits/notifications/notifications_cubit.dart';
@@ -30,7 +31,8 @@ class NotificationBellButton extends StatelessWidget {
         return SilarahPressable(
           semanticLabel: unreadCount == 0
               ? 'Notifications'
-              : 'Notifications, $unreadCount unread',
+              : context.uiCopyWith(
+                  'Notifications, {count} unread', {'count': unreadCount}),
           onTap: onTap,
           child: Stack(
             clipBehavior: Clip.none,

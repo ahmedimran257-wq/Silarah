@@ -2584,7 +2584,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String referral_shareText(String code) {
-    return 'Bergabunglah dengan Silarah, aplikasi pernikahan Muslim tepercaya. Gunakan kode referal saya: $code\n\nUnduh: https://silarah.com/r/$code';
+    return 'Bergabunglah dengan Silarah, aplikasi pernikahan Muslim tepercaya. Gunakan kode referal saya: $code\n\nUnduh: https://silarah.com';
   }
 
   @override

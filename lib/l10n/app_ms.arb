@@ -1510,7 +1510,7 @@
   "referral_shareButton": "Kongsi Kod dengan Rakan",
   "referral_copied": "Kod rujukan disalin!",
   "referral_shareSubject": "Sertai Silarah",
-  "referral_shareText": "Sertai Silarah, aplikasi perkahwinan Muslim yang dipercayai. Gunakan kod rujukan saya: {code}\n\nMuat turun: https://silarah.com/r/{code}",
+  "referral_shareText": "Sertai Silarah, aplikasi perkahwinan Muslim yang dipercayai. Gunakan kod rujukan saya: {code}\n\nMuat turun: https://silarah.com",
   "profile_share": "Kongsi profil",
   "safety_reportMember": "Laporkan {name}",
   "safety_blockMember": "Sekat {name}",

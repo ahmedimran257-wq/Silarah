@@ -98,13 +98,29 @@ class _BasicIdentityScreenState extends State<BasicIdentityScreen> {
   bool _isGuardianMode = false;
   String _candidateLabel = ''; // 'son', 'daughter', 'brother', 'sister'
 
+  // What was last loaded from the cubit.
+  OnboardingData? _loadedData;
+  String _loadedGuardianEmail = '';
+  Gender? _loadedGender;
+
   @override
   void initState() {
     super.initState();
     _firstNameCtrl.addListener(_refreshCtaState);
     _lastNameCtrl.addListener(_refreshCtaState);
     _guardianEmailCtrl.addListener(_refreshCtaState);
-    final data = context.read<OnboardingCubit>().currentData;
+    _applyOnboardingData(context.read<OnboardingCubit>().currentData);
+  }
+
+  /// After a re-sign-in this screen can build before the saved profile has
+  /// loaded, so it applies each arrival. A field that no longer matches what
+  /// was last loaded has been changed by the member and is left alone.
+  void _applyOnboardingData(OnboardingData data) {
+    final previous = _loadedData ?? const OnboardingData();
+    final previousGuardianEmail = _loadedGuardianEmail;
+    final previousGender = _loadedGender;
+    _loadedData = data;
+
     final authState = context.read<AuthCubit>().state;
     _isGuardianMode = data.profileOwnerType == ProfileOwnerType.guardian ||
         data.profileFor == ProfileFor.guardian ||
@@ -113,24 +129,41 @@ class _BasicIdentityScreenState extends State<BasicIdentityScreen> {
     _candidateLabel =
         data.wardRelationship ?? data.profileCreatorRelation ?? 'self';
     final authEmail = authState is AuthAuthenticated ? authState.email : null;
-    _guardianEmailCtrl.text =
-        data.guardianEmail ?? data.email ?? authEmail ?? '';
 
-    _gender = _isGuardianMode
+    _loadedGuardianEmail = data.guardianEmail ?? data.email ?? authEmail ?? '';
+    _replaceIfUntouched(
+        _guardianEmailCtrl, previousGuardianEmail, _loadedGuardianEmail);
+
+    _loadedGender = _isGuardianMode
         ? data.wardGender ??
             data.gender ??
             _wardGenderForRelation(_candidateLabel)
         : data.gender;
+    if (_gender == previousGender) _gender = _loadedGender;
 
-    _firstNameCtrl.text = data.firstName ?? '';
-    _lastNameCtrl.text = data.lastName ?? '';
-    _dob = data.dateOfBirth;
-    _heightCm = data.heightCm ?? 165;
-    _complexion = data.complexion;
-    _motherTongue = data.motherTongue;
-    _community = data.community;
-    _residencyStatus = data.residencyStatus;
-    _specialNeeds = data.specialNeeds;
+    _replaceIfUntouched(
+        _firstNameCtrl, previous.firstName ?? '', data.firstName ?? '');
+    _replaceIfUntouched(
+        _lastNameCtrl, previous.lastName ?? '', data.lastName ?? '');
+    if (_dob == previous.dateOfBirth) _dob = data.dateOfBirth;
+    if (_heightCm == (previous.heightCm ?? 165)) {
+      _heightCm = data.heightCm ?? 165;
+    }
+    if (_complexion == previous.complexion) _complexion = data.complexion;
+    if (_motherTongue == previous.motherTongue) {
+      _motherTongue = data.motherTongue;
+    }
+    if (_community == previous.community) _community = data.community;
+    if (_residencyStatus == previous.residencyStatus) {
+      _residencyStatus = data.residencyStatus;
+    }
+    if (_specialNeeds == previous.specialNeeds) {
+      _specialNeeds = data.specialNeeds;
+    }
+
+    final previousCountryCode = _selectedCountryCode;
+    final previousStateName = _selectedStateName;
+    final previousCity = _selectedCity;
 
     if (data.countryCode != null) {
       _selectedCountryCode = data.countryCode;
@@ -155,12 +188,25 @@ class _BasicIdentityScreenState extends State<BasicIdentityScreen> {
         _selectedCity = data.cityName;
       }
     }
-    if (_selectedCountryCode != null) {
+    final locationChanged = _selectedCountryCode != previousCountryCode ||
+        _selectedStateName != previousStateName ||
+        _selectedCity != previousCity;
+    if (_selectedCountryCode != null && locationChanged) {
       _fetchDemographics(
         _selectedCountryCode!,
         stateName: _selectedStateName,
         cityName: _selectedCity,
       );
+    }
+  }
+
+  void _replaceIfUntouched(
+    TextEditingController controller,
+    String lastLoaded,
+    String loaded,
+  ) {
+    if (controller.text == lastLoaded && controller.text != loaded) {
+      controller.text = loaded;
     }
   }
 
@@ -236,8 +282,9 @@ class _BasicIdentityScreenState extends State<BasicIdentityScreen> {
 
   void _showValidation() {
     final missing = <String>[];
-    final nameSubject = _isGuardianMode ? "Candidate's first" : 'First';
-    if (_firstNameCtrl.text.trim().isEmpty) missing.add('$nameSubject name');
+    final firstNameLabel =
+        _isGuardianMode ? "Candidate's first name" : 'First name';
+    if (_firstNameCtrl.text.trim().isEmpty) missing.add(firstNameLabel);
     if (_lastNameCtrl.text.trim().isEmpty) missing.add('Last name');
     if (_dob == null) missing.add('Date of birth');
     if (_dobError.isNotEmpty) missing.add('Valid date of birth (18+)');
@@ -305,15 +352,15 @@ class _BasicIdentityScreenState extends State<BasicIdentityScreen> {
   String _wardPhrase() {
     switch (_candidateLabel) {
       case 'son':
-        return 'your son';
+        return 'Tell us about your son';
       case 'daughter':
-        return 'your daughter';
+        return 'Tell us about your daughter';
       case 'brother':
-        return 'your brother';
+        return 'Tell us about your brother';
       case 'sister':
-        return 'your sister';
+        return 'Tell us about your sister';
       default:
-        return "the person you're registering";
+        return "Tell us about the person you're registering";
     }
   }
 
@@ -554,7 +601,10 @@ class _BasicIdentityScreenState extends State<BasicIdentityScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final localizedRelation = _getLocalizedRelation(l10n);
-    return BlocBuilder<OnboardingCubit, OnboardingState>(
+    return BlocConsumer<OnboardingCubit, OnboardingState>(
+      listener: (context, state) => setState(() {
+        _applyOnboardingData(context.read<OnboardingCubit>().currentData);
+      }),
       builder: (context, state) {
         final isLoading = state is OnboardingLoading;
         return OnboardingScaffold(
@@ -601,7 +651,7 @@ class _BasicIdentityScreenState extends State<BasicIdentityScreen> {
 
               StepHeader(
                 title: _isGuardianMode
-                    ? 'Tell us about ${_wardPhrase()}'
+                    ? _wardPhrase()
                     : l10n.onboarding_basicIdentity_title,
                 subtitle: _isGuardianMode
                     ? 'These details describe the person you are registering, not you.'
@@ -1120,7 +1170,9 @@ class _MissingLocationCard extends StatelessWidget {
                 UiText(
                   countryName == null
                       ? 'Choose your country and city before continuing.'
-                      : 'Choose a city in $countryName before continuing.',
+                      : context.uiCopyWith(
+                          'Choose a city in {country} before continuing.',
+                          {'country': '$countryName'}),
                   style: AppTypography.caption,
                 ),
                 const SizedBox(height: AppDimensions.space10),

@@ -69,7 +69,7 @@ class _SilarahActivityIndicatorState extends State<SilarahActivityIndicator>
   Widget build(BuildContext context) {
     final color = widget.color ?? AppColors.champagneGold;
     return Semantics(
-      label: widget.label,
+      label: context.uiCopy(widget.label),
       liveRegion: true,
       child: ExcludeSemantics(
         child: SizedBox.square(
@@ -168,7 +168,7 @@ class SilarahProgressRing extends StatelessWidget {
   Widget build(BuildContext context) {
     final progress = value.clamp(0.0, 1.0).toDouble();
     return Semantics(
-      label: semanticLabel,
+      label: semanticLabel == null ? null : context.uiCopy(semanticLabel!),
       value: '${(progress * 100).round()}%',
       child: ExcludeSemantics(
         child: SizedBox.square(
@@ -318,7 +318,9 @@ class _SilarahLinearProgressState extends State<SilarahLinearProgress>
         progress == null ? null : '${(progress * 100).round()}%';
 
     return Semantics(
-      label: widget.semanticLabel,
+      label: widget.semanticLabel == null
+          ? null
+          : context.uiCopy(widget.semanticLabel!),
       value: semanticsValue,
       child: ExcludeSemantics(
         child: ClipRRect(
@@ -586,7 +588,7 @@ class _SilarahProfileCardShimmerState extends State<SilarahProfileCardShimmer>
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Preparing profile recommendations',
+      label: context.uiCopy('Preparing profile recommendations'),
       liveRegion: true,
       child: ExcludeSemantics(
         child: AnimatedBuilder(

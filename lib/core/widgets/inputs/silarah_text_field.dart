@@ -142,7 +142,11 @@ class _SilarahTextFieldState extends State<SilarahTextField> {
           minHeight: minHeight,
           child: Semantics(
             textField: true,
-            label: widget.semanticLabel ?? widget.label ?? widget.hint,
+            label: (widget.semanticLabel ?? widget.label ?? widget.hint) == null
+                ? null
+                : context.uiCopy(
+                    (widget.semanticLabel ?? widget.label ?? widget.hint)!,
+                  ),
             child: TextField(
               controller: widget.controller,
               focusNode: _focusNode,
@@ -179,7 +183,9 @@ class _SilarahTextFieldState extends State<SilarahTextField> {
                           maxLength}) =>
                       null,
               decoration: InputDecoration(
-                hintText: widget.hint ?? widget.label,
+                hintText: (widget.hint ?? widget.label) == null
+                    ? null
+                    : context.uiCopy((widget.hint ?? widget.label)!),
                 hintStyle: AppTypography.inputLabel.copyWith(
                   color: AppColors.slateMist.withValues(
                     alpha: isInteractive ? 0.78 : 0.42,

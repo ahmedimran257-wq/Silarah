@@ -2570,7 +2570,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String referral_shareText(String code) {
-    return 'विश्वसनीय मुस्लिम विवाह ऐप Silarah से जुड़ें। मेरा रेफ़रल कोड इस्तेमाल करें: $code\n\nडाउनलोड: https://silarah.com/r/$code';
+    return 'विश्वसनीय मुस्लिम विवाह ऐप Silarah से जुड़ें। मेरा रेफ़रल कोड इस्तेमाल करें: $code\n\nडाउनलोड: https://silarah.com';
   }
 
   @override

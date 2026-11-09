@@ -108,6 +108,10 @@ class AccountStandingCubit extends Cubit<AccountStandingState> {
         params: {'p_paused': false},
       );
       await refresh();
+      // A failed refresh keeps the previous state, which is still updating.
+      if (!isClosed && state.updating) {
+        emit(state.copyWith(updating: false));
+      }
       return state.kind == AccountStandingKind.active;
     } on PostgrestException catch (error) {
       if (!isClosed) {

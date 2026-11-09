@@ -1522,7 +1522,7 @@
   "referral_shareButton": "Share Code with Friends",
   "referral_copied": "Referral code copied to clipboard!",
   "referral_shareSubject": "Join Silarah",
-  "referral_shareText": "Join Silarah—the trusted Muslim matrimony app. Use my referral code: {code}\n\nDownload: https://silarah.com/r/{code}",
+  "referral_shareText": "Join Silarah—the trusted Muslim matrimony app. Use my referral code: {code}\n\nDownload: https://silarah.com",
   "@referral_shareText": {"placeholders": {"code": {"type": "String"}}},
   "profile_share": "Share profile",
   "safety_reportMember": "Report {name}",

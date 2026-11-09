@@ -4773,7 +4773,7 @@ abstract class AppLocalizations {
   /// No description provided for @referral_shareText.
   ///
   /// In en, this message translates to:
-  /// **'Join Silarah—the trusted Muslim matrimony app. Use my referral code: {code}\n\nDownload: https://silarah.com/r/{code}'**
+  /// **'Join Silarah—the trusted Muslim matrimony app. Use my referral code: {code}\n\nDownload: https://silarah.com'**
   String referral_shareText(String code);
 
   /// No description provided for @profile_share.

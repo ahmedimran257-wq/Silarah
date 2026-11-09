@@ -88,8 +88,7 @@ class BlockReportCubit extends Cubit<BlockReportState> {
 
         final profile = profilesByUser[blockedId];
         final name = (profile?['first_name'] as String?) ?? 'User';
-        final lastName = (profile?['last_name'] as String?) ?? '';
-        final lastInitial = lastName.isNotEmpty ? lastName[0] : '';
+        final lastInitial = (profile?['last_name_initial'] as String?) ?? '';
 
         blockedUsers.add(BlockedUser(
           userId: blockedId,

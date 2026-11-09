@@ -38,6 +38,23 @@ enum ProfileInteractionState {
   matched,
 }
 
+/// Why an interest was not sent, in the words shown to the member. The daily
+/// limit is absent because it opens its own sheet.
+enum InterestSendFailure {
+  generic(
+      'Your interest could not be sent. Check your connection and try again.'),
+  rematchCooldown('You can reconnect after the 7-day cooling-off period.'),
+  noteTooLong('Your note is too long. Please keep it to 150 characters.'),
+  alreadyConnected('You already have an interest or match with this member.'),
+  profileUnavailable('This profile is unavailable right now.'),
+  accountRestricted(
+      'Interests are unavailable for this account. Open Help & Support if you believe this is a mistake.');
+
+  const InterestSendFailure(this.message);
+
+  final String message;
+}
+
 class InterestEntry extends Equatable {
   const InterestEntry({
     required this.id,
@@ -85,12 +102,13 @@ class InterestEntry extends Equatable {
   }
 
   InterestEntry copyWith({
+    String? id,
     InterestStatus? status,
     String? timeAgo,
     String? note,
   }) {
     return InterestEntry(
-      id: id,
+      id: id ?? this.id,
       profile: profile,
       timeAgo: timeAgo ?? this.timeAgo,
       sentAt: sentAt,

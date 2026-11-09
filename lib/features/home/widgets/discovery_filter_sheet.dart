@@ -218,7 +218,7 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: UiText(
-            'Preset "$name" saved',
+            context.uiCopyWith('Preset "{name}" saved', {'name': name}),
             style: AppTypography.body.copyWith(
               color: AppColors.readableOn(AppColors.surfaceGlassHover),
             ),
@@ -244,7 +244,7 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
         title: UiText(context.uiCopy('Delete preset?'),
             style: AppTypography.screenTitle.copyWith(fontSize: 18)),
         content: UiText(
-          'Remove "${preset.name}"?',
+          context.uiCopyWith('Remove "{name}"?', {'name': preset.name}),
           style: AppTypography.bodyMuted,
         ),
         actions: [
@@ -455,7 +455,9 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
                           child: UiText(
                             _draft.activeCount == 0
                                 ? 'Showing the broadest pool'
-                                : '${_draft.activeCount} preferences selected',
+                                : context.uiCopyWith(
+                                    '{count} preferences selected',
+                                    {'count': _draft.activeCount}),
                             key: ValueKey(_draft.activeCount),
                             style: AppTypography.caption,
                           ),
@@ -487,6 +489,7 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
                     ),
                     const SizedBox(width: 8),
                     SilarahPressable(
+                      semanticLabel: context.uiCopy('Save preset'),
                       onTap: _savePreset,
                       child: Container(
                         width: 44,
@@ -784,7 +787,7 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
                       if (_draft.effectiveMaxDistanceKm case final km?) ...[
                         const SizedBox(height: 8),
                         UiText(
-                          'Within $km km',
+                          context.uiCopyWith('Within {km} km', {'km': km}),
                           style: AppTypography.caption.copyWith(
                             color: AppColors.champagneGold,
                           ),
@@ -853,7 +856,9 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
                                 initialValue: _draft.cityName,
                                 hint: _draft.stateName == null
                                     ? 'Search any Indian city'
-                                    : 'Search a city in ${_draft.stateName}',
+                                    : context.uiCopyWith(
+                                        'Search a city in {region}',
+                                        {'region': _draft.stateName!}),
                                 enabled: !_cityResolving,
                                 onSelected: _selectCity,
                                 onCleared: () => setState(() {
@@ -1049,7 +1054,11 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
                       ],
 
                       // MOTHER TONGUE (Premium)
-                      _SectionLabel(key: _tongueKey, label: 'MOTHER TONGUE'),
+                      _SectionLabel(
+                        key: _tongueKey,
+                        label: 'MOTHER TONGUE',
+                        premium: true,
+                      ),
                       const SizedBox(height: 8),
                       _SubscriberGate(
                         child: _DropdownRow(
@@ -1066,7 +1075,10 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
 
                       // COMMUNITY / BIRADARI (Premium)
                       _SectionLabel(
-                          key: _communityKey, label: 'COMMUNITY / BIRADARI'),
+                        key: _communityKey,
+                        label: 'COMMUNITY / BIRADARI',
+                        premium: true,
+                      ),
                       const SizedBox(height: 8),
                       _SubscriberGate(
                         child: _DropdownRow(
@@ -1151,7 +1163,8 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
                             child: UiText(
                               _draft.activeCount == 0
                                   ? 'Show all profiles'
-                                  : 'Apply ${_draft.activeCount} filters',
+                                  : context.uiCopyWith('Apply {count} filters',
+                                      {'count': _draft.activeCount}),
                               key: ValueKey(_draft.activeCount),
                               style: AppTypography.button,
                             ),
@@ -1206,6 +1219,7 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
                         style: AppTypography.screenTitle.copyWith(fontSize: 18),
                       ),
                       IconButton(
+                        tooltip: context.uiCopy('Close'),
                         icon: Icon(Icons.close, color: AppColors.slateMist),
                         onPressed: () => Navigator.pop(sheetCtx),
                       ),
@@ -1316,7 +1330,8 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
                         Navigator.pop(sheetCtx);
                       },
                       child: UiText(
-                        'Apply (${tempSelected.length})',
+                        context.uiCopyWith(
+                            'Apply ({count})', {'count': tempSelected.length}),
                         style: AppTypography.button,
                       ),
                     ),
@@ -1333,16 +1348,51 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
 
 // Sub-widgets
 class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({super.key, required this.label});
+  const _SectionLabel({super.key, required this.label, this.premium = false});
   final String label;
+  final bool premium;
 
   @override
   Widget build(BuildContext context) {
-    return UiText(
+    final text = UiText(
       label,
       style: AppTypography.sectionLabel.copyWith(
         color: AppColors.slateMist,
         letterSpacing: 1.1,
+      ),
+    );
+    if (!premium) return text;
+    return Row(
+      children: [
+        Flexible(child: text),
+        const SizedBox(width: 8),
+        const _PremiumPill(),
+      ],
+    );
+  }
+}
+
+class _PremiumPill extends StatelessWidget {
+  const _PremiumPill();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 3,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.premiumGold.withValues(alpha: .14),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: UiText(
+        context.uiCopy('PREMIUM'),
+        style: AppTypography.badge.copyWith(
+          color: AppColors.premiumGold,
+          fontWeight: FontWeight.w700,
+          letterSpacing: .7,
+        ),
       ),
     );
   }
@@ -1845,24 +1895,7 @@ class _AllIndiaScopeTile extends StatelessWidget {
                             ),
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.premiumGold.withValues(alpha: .14),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: UiText(
-                            context.uiCopy('PREMIUM'),
-                            style: AppTypography.badge.copyWith(
-                              color: AppColors.premiumGold,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: .7,
-                            ),
-                          ),
-                        ),
+                        const _PremiumPill(),
                       ],
                     ),
                     const SizedBox(height: 4),

@@ -1510,7 +1510,7 @@
   "referral_shareButton": "Kodu Arkadaşlarınla Paylaş",
   "referral_copied": "Davet kodu kopyalandı!",
   "referral_shareSubject": "Silarah’a Katıl",
-  "referral_shareText": "Güvenilir Müslüman evlilik uygulaması Silarah’a katıl. Davet kodumu kullan: {code}\n\nİndir: https://silarah.com/r/{code}",
+  "referral_shareText": "Güvenilir Müslüman evlilik uygulaması Silarah’a katıl. Davet kodumu kullan: {code}\n\nİndir: https://silarah.com",
   "profile_share": "Profili paylaş",
   "safety_reportMember": "{name} adlı kişiyi bildir",
   "safety_blockMember": "{name} adlı kişiyi engelle",

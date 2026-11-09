@@ -201,7 +201,7 @@ Deno.serve(async (req: Request) => {
       p_subscription_expires_at: newExpiresAt,
       p_product_id: event.product_id ?? null,
       p_currency: event.currency ?? null,
-      p_price: event.price ?? null,
+      p_price: chargedAmount(event),
       p_event_expires_at: expiresAt,
     },
   );
@@ -278,6 +278,7 @@ interface RevenueCatEvent {
   period_type?: string;
   currency?: string;
   price?: number;
+  price_in_purchased_currency?: number;
   store?: string;
   transaction_id?: string;
   original_transaction_id?: string;
@@ -287,6 +288,11 @@ interface RevenueCatEvent {
   environment?: string;
   entitlement_ids?: string[];
   cancel_reason?: string;
+}
+
+// `price` is always USD; `currency` names what the member actually paid in.
+function chargedAmount(event: RevenueCatEvent): number | null {
+  return event.price_in_purchased_currency ?? event.price ?? null;
 }
 
 function validRevenueCatEvent(event: RevenueCatEvent): boolean {
@@ -305,7 +311,9 @@ function validRevenueCatEvent(event: RevenueCatEvent): boolean {
     (event.grace_period_expiration_at_ms == null ||
       Number.isSafeInteger(event.grace_period_expiration_at_ms)) &&
     // Refund events carry a negative price.
-    (event.price == null || Number.isFinite(event.price));
+    (event.price == null || Number.isFinite(event.price)) &&
+    (event.price_in_purchased_currency == null ||
+      Number.isFinite(event.price_in_purchased_currency));
 }
 
 function validateProductionRevenueCatEvent(
@@ -420,7 +428,7 @@ async function deliverSubscriptionEmail(
       firstName,
       productId: event.product_id,
       currency: event.currency,
-      price: event.price,
+      price: chargedAmount(event),
       expiresAt,
       store: event.store,
       transactionId: event.transaction_id ?? event.original_transaction_id,

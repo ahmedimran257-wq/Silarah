@@ -164,7 +164,8 @@ class _InterestAcknowledgementState extends State<_InterestAcknowledgement>
                                   height: AppDimensions.space6,
                                 ),
                                 UiText(
-                                  'to ${widget.firstName}',
+                                  context.uiCopyWith(
+                                      'to {name}', {'name': widget.firstName}),
                                   style: AppTypography.bodyMuted,
                                   textAlign: TextAlign.center,
                                 ),

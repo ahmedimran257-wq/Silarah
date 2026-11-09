@@ -174,7 +174,11 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
         setState(() => _interestWritesInFlight.remove(profileId));
       }
     }
-    if (!mounted || !sent) return;
+    if (!mounted) return;
+    if (!sent) {
+      showInterestSendFailure(context);
+      return;
+    }
     HapticFeedback.mediumImpact();
   }
 

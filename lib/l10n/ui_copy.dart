@@ -9685,6 +9685,32 @@ extension UiCopyBuildContext on BuildContext {
 
   String uiCopy(String source) => UiCopy.localize(this, source);
 
+  /// Localizes [source] and fills its `{name}` placeholders from [values].
+  ///
+  /// A runtime value cannot be part of a catalog key, so copy that names a
+  /// person or a number is stored with placeholders and completed here.
+  String uiCopyWith(String source, Map<String, Object> values) {
+    var text = UiCopy.localize(this, source);
+    values.forEach((name, value) {
+      text = text.replaceAll('{$name}', '$value');
+    });
+    return text;
+  }
+
+  /// Localizes short relative times that models build without a context, such
+  /// as `5m`, `3h ago` or `Just now`.
+  String uiRelativeTime(String label) {
+    final match = RegExp(r'^(\d+)([mhd])( ago)?$').firstMatch(label);
+    if (match == null) return UiCopy.localize(this, label);
+    final count = int.parse(match[1]!);
+    final ago = match[3] != null;
+    return switch (match[2]) {
+      'm' => ago ? uiMinutesAgo(count) : uiMinutesShort(count),
+      'h' => ago ? uiHoursAgo(count) : uiHoursShort(count),
+      _ => ago ? uiDaysAgo(count) : uiDaysShort(count),
+    };
+  }
+
   String uiOpenProfile(String name) => _uiL10n.ui_openProfile(name);
   String uiTyping(String name) => _uiL10n.ui_typing(name);
   String uiDeleteFailed(Object error) => _uiL10n.common_error_generic;

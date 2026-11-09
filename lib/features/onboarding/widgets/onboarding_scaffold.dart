@@ -56,147 +56,154 @@ class OnboardingScaffold extends StatelessWidget {
     final resolvedTotal = totalSteps ?? OnboardingFlow.completeAt(isGuardian);
     final saveError =
         state is OnboardingError && state.step == resolvedStep ? state : null;
+    final VoidCallback goBack = onBack ?? () => cubit.goBack();
 
-    return Scaffold(
-      backgroundColor: AppColors.obsidianNight,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            const Positioned.fill(child: _OnboardingBackdrop()),
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimensions.space24,
-                    vertical: AppDimensions.space16,
-                  ),
-                  child: Row(
-                    children: [
-                      _BackButton(
-                        onBack: onBack ??
-                            () => context.read<OnboardingCubit>().goBack(),
-                      ),
-                      const SizedBox(width: AppDimensions.space16),
-                      if (showProgressHeader)
-                        Expanded(
-                          child: OnboardingProgressBar(
-                            currentStep: resolvedStep,
-                            totalSteps: resolvedTotal,
-                          ),
-                        )
-                      else
-                        Expanded(
-                          child: UiText(
-                            headerTitle ?? '',
-                            textAlign: TextAlign.center,
-                            style: AppTypography.bodyMedium.copyWith(
-                              color: AppColors.pearlWhite,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  // Fade content into the header instead of cutting labels
-                  // off at a hard edge while scrolling.
-                  child: ShaderMask(
-                    blendMode: BlendMode.dstIn,
-                    shaderCallback: (bounds) => const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.transparent, Colors.black],
-                      stops: [0, 0.04],
-                    ).createShader(bounds),
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(
-                        AppDimensions.space24,
-                        AppDimensions.space8,
-                        AppDimensions.space24,
-                        AppDimensions.space16,
-                      ),
-                      child: SilarahEntrance(
-                        key: ValueKey('onboarding-body-$resolvedStep'),
-                        child: body,
-                      ),
+    return PopScope(
+      // The first step has nothing behind it, so Android may leave the app.
+      canPop: onBack == null && resolvedStep == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        FocusManager.instance.primaryFocus?.unfocus();
+        goBack();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.obsidianNight,
+        body: SafeArea(
+          child: Stack(
+            children: [
+              const Positioned.fill(child: _OnboardingBackdrop()),
+              Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.space24,
+                      vertical: AppDimensions.space16,
                     ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppDimensions.space24,
-                    AppDimensions.space16,
-                    AppDimensions.space24,
-                    AppDimensions.space32,
-                  ),
-                  child: SilarahEntrance(
-                    key: ValueKey('onboarding-actions-$resolvedStep'),
-                    delay: const Duration(milliseconds: 70),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                    child: Row(
                       children: [
-                        if (saveError != null) ...[
-                          _SaveErrorNotice(message: saveError.message),
-                          const SizedBox(height: AppDimensions.space12),
-                        ],
-                        if (!isCtaEnabled && onCtaDisabledTap != null)
-                          GestureDetector(
-                            onTap: () {
-                              FocusManager.instance.primaryFocus?.unfocus();
-                              onCtaDisabledTap!();
-                            },
-                            behavior: HitTestBehavior.opaque,
-                            child: IgnorePointer(
-                              child: SilarahPrimaryButton(
-                                label: ctaLabel,
-                                onTap: null,
-                                isLoading: isCtaLoading,
-                              ),
+                        _BackButton(onBack: goBack),
+                        const SizedBox(width: AppDimensions.space16),
+                        if (showProgressHeader)
+                          Expanded(
+                            child: OnboardingProgressBar(
+                              currentStep: resolvedStep,
+                              totalSteps: resolvedTotal,
                             ),
                           )
                         else
-                          SilarahPrimaryButton(
-                            label: ctaLabel,
-                            onTap: isCtaEnabled && onCta != null
-                                ? () {
-                                    FocusManager.instance.primaryFocus
-                                        ?.unfocus();
-                                    onCta!();
-                                  }
-                                : null,
-                            isLoading: isCtaLoading,
-                          ),
-                        if (skipLabel != null && onSkip != null) ...[
-                          const SizedBox(height: AppDimensions.space12),
-                          SilarahPressable(
-                            onTap: () {
-                              FocusManager.instance.primaryFocus?.unfocus();
-                              onSkip!();
-                            },
-                            haptic: false,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: AppDimensions.space8,
-                                horizontal: AppDimensions.space12,
-                              ),
-                              child: UiText(
-                                skipLabel!,
-                                style: AppTypography.buttonGhost.copyWith(
-                                  color: AppColors.slateMist,
-                                  fontSize: 14,
-                                ),
+                          Expanded(
+                            child: UiText(
+                              headerTitle ?? '',
+                              textAlign: TextAlign.center,
+                              style: AppTypography.bodyMedium.copyWith(
+                                color: AppColors.pearlWhite,
                               ),
                             ),
                           ),
-                        ],
                       ],
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  Expanded(
+                    // Fade content into the header instead of cutting labels
+                    // off at a hard edge while scrolling.
+                    child: ShaderMask(
+                      blendMode: BlendMode.dstIn,
+                      shaderCallback: (bounds) => const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, Colors.black],
+                        stops: [0, 0.04],
+                      ).createShader(bounds),
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(
+                          AppDimensions.space24,
+                          AppDimensions.space8,
+                          AppDimensions.space24,
+                          AppDimensions.space16,
+                        ),
+                        child: SilarahEntrance(
+                          key: ValueKey('onboarding-body-$resolvedStep'),
+                          child: body,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppDimensions.space24,
+                      AppDimensions.space16,
+                      AppDimensions.space24,
+                      AppDimensions.space32,
+                    ),
+                    child: SilarahEntrance(
+                      key: ValueKey('onboarding-actions-$resolvedStep'),
+                      delay: const Duration(milliseconds: 70),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (saveError != null) ...[
+                            _SaveErrorNotice(message: saveError.message),
+                            const SizedBox(height: AppDimensions.space12),
+                          ],
+                          if (!isCtaEnabled && onCtaDisabledTap != null)
+                            GestureDetector(
+                              onTap: () {
+                                FocusManager.instance.primaryFocus?.unfocus();
+                                onCtaDisabledTap!();
+                              },
+                              behavior: HitTestBehavior.opaque,
+                              child: IgnorePointer(
+                                child: SilarahPrimaryButton(
+                                  label: ctaLabel,
+                                  onTap: null,
+                                  isLoading: isCtaLoading,
+                                ),
+                              ),
+                            )
+                          else
+                            SilarahPrimaryButton(
+                              label: ctaLabel,
+                              onTap: isCtaEnabled && onCta != null
+                                  ? () {
+                                      FocusManager.instance.primaryFocus
+                                          ?.unfocus();
+                                      onCta!();
+                                    }
+                                  : null,
+                              isLoading: isCtaLoading,
+                            ),
+                          if (skipLabel != null && onSkip != null) ...[
+                            const SizedBox(height: AppDimensions.space12),
+                            SilarahPressable(
+                              onTap: () {
+                                FocusManager.instance.primaryFocus?.unfocus();
+                                onSkip!();
+                              },
+                              haptic: false,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: AppDimensions.space8,
+                                  horizontal: AppDimensions.space12,
+                                ),
+                                child: UiText(
+                                  skipLabel!,
+                                  style: AppTypography.buttonGhost.copyWith(
+                                    color: AppColors.slateMist,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -222,13 +222,13 @@ class _Step1 extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         UiText(
-          'Report $reportedName',
+          context.uiCopyWith('Report {name}', {'name': reportedName}),
           style: AppTypography.screenTitle.copyWith(fontSize: 20),
         ),
         const SizedBox(height: AppDimensions.space6),
         UiText(
           context.uiCopy(
-              'Help keep the community safe. Your report is anonymous.'),
+              'Help keep the community safe. We don\'t tell this member who reported them, unless a fair process or the law requires it.'),
           style: AppTypography.bodyMuted,
         ),
         const SizedBox(height: AppDimensions.space20),

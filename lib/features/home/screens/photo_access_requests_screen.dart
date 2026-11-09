@@ -149,7 +149,9 @@ class _PhotoAccessRequestsScreenState extends State<PhotoAccessRequestsScreen>
             title: UiText(context.uiCopy('Revoke photo access?'),
                 style: AppTypography.bodyMedium),
             content: UiText(
-              '${request.displayName} will no longer be able to open your private photos.',
+              context.uiCopyWith(
+                  '{name} will no longer be able to open your private photos.',
+                  {'name': request.displayName}),
               style: AppTypography.bodyMuted,
             ),
             actions: [

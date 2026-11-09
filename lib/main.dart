@@ -61,6 +61,7 @@ import 'core/widgets/in_app_notification_banner.dart';
 import 'core/widgets/startup_offline_screen.dart';
 import 'core/widgets/silarah_launch_sequence.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'l10n/ui_copy.dart';
 
 const _rtlLocales = {'ar', 'ur'};
 
@@ -495,6 +496,8 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
   StreamSubscription<NotificationItem>? _notificationRefreshSubscription;
   StreamSubscription<SubscriptionState>? _entitlementRefreshSubscription;
   ConnectivityService? _connectivityService;
+  final _messengerKey = GlobalKey<ScaffoldMessengerState>();
+  String? _deferredAccountNotice;
   _StartupNetworkState _startupNetworkState = _StartupNetworkState.checking;
   BackendConnectionQuality _startupConnectionQuality =
       BackendConnectionQuality.unknown;
@@ -714,6 +717,7 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
       if (!mounted) return false;
       setState(() => _startupNetworkState = _StartupNetworkState.ready);
       _reportStartupGateResolved();
+      _showDeferredAccountNotice();
       return true;
     }
     // The device is online but session/profile hydration is not yet
@@ -843,6 +847,31 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
     unawaited(LegalConsentService.instance.clearPendingTransaction());
   }
 
+  /// Startup recovery runs before any screen exists, so a notice raised then
+  /// waits for the startup gate to open.
+  void _showAccountNotice(String notice) {
+    if (_startupNetworkState != _StartupNetworkState.ready) {
+      _deferredAccountNotice = notice;
+      return;
+    }
+    _messengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: UiText(notice),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 10),
+      ),
+    );
+  }
+
+  void _showDeferredAccountNotice() {
+    final notice = _deferredAccountNotice;
+    if (notice == null) return;
+    _deferredAccountNotice = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _showAccountNotice(notice);
+    });
+  }
+
   void _openInAppNotification(NotificationItem item) {
     unawaited(_notificationsCubit.markRead(item.id));
     final path = notificationPathFor(item);
@@ -922,6 +951,8 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
                   departingUserId: departingUserId,
                   logoutStoreIdentity: true,
                 );
+                final notice = state.notice;
+                if (notice != null) _showAccountNotice(notice);
               }
               if (state is AuthAuthenticated &&
                   _activeSessionUserId != null &&
@@ -987,6 +1018,7 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
                   BlocBuilder<ThemeCubit, ThemeSelectionState>(
                 builder: (context, themeState) => MaterialApp.router(
                   title: 'Silarah',
+                  scaffoldMessengerKey: _messengerKey,
                   debugShowCheckedModeBanner: false,
                   theme: AppTheme.forMode(themeState.activeMode),
                   themeMode: ThemeMode.light,

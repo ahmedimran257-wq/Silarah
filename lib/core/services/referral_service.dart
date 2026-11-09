@@ -5,6 +5,7 @@
 //   generation, application, and sharing.
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../legal/public_site_links.dart';
 import 'supabase_service.dart';
 
 /// Manages referral code generation, application, and reward tracking.
@@ -89,11 +90,45 @@ class ReferralService {
   }
 
   /// Gets the referral share text with the user's code.
+  ///
+  /// App Links cover only /auth/ and the site has no per-code or per-profile
+  /// pages, so shares use the home page and carry the code as plain text.
   Future<String> getShareText() async {
     final code = await getOrCreateCode();
     return 'Join Silarah — the most trusted Muslim matrimony app. '
         'Use my referral code: $code\n\n'
-        'Download: https://silarah.com/r/$code';
+        'Download: ${PublicSiteLinks.origin}';
+  }
+
+  /// The share text for a profile. There is no page for one profile, so this
+  /// names the member and points at the home page without implying a link.
+  ///
+  /// [translate] is the screen's `context.uiCopy`, because this service has no
+  /// locale of its own. Without it the text stays in English.
+  static String profileShareText({
+    required String firstName,
+    String? code,
+    String Function(String source)? translate,
+  }) {
+    final t = translate ?? (String source) => source;
+    final codeLabel = t('Referral code:');
+    final getLabel = t('Get Silarah:');
+    final codeLine = code == null ? '' : '\n$codeLabel $code';
+    final found = t('I found {name} on Silarah, a Muslim matrimony app.')
+        .replaceAll('{name}', firstName);
+    return '$found\n\n'
+        '$getLabel ${PublicSiteLinks.origin}$codeLine';
+  }
+
+  /// The member's code for an optional share line; a share never fails or
+  /// stalls because the code could not be read.
+  Future<String?> getCodeOrNull() async {
+    try {
+      return await getOrCreateCode().timeout(const Duration(seconds: 3));
+    } catch (e) {
+      debugPrint('[ReferralService] Share without code: $e');
+      return null;
+    }
   }
 
   /// Gets the user's referral statistics.

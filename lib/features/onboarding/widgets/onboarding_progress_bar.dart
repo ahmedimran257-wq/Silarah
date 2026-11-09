@@ -33,7 +33,10 @@ class OnboardingProgressBar extends StatelessWidget {
             letterSpacing: 0,
           ),
           child: UiText(
-            'Step ${(currentStep + 1).clamp(1, totalSteps)} of $totalSteps',
+            context.uiCopyWith('Step {current} of {total}', {
+              'current': (currentStep + 1).clamp(1, totalSteps),
+              'total': totalSteps,
+            }),
           ),
         ),
         const SizedBox(height: 6),

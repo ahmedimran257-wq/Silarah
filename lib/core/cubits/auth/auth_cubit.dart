@@ -29,6 +29,11 @@ class AuthProfileHydrationException implements Exception {
   String toString() => 'Auth profile hydration failed: $cause';
 }
 
+/// Hydration stopped because this device's session has already been closed.
+class AccountSessionEndedException implements Exception {
+  const AccountSessionEndedException();
+}
+
 class AuthCubit extends Cubit<AuthState> {
   AuthCubit() : super(const AuthInitial()) {
     if (_isRealMode) {
@@ -71,6 +76,10 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void>? _deletionRecoveryInFlight;
   String? _deletionRecoveryInFlightFor;
   bool _checkingSession = false;
+  Completer<bool>? _signupProvisioning;
+
+  static const accountNoLongerRestorableNotice =
+      'This account can no longer be restored. Its 30-day recovery period has ended or its deletion has already started.';
 
   @override
   Future<void> close() async {
@@ -109,6 +118,8 @@ class AuthCubit extends Cubit<AuthState> {
         try {
           await _emitAuthenticatedFromSession(recovery.session!);
           return AuthSessionCheckResult.authenticated;
+        } on AccountSessionEndedException {
+          return AuthSessionCheckResult.signedOut;
         } catch (error) {
           debugPrint('Session profile hydration attempt failed: $error');
         }
@@ -144,6 +155,12 @@ class AuthCubit extends Cubit<AuthState> {
 
     if (session == null) return;
     if (_checkingSession) return;
+
+    // During sign-up the signedIn event arrives while verifyOtp is still
+    // committing consent and the public user row. Hydrating before that would
+    // route the new member into a partly created account.
+    final provisioning = _signupProvisioning;
+    if (provisioning != null && !await provisioning.future) return;
 
     // INITIAL_SESSION may contain a persisted user with an expired access
     // token. Never hydrate the authenticated UI from that stale identity: it
@@ -232,7 +249,10 @@ class AuthCubit extends Cubit<AuthState> {
     final normalizedEmail = EmailAddressValidation.normalize(email);
     final emailError = EmailAddressValidation.validate(normalizedEmail);
     if (emailError != null) {
-      emit(AuthError(message: _emailValidationMessage(emailError)));
+      emit(AuthError(
+        message: _emailValidationMessage(emailError),
+        kind: AuthErrorKind.invalidEmail,
+      ));
       return;
     }
 
@@ -252,6 +272,7 @@ class AuthCubit extends Cubit<AuthState> {
             emit(const AuthError(
               message:
                   'Your legal acceptance has expired. Please review and accept it again.',
+              kind: AuthErrorKind.legalConsentRequired,
             ));
             return;
           }
@@ -317,6 +338,11 @@ class AuthCubit extends Cubit<AuthState> {
         return;
       }
 
+      final provisioning =
+          _pendingAuthMode == 'signup' ? Completer<bool>() : null;
+      if (provisioning != null) _signupProvisioning = provisioning;
+      var provisioned = false;
+
       try {
         final response = await SupabaseService.client.auth.verifyOTP(
           email: email,
@@ -353,6 +379,7 @@ class AuthCubit extends Cubit<AuthState> {
             await SupabaseService.client.auth.signOut();
             throw StateError('required_legal_consent_save_failed');
           }
+          provisioned = true;
         } else {
           await _ensurePublicUser(user.id, email);
         }
@@ -381,10 +408,17 @@ class AuthCubit extends Cubit<AuthState> {
           guardianInvitationPending: guardianInvitationPending,
         ));
         await _clearPendingOtp();
+      } on AccountSessionEndedException {
+        // The session is closed and the member has already been told why.
       } catch (e) {
         if (requestId != _verifyOtpRequestId) return;
         debugPrint('AuthCubit: verify email OTP error: $e');
         emit(AuthError(message: _friendlyAuthError(e)));
+      } finally {
+        if (identical(_signupProvisioning, provisioning)) {
+          _signupProvisioning = null;
+        }
+        provisioning?.complete(provisioned);
       }
       return;
     }
@@ -399,8 +433,11 @@ class AuthCubit extends Cubit<AuthState> {
 
     if (_isRealMode) {
       try {
+        // A deletion request has to end every device. Another signed-in
+        // device would otherwise restore the account on its next cold start.
+        final endEveryDevice = await _isDeletionPendingForCurrentUser();
         await FcmService.instance.onUserLogout();
-        await SupabaseService.client.auth.signOut();
+        await _endSession(everyDevice: endEveryDevice);
       } catch (e) {
         debugPrint('Sign out error: $e');
       }
@@ -409,6 +446,51 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthUnauthenticated());
     _deletionRecoveryUserId = null;
     await _clearPendingOtp();
+  }
+
+  Future<bool> _isDeletionPendingForCurrentUser() async {
+    final userId = SupabaseService.currentUserId;
+    if (userId == null) return false;
+    try {
+      final row = await SupabaseService.client
+          .from('users')
+          .select('deletion_status')
+          .eq('id', userId)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 5));
+      return row?['deletion_status'] == 'pending_deletion';
+    } catch (e) {
+      debugPrint('AuthCubit: deletion status unavailable at sign-out: $e');
+      return false;
+    }
+  }
+
+  Future<void> _endSession({required bool everyDevice}) async {
+    final auth = SupabaseService.client.auth;
+    if (everyDevice) {
+      try {
+        await auth.signOut(scope: SignOutScope.global);
+        return;
+      } catch (e) {
+        debugPrint('AuthCubit: global sign-out failed: $e');
+      }
+    }
+    await auth.signOut();
+  }
+
+  /// Closes this device's session when hydration finds it cannot continue.
+  Future<void> _closeSession({String? notice}) async {
+    try {
+      await FcmService.instance.onUserLogout();
+      await SupabaseService.client.auth.signOut();
+    } catch (e) {
+      debugPrint('AuthCubit: closing the session failed: $e');
+    }
+    _checkingSession = false;
+    _hydratedSessionUserId = null;
+    _deletionRecoveryUserId = null;
+    await _clearPendingOtp();
+    emit(AuthUnauthenticated(notice: notice));
   }
 
   void updateOnboardingStep(
@@ -776,6 +858,8 @@ class AuthCubit extends Cubit<AuthState> {
         onboardingCompleted =
             profileRow['onboarding_completed'] as bool? ?? onboardingCompleted;
       }
+    } on AccountSessionEndedException {
+      rethrow;
     } catch (e) {
       debugPrint('AuthCubit: Error loading user profile: $e');
       throw AuthProfileHydrationException(e);
@@ -813,8 +897,26 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> _recoverPendingDeletion(String userId) async {
     try {
-      await SupabaseService.client.rpc('cancel_my_account_deletion');
+      // A global sign-out revokes the refresh token, but an access token on
+      // another device keeps working until it expires. Refreshing first stops
+      // that device from undoing the deletion request.
+      try {
+        await SupabaseService.client.auth.refreshSession();
+      } catch (error) {
+        if (!isInvalidRefreshToken(error)) rethrow;
+        await _closeSession();
+        throw const AccountSessionEndedException();
+      }
+
+      final restored =
+          await SupabaseService.client.rpc<bool>('cancel_my_account_deletion');
+      if (!restored && !await _isDeletionAlreadyCancelled(userId)) {
+        await _closeSession(notice: accountNoLongerRestorableNotice);
+        throw const AccountSessionEndedException();
+      }
       _deletionRecoveryUserId = userId;
+    } on AccountSessionEndedException {
+      rethrow;
     } catch (error) {
       // Do not falsely route a pending-deletion account into onboarding or the
       // normal app. Hydration will retry when connectivity/backend recovery
@@ -822,6 +924,17 @@ class AuthCubit extends Cubit<AuthState> {
       debugPrint('AuthCubit: account deletion recovery failed: $error');
       rethrow;
     }
+  }
+
+  /// The restore also returns false when another request has just restored
+  /// the account, which must not be reported to the member as a lost account.
+  Future<bool> _isDeletionAlreadyCancelled(String userId) async {
+    final row = await SupabaseService.client
+        .from('users')
+        .select('deletion_status')
+        .eq('id', userId)
+        .maybeSingle();
+    return row?['deletion_status'] == 'active';
   }
 
   Future<void> refreshAuthenticatedProfile() async {

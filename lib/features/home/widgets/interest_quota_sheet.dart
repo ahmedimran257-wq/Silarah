@@ -56,8 +56,11 @@ class _InterestQuotaContent extends StatelessWidget {
     return Semantics(
       container: true,
       liveRegion: true,
-      label:
-          'Daily interest allowance used. ${quota.dailyLimit} of ${quota.dailyLimit} sent.',
+      label: context.uiCopyWith(
+          'Daily interest allowance used. {sent} of {limit} sent.', {
+        'sent': quota.dailyLimit,
+        'limit': quota.dailyLimit,
+      }),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surfaceMid,
@@ -161,7 +164,10 @@ class _InterestQuotaContent extends StatelessWidget {
                   Row(
                     children: [
                       UiText(
-                        '${quota.dailyLimit} of ${quota.dailyLimit} sent',
+                        context.uiCopyWith('{sent} of {limit} sent', {
+                          'sent': quota.dailyLimit,
+                          'limit': quota.dailyLimit,
+                        }),
                         style: AppTypography.bodyMedium,
                       ),
                       const Spacer(),

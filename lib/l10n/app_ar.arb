@@ -1510,7 +1510,7 @@
   "referral_shareButton": "مشاركة الرمز مع الأصدقاء",
   "referral_copied": "تم نسخ رمز الإحالة!",
   "referral_shareSubject": "انضم إلى سيلاراه",
-  "referral_shareText": "انضم إلى سيلاراه، تطبيق الزواج الإسلامي الموثوق. استخدم رمز إحالتي: {code}\n\nالتنزيل: https://silarah.com/r/{code}",
+  "referral_shareText": "انضم إلى سيلاراه، تطبيق الزواج الإسلامي الموثوق. استخدم رمز إحالتي: {code}\n\nالتنزيل: https://silarah.com",
   "profile_share": "مشاركة الملف الشخصي",
   "safety_reportMember": "الإبلاغ عن {name}",
   "safety_blockMember": "حظر {name}",

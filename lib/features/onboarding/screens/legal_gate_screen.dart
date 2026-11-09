@@ -12,6 +12,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/buttons/silarah_primary_button.dart';
 import '../../../core/widgets/buttons/silarah_secondary_button.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/router/notification_navigation.dart';
 import '../../home/screens/legal_doc_screen.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../../core/services/legal_consent_service.dart';
@@ -91,7 +92,11 @@ class _LegalGateScreenState extends State<LegalGateScreen> {
                   children: [
                     // Back
                     GestureDetector(
-                      onTap: () => context.pop(),
+                      // A member sent back to accept again arrives as the root.
+                      onTap: () => popOrGoToFallback(
+                        GoRouter.of(context),
+                        AppRoutes.splash,
+                      ),
                       child: Container(
                         width: 40,
                         height: 40,

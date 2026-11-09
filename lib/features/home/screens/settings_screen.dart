@@ -858,7 +858,10 @@ class _GuardianSectionState extends State<_GuardianSection> {
               ),
               const SizedBox(height: 18),
               Semantics(
-                label: 'Guardian invitation code ${invitation.code}',
+                label: context.uiCopyWith(
+                  'Guardian invitation code {code}',
+                  {'code': invitation.code},
+                ),
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   alignment: Alignment.center,
@@ -2330,7 +2333,8 @@ class _LanguagePickerSheet extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: UiText(
-                        'Language · ${lang.nativeName}',
+                        context.uiCopyWith('Language · {language}',
+                            {'language': lang.nativeName}),
                         style: AppTypography.body.copyWith(
                           color:
                               AppColors.readableOn(AppColors.surfaceGlassHover),
@@ -2534,7 +2538,7 @@ class _ToggleTile extends StatelessWidget {
             ? UiText(caption!, style: AppTypography.caption)
             : null,
         trailing: Semantics(
-          label: label,
+          label: context.uiCopy(label),
           toggled: value,
           child: Transform.scale(
             scale: .82,

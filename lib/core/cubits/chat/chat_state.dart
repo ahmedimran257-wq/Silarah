@@ -229,6 +229,7 @@ class ChatState extends Equatable {
     Map<String, int>? violationCounts,
     Set<String>? typingConversationIds,
     DateTime? messagingSuspendedUntil,
+    bool clearMessagingSuspendedUntil = false,
   }) {
     return ChatState(
       conversations: conversations ?? this.conversations,
@@ -236,8 +237,9 @@ class ChatState extends Equatable {
       violationCounts: violationCounts ?? this.violationCounts,
       typingConversationIds:
           typingConversationIds ?? this.typingConversationIds,
-      messagingSuspendedUntil:
-          messagingSuspendedUntil ?? this.messagingSuspendedUntil,
+      messagingSuspendedUntil: clearMessagingSuspendedUntil
+          ? null
+          : (messagingSuspendedUntil ?? this.messagingSuspendedUntil),
     );
   }
 

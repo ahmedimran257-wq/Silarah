@@ -383,7 +383,7 @@ class _SplashBrandScreenState extends State<SplashBrandScreen>
                                   opacity: _tertiaryOpacity,
                                   child: Semantics(
                                     button: true,
-                                    label: 'Change language',
+                                    label: context.uiCopy('Change language'),
                                     child: InkResponse(
                                       onTap: () => _lightTap(
                                         () => context

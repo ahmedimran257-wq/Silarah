@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:silarah/l10n/ui_copy.dart';
 import '../../theme/app_curves.dart';
 import '../../theme/app_dimensions.dart';
 
@@ -59,7 +60,9 @@ class _SilarahPressableState extends State<SilarahPressable> {
     return Semantics(
       button: true,
       enabled: widget.enabled,
-      label: widget.semanticLabel,
+      label: widget.semanticLabel == null
+          ? null
+          : context.uiCopy(widget.semanticLabel!),
       child: MouseRegion(
         cursor: widget.enabled
             ? SystemMouseCursors.click

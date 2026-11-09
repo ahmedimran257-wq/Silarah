@@ -120,8 +120,10 @@ class NotificationsCubit extends Cubit<NotificationsState> {
       }
       emit(NotificationsState(items: items));
       _lastLoadedAt = DateTime.now();
-    } catch (e) {
-      if (_isCurrentLoad(loadVersion)) emit(const NotificationsState());
+    } catch (error) {
+      // Keep what is already on screen; _lastLoadedAt stays old so the next
+      // load tries again.
+      debugPrint('[NotificationsCubit] load failed: $error');
     } finally {
       _loadInFlight = false;
       if (_reloadAfterCurrentLoad &&

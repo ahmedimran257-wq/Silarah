@@ -276,7 +276,7 @@ class _CitySearchFieldState extends State<CitySearchField> {
         style: AppTypography.inputText,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: widget.hint ?? 'Search city or area',
+          hintText: context.uiCopy(widget.hint ?? 'Search city or area'),
           hintStyle: AppTypography.inputLabel,
           prefixIcon: Icon(
             Icons.location_on_outlined,

@@ -117,19 +117,23 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
         backgroundColor: AppColors.obsidianNight,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        leading: GestureDetector(
-          onTap: _back,
-          child: Container(
-            margin: const EdgeInsets.all(AppDimensions.space8),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceGlass,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.cardBorder),
-            ),
-            child: Icon(
-              Icons.arrow_back_rounded,
-              color: AppColors.pearlWhite,
-              size: AppDimensions.iconSizeMedium,
+        leading: Semantics(
+          button: true,
+          label: context.uiCopy('Back'),
+          child: GestureDetector(
+            onTap: _back,
+            child: Container(
+              margin: const EdgeInsets.all(AppDimensions.space8),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceGlass,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.cardBorder),
+              ),
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.pearlWhite,
+                size: AppDimensions.iconSizeMedium,
+              ),
             ),
           ),
         ),
@@ -229,7 +233,7 @@ class _Step1 extends StatelessWidget {
             color: AppColors.softCoral,
             title: 'Permanent data loss',
             body:
-                'All matches, messages, and profile data will be permanently deleted after 30 days. This cannot be undone.',
+                'Your matches, messages, and profile data will be deleted or de-identified after 30 days and cannot be restored. Limited records may be kept for legal, payment, safety, or dispute reasons, some for 180 days or longer, as our Data Deletion Policy explains.',
           ),
           const SizedBox(height: AppDimensions.space12),
           _InfoCard(
@@ -237,7 +241,7 @@ class _Step1 extends StatelessWidget {
             color: AppColors.slateMist,
             title: 'Cancel store billing separately',
             body:
-                'Deleting Silarah does not cancel Apple or Google billing. Cancel your subscription in the store before continuing.',
+                'Deleting Silarah does not cancel Google Play billing. Cancel your subscription in Google Play before continuing.',
           ),
           const SizedBox(height: AppDimensions.space40),
           SizedBox(
@@ -390,7 +394,9 @@ class _Step2 extends StatelessWidget {
               onPressed: reason != null ? onContinue : null,
               child: UiText(context.uiCopy('Continue'),
                   style: AppTypography.button.copyWith(
-                    color: reason != null ? Colors.white : AppColors.slateMist,
+                    color: reason != null
+                        ? AppColors.readableOn(AppColors.softCoral)
+                        : AppColors.slateMist,
                   )),
             ),
           ),
@@ -472,8 +478,10 @@ class _Step3 extends StatelessWidget {
               ),
               textCapitalization: TextCapitalization.characters,
               decoration: InputDecoration(
-                labelText: context.uiCopy('DELETE'),
-                hintText: context.uiCopy('Type DELETE here'),
+                // The confirmation word is always literal: translating it here
+                // would show a word the check above does not accept.
+                labelText: 'DELETE',
+                hintText: 'DELETE',
                 hintStyle: AppTypography.inputText
                     .copyWith(color: AppColors.slateMist),
                 filled: false,
@@ -511,7 +519,9 @@ class _Step3 extends StatelessWidget {
                   : UiText(
                       context.uiCopy('Delete Account'),
                       style: AppTypography.button.copyWith(
-                        color: canConfirm ? Colors.white : AppColors.slateMist,
+                        color: canConfirm
+                            ? AppColors.readableOn(AppColors.softCoral)
+                            : AppColors.slateMist,
                       ),
                     ),
             ),

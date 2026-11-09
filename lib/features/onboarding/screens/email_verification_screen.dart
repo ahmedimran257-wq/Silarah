@@ -6,10 +6,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/cubits/auth/auth_cubit.dart';
 import '../../../core/cubits/auth/auth_state.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/services/email_address_validation.dart';
+import '../../../core/services/legal_consent_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_curves.dart';
 import '../../../core/theme/app_dimensions.dart';
@@ -92,6 +95,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   }
 
   void _changeEmail() {
+    if (_mode == EmailAuthMode.signUp) {
+      // A legal acceptance is bound to the first email it is used with, so a
+      // different address needs a new acceptance.
+      unawaited(LegalConsentService.instance.clearPendingTransaction());
+      _showError('To use a different email, please accept the terms again.');
+      _returnToLegalAcceptance();
+      return;
+    }
     setState(() {
       _otpSent = false;
     });
@@ -99,6 +110,44 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _emailFocus.requestFocus(),
     );
+  }
+
+  void _returnToLegalAcceptance() {
+    _resendTimer?.cancel();
+    context.go(AppRoutes.legal);
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: UiText(
+          message,
+          style: TextStyle(
+            color: AppColors.readableOn(AppColors.softCoral),
+          ),
+        ),
+        backgroundColor: AppColors.softCoral,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
+  /// Creating a profile needs a legal acceptance, which someone arriving from
+  /// Sign in has not given yet.
+  Future<void> _requestMode(EmailAuthMode mode) async {
+    if (mode == EmailAuthMode.signUp) {
+      final hasConsent =
+          await LegalConsentService.instance.hasPendingOnboardingConsents();
+      if (!mounted) return;
+      if (!hasConsent) {
+        _returnToLegalAcceptance();
+        return;
+      }
+    }
+    _switchMode(mode);
   }
 
   void _switchMode(EmailAuthMode mode, {bool focusEmail = true}) {
@@ -128,28 +177,22 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           _emailFocus.unfocus();
           _startResendTimer();
         }
+        if (state is AuthUnauthenticated && state.notice != null && _otpSent) {
+          _switchMode(_mode, focusEmail: false);
+        }
         if (state is AuthError) {
-          final visibleMessage = _otpSent
+          // Validation and consent messages say nothing about whether an
+          // account exists. Every other send failure stays generic.
+          final visibleMessage = _otpSent || state.kind != AuthErrorKind.general
               ? state.message
               : 'We could not send a verification code. Check the address or try again shortly.';
           if (_otpSent) {
             setState(() => _otpResetNonce++);
           }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: UiText(
-                visibleMessage,
-                style: TextStyle(
-                  color: AppColors.readableOn(AppColors.softCoral),
-                ),
-              ),
-              backgroundColor: AppColors.softCoral,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          );
+          _showError(visibleMessage);
+          if (state.kind == AuthErrorKind.legalConsentRequired) {
+            _returnToLegalAcceptance();
+          }
         }
       },
       child: Scaffold(
@@ -185,7 +228,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                             controller: _emailCtrl,
                             focusNode: _emailFocus,
                             mode: _mode,
-                            onModeChanged: _switchMode,
+                            onModeChanged: _requestMode,
                             onSend: _sendOtp,
                             isComplete: true,
                           ),
@@ -775,20 +818,24 @@ class _OtpBoxesState extends State<_OtpBoxes> with WidgetsBindingObserver {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_length, (i) {
-                final hasDigit = i < _otp.length;
-                final isActive = i == _otp.length;
-                return Padding(
-                  padding: EdgeInsets.only(right: i < _length - 1 ? 10 : 0),
-                  child: _OtpBox(
-                    digit: hasDigit ? _otp[i] : null,
-                    isActive: isActive,
-                    delay: i * 50,
-                  ),
-                );
-              }),
+            // Six fixed boxes are wider than the smallest phones allow.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(_length, (i) {
+                  final hasDigit = i < _otp.length;
+                  final isActive = i == _otp.length;
+                  return Padding(
+                    padding: EdgeInsets.only(right: i < _length - 1 ? 10 : 0),
+                    child: _OtpBox(
+                      digit: hasDigit ? _otp[i] : null,
+                      isActive: isActive,
+                      delay: i * 50,
+                    ),
+                  );
+                }),
+              ),
             ),
           ),
           Positioned.fill(

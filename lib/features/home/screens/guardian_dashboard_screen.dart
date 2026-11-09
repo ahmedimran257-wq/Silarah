@@ -169,7 +169,11 @@ class _GuardianDashboardScreenState extends State<GuardianDashboardScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: UiText(
-              'Match approved — ${chat.wardName} can now message ${chat.otherPartyName}',
+              context.uiCopyWith(
+                  'Match approved — {ward} can now message {other}', {
+                'ward': chat.wardName,
+                'other': chat.otherPartyName,
+              }),
               style: AppTypography.body.copyWith(
                 color: AppColors.readableOn(AppColors.verifiedTeal),
               ),
@@ -187,7 +191,8 @@ class _GuardianDashboardScreenState extends State<GuardianDashboardScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: UiText(
-              'Failed to approve match: $e',
+              context
+                  .uiCopyWith('Failed to approve match: {error}', {'error': e}),
               style: AppTypography.body.copyWith(
                 color: AppColors.readableOn(AppColors.errorRed),
               ),
@@ -767,7 +772,7 @@ class _GuardianMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final alignRight = message.isFromWard;
     final sender = message.sentByGuardian
-        ? 'You, as $wardName'
+        ? context.uiCopyWith('You, as {name}', {'name': wardName})
         : alignRight
             ? wardName
             : otherPartyName;

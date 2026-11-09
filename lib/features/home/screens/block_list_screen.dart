@@ -81,7 +81,8 @@ class _BlockListScreenState extends State<BlockListScreen> {
             style: AppTypography.bodyMedium
                 .copyWith(color: AppColors.pearlWhite, fontSize: 17)),
         content: UiText(
-          '${user.name} ${user.lastInitial}. will be able to find your profile again.',
+          context.uiCopyWith('{name} will be able to find your profile again.',
+              {'name': '${user.name} ${user.lastInitial}.'}),
           style: AppTypography.bodyMuted,
         ),
         actions: [

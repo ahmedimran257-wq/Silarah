@@ -245,7 +245,7 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
         SubscriptionPurchaseOutcome.otherPlanUnconfirmed =>
           'Your last Google Play payment has not been confirmed yet. To avoid paying twice, wait for it to finish or tap Restore Purchase before choosing a different plan.',
         SubscriptionPurchaseOutcome.billingIssue =>
-          'Your Premium renewal payment did not go through. Update your payment method in Google Play to restore Premium without paying twice.',
+          _renewalPaymentFailedMessage,
         _ => _purchaseErrorMessage(purchase.errorCode),
       };
       emit(state.copyWith(isLoading: false, error: message));
@@ -262,8 +262,11 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
     }
   }
 
+  static const _renewalPaymentFailedMessage =
+      'Your Premium renewal payment did not go through. Update your payment method in Google Play to restore Premium without paying twice.';
+
   static const _pendingPaymentMessage =
-      'Your Google Play payment is still pending. Premium switches on automatically once Google Play confirms it. To avoid paying twice, please wait for it, or cancel it in Google Play, before choosing a different plan.';
+      'Your Google Play payment is still pending. Premium switches on automatically once Google Play confirms it. To avoid paying twice, other plans stay paused until then, or for up to 3 days.';
 
   String _purchaseErrorMessage(PurchasesErrorCode? code) {
     return switch (code) {
@@ -332,12 +335,17 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
         // returns; "nothing found" would invite paying again.
         final pending =
             await UnconfirmedPurchaseMemory.isPending(_loggedInUserId!);
+        final onHold = SubscriptionEntitlements.isOnAccountHold(
+          await Purchases.getCustomerInfo(),
+        );
         if (!_isCurrentSession(generation)) return;
         emit(state.copyWith(
           isLoading: false,
-          error: pending
-              ? _pendingPaymentMessage
-              : 'No previous purchases found for this account.',
+          error: onHold
+              ? _renewalPaymentFailedMessage
+              : pending
+                  ? _pendingPaymentMessage
+                  : 'No previous purchases found for this account.',
         ));
       }
     } catch (e) {
@@ -470,6 +478,9 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
     final willRenew = customerInfo == null
         ? (active ? state.willRenew : null)
         : storePremium?.willRenew;
+    final paidExpiry = customerInfo == null
+        ? (active ? state.paidExpiresAt : null)
+        : revenueCatExpiry;
     final SubscriptionStatus status;
     if (!active) {
       status = SubscriptionStatus.none;
@@ -486,6 +497,8 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
       source: source,
       expiresAt: expiry,
       clearExpiresAt: expiry == null,
+      paidExpiresAt: paidExpiry,
+      clearPaidExpiresAt: paidExpiry == null,
       willRenew: willRenew,
       clearWillRenew: willRenew == null,
       successMessage: successMessage,

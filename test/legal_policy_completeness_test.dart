@@ -138,7 +138,8 @@ void main() {
     final screen = File('lib/features/home/screens/delete_account_screen.dart')
         .readAsStringSync();
     expect(screen, contains('Cancel store billing separately'));
-    expect(screen, contains('does not cancel Apple or Google billing'));
+    expect(screen, contains('does not cancel Google Play billing'));
+    expect(screen, isNot(contains('Apple')));
     expect(screen, isNot(contains('Subscriptions cancelled')));
   });
 

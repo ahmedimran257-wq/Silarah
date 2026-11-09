@@ -104,7 +104,7 @@ class _SilarahEmptyStateState extends State<SilarahEmptyState>
             children: [
               Semantics(
                 image: true,
-                label: widget.title,
+                label: context.uiCopy(widget.title),
                 child: RepaintBoundary(
                   child: SizedBox(
                     width: 176,

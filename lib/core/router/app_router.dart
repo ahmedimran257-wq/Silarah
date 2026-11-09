@@ -229,7 +229,10 @@ GoRouter buildAppRouter(
         path: AppRoutes.legal,
         pageBuilder: (context, state) => _slidePage(
           key: state.pageKey,
-          child: const LegalGateScreen(),
+          child: const NotificationRouteBackScope(
+            fallbackPath: AppRoutes.splash,
+            child: LegalGateScreen(),
+          ),
         ),
       ),
       GoRoute(

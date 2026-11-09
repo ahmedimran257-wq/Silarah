@@ -266,7 +266,8 @@ class _QuickLocationScreenState extends State<QuickLocationScreen> {
             initialValue: _initialCity,
             hint: _region == null
                 ? 'Search your city or area'
-                : 'Search city in ${_region!.name}',
+                : context.uiCopyWith(
+                    'Search city in {region}', {'region': _region!.name}),
             onSelected: (result) {
               _dismissKeyboard();
               setState(() {

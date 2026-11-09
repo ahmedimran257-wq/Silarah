@@ -39,7 +39,7 @@ and the review inbox immediately before submission.
 6. **Safety:** open a member profile → menu → Report or Block.
 7. **Account controls:** Profile → Settings → Pause profile, Help & support, or
    Delete account.
-8. **Legal:** Profile → Settings → Legal & privacy.
+8. **Legal:** Profile → Settings → Legal.
 9. **Subscription:** open Premium. Products and localized prices are supplied by
    Google Play/RevenueCat and may be unavailable outside an authorized test track.
 

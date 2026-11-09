@@ -158,7 +158,6 @@ abstract final class SubscriptionEntitlements {
     final premium = info.entitlements.all[SubscriptionEntitlements.premium];
     if (premium == null ||
         premium.isActive ||
-        !premium.willRenew ||
         premium.billingIssueDetectedAt == null ||
         premium.unsubscribeDetectedAt != null) {
       return false;

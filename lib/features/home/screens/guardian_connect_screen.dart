@@ -26,6 +26,7 @@ class _GuardianConnectScreenState extends State<GuardianConnectScreen> {
   static const _guardianCodeExample = 'A1B2C3D4E5';
   final _codeController = TextEditingController();
   bool _loading = true;
+  bool _invitationAccepted = false;
   String? _error;
 
   @override
@@ -83,11 +84,6 @@ class _GuardianConnectScreenState extends State<GuardianConnectScreen> {
     try {
       await WaliModeService.instance.rememberPendingInvitation(code);
       await WaliModeService.instance.acceptInvitation(code);
-      await WaliModeService.instance.clearPendingInvitation();
-      if (!mounted) return;
-      await context.read<AuthCubit>().refreshAuthenticatedProfile();
-      if (!mounted) return;
-      context.go(AppRoutes.guardianDashboard);
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -95,6 +91,32 @@ class _GuardianConnectScreenState extends State<GuardianConnectScreen> {
         _error = error.toString().contains('guardian_email_mismatch')
             ? 'Sign in with the verified email address selected by the member.'
             : 'The invitation could not be accepted. Confirm the code, email account, and expiry date.';
+      });
+      return;
+    }
+    _invitationAccepted = true;
+    await _finishAcceptedInvitation();
+  }
+
+  /// The code works once, so after a successful accept only the account
+  /// refresh may be retried; accepting again would report a false failure.
+  Future<void> _finishAcceptedInvitation() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await WaliModeService.instance.clearPendingInvitation();
+      if (!mounted) return;
+      await context.read<AuthCubit>().refreshAuthenticatedProfile();
+      if (!mounted) return;
+      context.go(AppRoutes.guardianDashboard);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error =
+            'Your invitation was accepted, but we could not refresh your account. Check your connection and try again.';
       });
     }
   }
@@ -105,9 +127,19 @@ class _GuardianConnectScreenState extends State<GuardianConnectScreen> {
       _loading = true;
       _error = null;
     });
-    await WaliModeService.instance.clearPendingInvitation();
-    if (!mounted) return;
-    await context.read<AuthCubit>().refreshAuthenticatedProfile();
+    try {
+      await WaliModeService.instance.clearPendingInvitation();
+      if (!mounted) return;
+      await context.read<AuthCubit>().refreshAuthenticatedProfile();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error =
+            'We could not refresh your account. Check your connection and try again.';
+      });
+      return;
+    }
     if (!mounted) return;
     final auth = context.read<AuthCubit>().state;
     if (auth is AuthAuthenticated && auth.isOnboardingComplete) {
@@ -200,6 +232,11 @@ class _GuardianConnectScreenState extends State<GuardianConnectScreen> {
                   const SizedBox(height: 22),
                   if (_loading)
                     const Center(child: SilarahPulseLoader(size: 30))
+                  else if (_invitationAccepted)
+                    SilarahPrimaryButton(
+                      label: context.uiCopy('Try again'),
+                      onTap: _finishAcceptedInvitation,
+                    )
                   else if (authenticated)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,

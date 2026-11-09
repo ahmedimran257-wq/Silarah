@@ -219,9 +219,8 @@ class _InAppNotificationBannerHostState
                                         ],
                                       ),
                                     ),
-                                    Semantics(
+                                    _CatalogButtonSemantics(
                                       label: 'Dismiss notification',
-                                      button: true,
                                       child: IconButton(
                                         onPressed: _dismiss,
                                         icon: Icon(
@@ -247,4 +246,19 @@ class _InAppNotificationBannerHostState
       ],
     );
   }
+}
+
+/// Announces [child] as a button, with [label] read from the copy catalog.
+class _CatalogButtonSemantics extends StatelessWidget {
+  const _CatalogButtonSemantics({required this.label, required this.child});
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+        label: context.uiCopy(label),
+        button: true,
+        child: child,
+      );
 }

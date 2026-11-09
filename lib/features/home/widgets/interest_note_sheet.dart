@@ -5,6 +5,8 @@
 import 'package:silarah/l10n/ui_copy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/cubits/interests/interests_cubit.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
@@ -27,6 +29,19 @@ Future<String?> showInterestNoteSheet(
   );
 }
 
+/// Tells the member why their interest was not sent. Reports nothing after a
+/// cancelled sheet, a double tap or the daily limit, which has its own sheet.
+void showInterestSendFailure(BuildContext context) {
+  final failure = context.read<InterestsCubit>().takeSendFailure();
+  if (failure == null) return;
+  ScaffoldMessenger.of(context)
+    ..clearSnackBars()
+    ..showSnackBar(SnackBar(
+      behavior: SnackBarBehavior.floating,
+      content: UiText(context.uiCopy(failure.message)),
+    ));
+}
+
 class _InterestNoteSheet extends StatefulWidget {
   const _InterestNoteSheet({required this.firstName});
   final String firstName;
@@ -38,7 +53,7 @@ class _InterestNoteSheet extends StatefulWidget {
 class _InterestNoteSheetState extends State<_InterestNoteSheet> {
   final TextEditingController _ctrl = TextEditingController();
   String _error = '';
-  static const _maxLength = 200;
+  static const _maxLength = 150; // interests.note database constraint
 
   @override
   void dispose() {
@@ -81,7 +96,8 @@ class _InterestNoteSheetState extends State<_InterestNoteSheet> {
 
             // Title
             UiText(
-              'Add a note for ${widget.firstName}',
+              context.uiCopyWith(
+                  'Add a note for {name}', {'name': widget.firstName}),
               style: AppTypography.bodyMedium.copyWith(
                 color: AppColors.pearlWhite,
               ),

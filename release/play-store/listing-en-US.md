@@ -42,8 +42,9 @@ WHY SILARAH
 • No phone number needed: accounts use a verified email, and Silarah does not ask for your phone number
 
 FIND THE RIGHT RISHTA
-• Discover Muslim brides and grooms across Indian states and cities, with distance search
-• Filter by sect, community, mother tongue, marital status, education and marriage intentions
+• Discover Muslim brides and grooms across India
+• Filter by age, sect, deen level, education, family type, marital status and children
+• Premium adds state, city, distance, All India, mother tongue, community, post-marriage living and trust-check filters
 • See new profiles that match the qualities you care about
 • Premium compatibility insights show where your stated preferences align with someone else's
 
