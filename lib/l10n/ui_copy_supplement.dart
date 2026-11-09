@@ -84,7 +84,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'استمر في تعديل ملفك الشخصي وتحسينه\nليكتشفك الأشخاص المتوافقون معك.',
     'Live filter options could not be loaded. Broad filters remain available.':
         'تعذر تحميل خيارات التصفية المباشرة. تظل المرشحات الواسعة متاحة.',
-    'Live in discovery': 'العيش في الاكتشاف',
+    'Live in discovery': 'ظاهر في الاكتشاف',
     'Location saving is not configured. Please try again.':
         'لم يتم تكوين حفظ الموقع. يرجى المحاولة مرة أخرى.',
     'Mabrook!': 'مبروك!',
@@ -197,6 +197,42 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Discovery unavailable': 'الاكتشاف غير متاح',
     'Profiles are hidden while your account is restricted. Support can review this decision.':
         'الملفات الشخصية مخفية أثناء تقييد حسابك. يمكن لفريق الدعم مراجعة هذا القرار.',
+    'Profile paused': 'الملف الشخصي متوقف مؤقتًا',
+    'You are hidden from discovery.': 'ملفك الشخصي مخفي من الاكتشاف.',
+    'Profile suspended': 'الملف الشخصي موقوف',
+    'Discovery access is restricted. Support can review this decision.':
+        'الوصول إلى الاكتشاف مقيّد. يمكن لفريق الدعم مراجعة هذا القرار.',
+    'Account banned': 'الحساب محظور',
+    'Your account has an enforced restriction. Contact support to appeal.':
+        'يخضع حسابك لقيد مفروض. تواصل مع الدعم للاعتراض.',
+    'Profile unavailable': 'الملف الشخصي غير متاح',
+    'Contact support for help restoring your profile.':
+        'تواصل مع الدعم للمساعدة في استعادة ملفك الشخصي.',
+    'Get help': 'احصل على المساعدة',
+    'Resume': 'استئناف',
+    'Profile deactivated': 'تم إلغاء تنشيط الملف الشخصي',
+    'Primary photo required': 'الصورة الأولية مطلوبة',
+    'Checking account status': 'جارٍ التحقق من حالة الحساب',
+    'An enforced account restriction is active. Your profile is not shown and protected actions are unavailable. You can contact Support to appeal.':
+        'يوجد قيد مفروض على الحساب. ملفك الشخصي غير معروض والإجراءات المحمية غير متاحة. يمكنك التواصل مع الدعم للاعتراض.',
+    'Your profile is hidden while the account is under review. This status remains here until the restriction is resolved.':
+        'ملفك الشخصي مخفي أثناء مراجعة الحساب. ستبقى هذه الحالة هنا حتى يتم حل القيد.',
+    'Your profile is not active. Support can guide you through restoring access.':
+        'ملفك الشخصي غير نشط. يمكن لفريق الدعم إرشادك لاستعادة الوصول.',
+    'You are hidden from discovery. Resume whenever you are ready—your profile information and matches remain intact.':
+        'ملفك الشخصي مخفي من الاكتشاف. استأنف متى كنت مستعدًا، فمعلومات ملفك ومطابقاتك تبقى كما هي.',
+    'Your profile is hidden and needs a safe primary photo before it can return to discovery.':
+        'ملفك الشخصي مخفي ويحتاج إلى صورة أولية آمنة قبل أن يعود إلى الاكتشاف.',
+    'Add a primary photo that passes the safety scan to publish your profile.':
+        'أضف صورة أولية تجتاز فحص الأمان لنشر ملفك الشخصي.',
+    'Your profile is visible and eligible to appear in discovery.':
+        'ملفك الشخصي ظاهر ومؤهل للظهور في الاكتشاف.',
+    'We are confirming your current visibility with Silarah.':
+        'نتحقق من حالة ظهورك الحالية على Silarah.',
+    'Contact support': 'تواصل مع الدعم',
+    'Resume profile': 'استئناف الملف الشخصي',
+    'RESTRICTED': 'مقيّد',
+    'ATTENTION': 'انتباه',
     'We could not block this member. Please try again.':
         'لم نتمكن من حظر هذا العضو. يرجى المحاولة مرة أخرى.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -326,7 +362,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'আপনার প্রোফাইল সম্পাদনা এবং উন্নতি চালিয়ে যান\nম্যাচ দ্বারা আবিষ্কৃত পেতে.',
     'Live filter options could not be loaded. Broad filters remain available.':
         'লাইভ ফিল্টার বিকল্প লোড করা যাবে না. বিস্তৃত ফিল্টার উপলব্ধ থাকে।',
-    'Live in discovery': 'আবিষ্কারে বাস করুন',
+    'Live in discovery': 'ডিসকভারিতে দৃশ্যমান',
     'Location saving is not configured. Please try again.':
         'অবস্থান সংরক্ষণ কনফিগার করা নেই. আবার চেষ্টা করুন.',
     'Mabrook!': 'মাব্রুক !',
@@ -439,7 +475,43 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'আমরা আপনার প্রোফাইল রিফ্রেশ করতে পারিনি।',
     'Discovery unavailable': 'ডিসকভারি উপলভ্য নয়',
     'Profiles are hidden while your account is restricted. Support can review this decision.':
-        'আপনার অ্যাকাউন্ট সীমাবদ্ধ থাকাকালীন প্রোফাইলগুলো লুকানো থাকবে। সাপোর্ট এই সিদ্ধান্ত পর্যালোচনা করতে পারে।',
+        'আপনার অ্যাকাউন্ট সীমিত থাকাকালীন প্রোফাইলগুলো লুকানো থাকবে। সহায়তা দল এই সিদ্ধান্ত পর্যালোচনা করতে পারে।',
+    'Profile paused': 'প্রোফাইল বিরতিতে আছে',
+    'You are hidden from discovery.': 'আপনি ডিসকভারি থেকে লুকানো আছেন।',
+    'Profile suspended': 'প্রোফাইল স্থগিত',
+    'Discovery access is restricted. Support can review this decision.':
+        'ডিসকভারিতে প্রবেশ সীমিত। সহায়তা দল এই সিদ্ধান্ত পর্যালোচনা করতে পারে।',
+    'Account banned': 'অ্যাকাউন্ট নিষিদ্ধ',
+    'Your account has an enforced restriction. Contact support to appeal.':
+        'আপনার অ্যাকাউন্টে একটি বিধিনিষেধ কার্যকর আছে। আপিল করতে সহায়তা দলের সাথে যোগাযোগ করুন।',
+    'Profile unavailable': 'প্রোফাইল উপলভ্য নয়',
+    'Contact support for help restoring your profile.':
+        'আপনার প্রোফাইল পুনরুদ্ধারে সাহায্যের জন্য সহায়তা দলের সাথে যোগাযোগ করুন।',
+    'Get help': 'সাহায্য নিন',
+    'Resume': 'আবার চালু করুন',
+    'Profile deactivated': 'প্রোফাইল নিষ্ক্রিয় করা হয়েছে',
+    'Primary photo required': 'প্রাথমিক ছবি প্রয়োজন',
+    'Checking account status': 'অ্যাকাউন্টের অবস্থা যাচাই করা হচ্ছে',
+    'An enforced account restriction is active. Your profile is not shown and protected actions are unavailable. You can contact Support to appeal.':
+        'অ্যাকাউন্টে একটি বিধিনিষেধ কার্যকর আছে। আপনার প্রোফাইল দেখানো হচ্ছে না এবং সুরক্ষিত কাজগুলো উপলভ্য নয়। আপিল করতে আপনি সহায়তা দলের সাথে যোগাযোগ করতে পারেন।',
+    'Your profile is hidden while the account is under review. This status remains here until the restriction is resolved.':
+        'অ্যাকাউন্ট পর্যালোচনাধীন থাকাকালীন আপনার প্রোফাইল লুকানো থাকবে। বিধিনিষেধের সমাধান না হওয়া পর্যন্ত এই অবস্থা এখানে দেখা যাবে।',
+    'Your profile is not active. Support can guide you through restoring access.':
+        'আপনার প্রোফাইল সক্রিয় নয়। অ্যাক্সেস ফিরে পেতে সহায়তা দল আপনাকে পথ দেখাতে পারে।',
+    'You are hidden from discovery. Resume whenever you are ready—your profile information and matches remain intact.':
+        'আপনি ডিসকভারি থেকে লুকানো আছেন। যখন প্রস্তুত হবেন আবার চালু করুন—আপনার প্রোফাইলের তথ্য ও ম্যাচ অক্ষুণ্ণ থাকবে।',
+    'Your profile is hidden and needs a safe primary photo before it can return to discovery.':
+        'আপনার প্রোফাইল লুকানো আছে এবং ডিসকভারিতে ফিরতে একটি নিরাপদ প্রাথমিক ছবি প্রয়োজন।',
+    'Add a primary photo that passes the safety scan to publish your profile.':
+        'আপনার প্রোফাইল প্রকাশ করতে নিরাপত্তা যাচাই পাস করে এমন একটি প্রাথমিক ছবি যোগ করুন।',
+    'Your profile is visible and eligible to appear in discovery.':
+        'আপনার প্রোফাইল দৃশ্যমান এবং ডিসকভারিতে দেখানোর যোগ্য।',
+    'We are confirming your current visibility with Silarah.':
+        'আমরা Silarah-এ আপনার বর্তমান দৃশ্যমানতা নিশ্চিত করছি।',
+    'Contact support': 'সহায়তা দলের সাথে যোগাযোগ করুন',
+    'Resume profile': 'প্রোফাইল আবার চালু করুন',
+    'RESTRICTED': 'সীমাবদ্ধ',
+    'ATTENTION': 'মনোযোগ দিন',
     'We could not block this member. Please try again.':
         'আমরা এই সদস্যকে ব্লক করতে পারিনি। আবার চেষ্টা করুন।',
     'Blocked. They can no longer see your profile or contact you.':
@@ -570,7 +642,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Bearbeiten und verbessern Sie Ihr Profil weiter\ndurch Streichhölzer entdeckt werden.',
     'Live filter options could not be loaded. Broad filters remain available.':
         'Live-Filteroptionen konnten nicht geladen werden. Breite Filter bleiben weiterhin verfügbar.',
-    'Live in discovery': 'Lebe in der Entdeckung',
+    'Live in discovery': 'Sichtbar in Entdecken',
     'Location saving is not configured. Please try again.':
         'Die Standortspeicherung ist nicht konfiguriert. Bitte versuchen Sie es erneut.',
     'Mabrook!': 'Mabrook!',
@@ -689,7 +761,43 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Wir konnten Ihr Profil nicht aktualisieren.',
     'Discovery unavailable': 'Entdecken nicht verfügbar',
     'Profiles are hidden while your account is restricted. Support can review this decision.':
-        'Profile sind ausgeblendet, solange dein Konto eingeschränkt ist. Der Support kann diese Entscheidung prüfen.',
+        'Profile sind ausgeblendet, solange Ihr Konto eingeschränkt ist. Der Support kann diese Entscheidung prüfen.',
+    'Profile paused': 'Profil pausiert',
+    'You are hidden from discovery.': 'Sie sind in Entdecken ausgeblendet.',
+    'Profile suspended': 'Profil vorübergehend gesperrt',
+    'Discovery access is restricted. Support can review this decision.':
+        'Der Zugang zu Entdecken ist eingeschränkt. Der Support kann diese Entscheidung prüfen.',
+    'Account banned': 'Konto gesperrt',
+    'Your account has an enforced restriction. Contact support to appeal.':
+        'Für Ihr Konto gilt eine verbindliche Einschränkung. Wenden Sie sich für einen Einspruch an den Support.',
+    'Profile unavailable': 'Profil nicht verfügbar',
+    'Contact support for help restoring your profile.':
+        'Wenden Sie sich an den Support, um Hilfe bei der Wiederherstellung Ihres Profils zu erhalten.',
+    'Get help': 'Hilfe holen',
+    'Resume': 'Fortsetzen',
+    'Profile deactivated': 'Profil deaktiviert',
+    'Primary photo required': 'Hauptfoto erforderlich',
+    'Checking account status': 'Kontostatus wird geprüft',
+    'An enforced account restriction is active. Your profile is not shown and protected actions are unavailable. You can contact Support to appeal.':
+        'Für Ihr Konto gilt eine verbindliche Einschränkung. Ihr Profil wird nicht angezeigt und geschützte Aktionen sind nicht verfügbar. Für einen Einspruch können Sie sich an den Support wenden.',
+    'Your profile is hidden while the account is under review. This status remains here until the restriction is resolved.':
+        'Ihr Profil ist ausgeblendet, während das Konto geprüft wird. Dieser Status bleibt hier sichtbar, bis die Einschränkung aufgehoben ist.',
+    'Your profile is not active. Support can guide you through restoring access.':
+        'Ihr Profil ist nicht aktiv. Der Support kann Ihnen helfen, den Zugang wiederherzustellen.',
+    'You are hidden from discovery. Resume whenever you are ready—your profile information and matches remain intact.':
+        'Sie sind in Entdecken ausgeblendet. Setzen Sie fort, wann immer Sie bereit sind – Ihre Profildaten und Matches bleiben erhalten.',
+    'Your profile is hidden and needs a safe primary photo before it can return to discovery.':
+        'Ihr Profil ist ausgeblendet und benötigt ein sicheres Hauptfoto, bevor es wieder in Entdecken erscheinen kann.',
+    'Add a primary photo that passes the safety scan to publish your profile.':
+        'Fügen Sie ein Hauptfoto hinzu, das die Sicherheitsprüfung besteht, um Ihr Profil zu veröffentlichen.',
+    'Your profile is visible and eligible to appear in discovery.':
+        'Ihr Profil ist sichtbar und kann in Entdecken erscheinen.',
+    'We are confirming your current visibility with Silarah.':
+        'Wir bestätigen Ihre aktuelle Sichtbarkeit bei Silarah.',
+    'Contact support': 'Support kontaktieren',
+    'Resume profile': 'Profil fortsetzen',
+    'RESTRICTED': 'EINGESCHRÄNKT',
+    'ATTENTION': 'ACHTUNG',
     'We could not block this member. Please try again.':
         'Wir konnten dieses Mitglied nicht blockieren. Bitte versuchen Sie es erneut.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -821,7 +929,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Continuez à modifier et à améliorer votre profil\npour se faire découvrir par des matchs.',
     'Live filter options could not be loaded. Broad filters remain available.':
         'Les options de filtre en direct n\'ont pas pu être chargées. Des filtres larges restent disponibles.',
-    'Live in discovery': 'Vivre en découverte',
+    'Live in discovery': 'Visible dans Découverte',
     'Location saving is not configured. Please try again.':
         'L\'enregistrement de l\'emplacement n\'est pas configuré. Veuillez réessayer.',
     'Mabrook!': 'Mabrook!',
@@ -941,6 +1049,43 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Discovery unavailable': 'Découverte indisponible',
     'Profiles are hidden while your account is restricted. Support can review this decision.':
         'Les profils sont masqués tant que votre compte est restreint. L’assistance peut réexaminer cette décision.',
+    'Profile paused': 'Profil en pause',
+    'You are hidden from discovery.':
+        'Votre profil est masqué dans Découverte.',
+    'Profile suspended': 'Profil suspendu',
+    'Discovery access is restricted. Support can review this decision.':
+        'L’accès à Découverte est restreint. L’assistance peut réexaminer cette décision.',
+    'Account banned': 'Compte banni',
+    'Your account has an enforced restriction. Contact support to appeal.':
+        'Une restriction s’applique à votre compte. Contactez l’assistance pour faire appel.',
+    'Profile unavailable': 'Profil indisponible',
+    'Contact support for help restoring your profile.':
+        'Contactez l’assistance pour obtenir de l’aide afin de restaurer votre profil.',
+    'Get help': 'Obtenir de l’aide',
+    'Resume': 'Reprendre',
+    'Profile deactivated': 'Profil désactivé',
+    'Primary photo required': 'Photo principale requise',
+    'Checking account status': 'Vérification du statut du compte',
+    'An enforced account restriction is active. Your profile is not shown and protected actions are unavailable. You can contact Support to appeal.':
+        'Une restriction s’applique à votre compte. Votre profil n’est pas affiché et les actions protégées sont indisponibles. Vous pouvez contacter l’assistance pour faire appel.',
+    'Your profile is hidden while the account is under review. This status remains here until the restriction is resolved.':
+        'Votre profil est masqué pendant l’examen du compte. Ce statut reste affiché ici jusqu’à la levée de la restriction.',
+    'Your profile is not active. Support can guide you through restoring access.':
+        'Votre profil n’est pas actif. L’assistance peut vous guider pour rétablir l’accès.',
+    'You are hidden from discovery. Resume whenever you are ready—your profile information and matches remain intact.':
+        'Votre profil est masqué dans Découverte. Reprenez quand vous le souhaitez : les informations de votre profil et vos mises en relation sont conservées.',
+    'Your profile is hidden and needs a safe primary photo before it can return to discovery.':
+        'Votre profil est masqué et nécessite une photo principale conforme avant de pouvoir revenir dans Découverte.',
+    'Add a primary photo that passes the safety scan to publish your profile.':
+        'Ajoutez une photo principale qui passe le contrôle de sécurité pour publier votre profil.',
+    'Your profile is visible and eligible to appear in discovery.':
+        'Votre profil est visible et peut apparaître dans Découverte.',
+    'We are confirming your current visibility with Silarah.':
+        'Nous confirmons votre visibilité actuelle sur Silarah.',
+    'Contact support': 'Contacter l’assistance',
+    'Resume profile': 'Reprendre le profil',
+    'RESTRICTED': 'RESTREINT',
+    'ATTENTION': 'À NOTER',
     'We could not block this member. Please try again.':
         "Nous n'avons pas pu bloquer ce membre. Veuillez réessayer.",
     'Blocked. They can no longer see your profile or contact you.':
@@ -1071,7 +1216,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'अपनी प्रोफ़ाइल का संपादन और सुधार करते रहें\nमाचिस से खोजे जाने के लिए।',
     'Live filter options could not be loaded. Broad filters remain available.':
         'लाइव फ़िल्टर विकल्प लोड नहीं किए जा सके. व्यापक फिल्टर उपलब्ध रहते हैं.',
-    'Live in discovery': 'खोज में जियो',
+    'Live in discovery': 'डिस्कवरी में दृश्यमान',
     'Location saving is not configured. Please try again.':
         'स्थान बचत कॉन्फ़िगर नहीं है. कृपया पुन: प्रयास करें।',
     'Mabrook!': 'मब्रूक!',
@@ -1186,7 +1331,43 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'हम आपकी प्रोफ़ाइल रीफ़्रेश नहीं कर सके।',
     'Discovery unavailable': 'डिस्कवरी उपलब्ध नहीं है',
     'Profiles are hidden while your account is restricted. Support can review this decision.':
-        'आपका खाता प्रतिबंधित रहने तक प्रोफ़ाइल छिपी रहेंगी। सपोर्ट इस निर्णय की समीक्षा कर सकता है।',
+        'आपका खाता प्रतिबंधित रहने तक प्रोफ़ाइल छिपी रहेंगी। सहायता टीम इस निर्णय की समीक्षा कर सकती है।',
+    'Profile paused': 'प्रोफ़ाइल रोकी गई है',
+    'You are hidden from discovery.': 'आप डिस्कवरी से छिपे हुए हैं।',
+    'Profile suspended': 'प्रोफ़ाइल निलंबित',
+    'Discovery access is restricted. Support can review this decision.':
+        'डिस्कवरी की पहुँच प्रतिबंधित है। सहायता टीम इस निर्णय की समीक्षा कर सकती है।',
+    'Account banned': 'खाता प्रतिबंधित',
+    'Your account has an enforced restriction. Contact support to appeal.':
+        'आपके खाते पर एक प्रतिबंध लागू है। अपील करने के लिए सहायता टीम से संपर्क करें।',
+    'Profile unavailable': 'प्रोफ़ाइल उपलब्ध नहीं है',
+    'Contact support for help restoring your profile.':
+        'अपनी प्रोफ़ाइल वापस पाने में मदद के लिए सहायता टीम से संपर्क करें।',
+    'Get help': 'मदद लें',
+    'Resume': 'फिर शुरू करें',
+    'Profile deactivated': 'प्रोफ़ाइल निष्क्रिय की गई',
+    'Primary photo required': 'प्राथमिक फ़ोटो ज़रूरी है',
+    'Checking account status': 'खाते की स्थिति जाँची जा रही है',
+    'An enforced account restriction is active. Your profile is not shown and protected actions are unavailable. You can contact Support to appeal.':
+        'खाते पर एक प्रतिबंध लागू है। आपकी प्रोफ़ाइल नहीं दिखाई जा रही और सुरक्षित कार्य उपलब्ध नहीं हैं। अपील के लिए आप सहायता टीम से संपर्क कर सकते हैं।',
+    'Your profile is hidden while the account is under review. This status remains here until the restriction is resolved.':
+        'खाते की समीक्षा के दौरान आपकी प्रोफ़ाइल छिपी रहेगी। प्रतिबंध हटने तक यह स्थिति यहाँ दिखती रहेगी।',
+    'Your profile is not active. Support can guide you through restoring access.':
+        'आपकी प्रोफ़ाइल सक्रिय नहीं है। पहुँच वापस पाने में सहायता टीम आपका मार्गदर्शन कर सकती है।',
+    'You are hidden from discovery. Resume whenever you are ready—your profile information and matches remain intact.':
+        'आप डिस्कवरी से छिपे हुए हैं। जब चाहें फिर शुरू करें—आपकी प्रोफ़ाइल की जानकारी और मैच सुरक्षित रहेंगे।',
+    'Your profile is hidden and needs a safe primary photo before it can return to discovery.':
+        'आपकी प्रोफ़ाइल छिपी है और डिस्कवरी में लौटने के लिए एक सुरक्षित प्राथमिक फ़ोटो चाहिए।',
+    'Add a primary photo that passes the safety scan to publish your profile.':
+        'अपनी प्रोफ़ाइल प्रकाशित करने के लिए सुरक्षा जाँच में पास होने वाली प्राथमिक फ़ोटो जोड़ें।',
+    'Your profile is visible and eligible to appear in discovery.':
+        'आपकी प्रोफ़ाइल दिख रही है और डिस्कवरी में आने के योग्य है।',
+    'We are confirming your current visibility with Silarah.':
+        'हम Silarah पर आपकी मौजूदा दृश्यता की पुष्टि कर रहे हैं।',
+    'Contact support': 'सहायता टीम से संपर्क करें',
+    'Resume profile': 'प्रोफ़ाइल फिर शुरू करें',
+    'RESTRICTED': 'सीमित',
+    'ATTENTION': 'ध्यान दें',
     'We could not block this member. Please try again.':
         'हम इस सदस्य को ब्लॉक नहीं कर सके। कृपया फिर से प्रयास करें।',
     'Blocked. They can no longer see your profile or contact you.':
@@ -1316,7 +1497,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Terus edit dan tingkatkan profil Anda\nuntuk ditemukan melalui kecocokan.',
     'Live filter options could not be loaded. Broad filters remain available.':
         'Opsi filter langsung tidak dapat dimuat. Filter luas tetap tersedia.',
-    'Live in discovery': 'Hidup dalam penemuan',
+    'Live in discovery': 'Terlihat di Penemuan',
     'Location saving is not configured. Please try again.':
         'Penyimpanan lokasi tidak dikonfigurasi. Silakan coba lagi.',
     'Mabrook!': 'Mabrook!',
@@ -1428,9 +1609,45 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Kami tidak dapat memverifikasi tunjangan harian Anda. Periksa koneksi Anda dan coba lagi.',
     'We could not refresh your profile.':
         'Kami tidak dapat memuat ulang profil Anda.',
-    'Discovery unavailable': 'Penjelajahan tidak tersedia',
+    'Discovery unavailable': 'Penemuan tidak tersedia',
     'Profiles are hidden while your account is restricted. Support can review this decision.':
-        'Profil disembunyikan selama akun Anda dibatasi. Tim dukungan dapat meninjau keputusan ini.',
+        'Profil disembunyikan selama akun Anda dibatasi. Tim Dukungan dapat meninjau keputusan ini.',
+    'Profile paused': 'Profil dijeda',
+    'You are hidden from discovery.': 'Anda disembunyikan dari Penemuan.',
+    'Profile suspended': 'Profil ditangguhkan',
+    'Discovery access is restricted. Support can review this decision.':
+        'Akses Penemuan dibatasi. Tim Dukungan dapat meninjau keputusan ini.',
+    'Account banned': 'Akun diblokir',
+    'Your account has an enforced restriction. Contact support to appeal.':
+        'Akun Anda dikenai pembatasan. Hubungi Dukungan untuk mengajukan banding.',
+    'Profile unavailable': 'Profil tidak tersedia',
+    'Contact support for help restoring your profile.':
+        'Hubungi Dukungan untuk bantuan memulihkan profil Anda.',
+    'Get help': 'Dapatkan bantuan',
+    'Resume': 'Lanjutkan',
+    'Profile deactivated': 'Profil dinonaktifkan',
+    'Primary photo required': 'Foto utama diperlukan',
+    'Checking account status': 'Memeriksa status akun',
+    'An enforced account restriction is active. Your profile is not shown and protected actions are unavailable. You can contact Support to appeal.':
+        'Pembatasan akun sedang berlaku. Profil Anda tidak ditampilkan dan tindakan yang dilindungi tidak tersedia. Anda dapat menghubungi Dukungan untuk mengajukan banding.',
+    'Your profile is hidden while the account is under review. This status remains here until the restriction is resolved.':
+        'Profil Anda disembunyikan selama akun ditinjau. Status ini tetap di sini hingga pembatasan diselesaikan.',
+    'Your profile is not active. Support can guide you through restoring access.':
+        'Profil Anda tidak aktif. Tim Dukungan dapat membantu memulihkan akses.',
+    'You are hidden from discovery. Resume whenever you are ready—your profile information and matches remain intact.':
+        'Anda disembunyikan dari Penemuan. Lanjutkan kapan pun Anda siap—informasi profil dan kecocokan Anda tetap utuh.',
+    'Your profile is hidden and needs a safe primary photo before it can return to discovery.':
+        'Profil Anda disembunyikan dan memerlukan foto utama yang aman sebelum dapat kembali ke Penemuan.',
+    'Add a primary photo that passes the safety scan to publish your profile.':
+        'Tambahkan foto utama yang lolos pemeriksaan keamanan untuk menerbitkan profil Anda.',
+    'Your profile is visible and eligible to appear in discovery.':
+        'Profil Anda terlihat dan memenuhi syarat untuk muncul di Penemuan.',
+    'We are confirming your current visibility with Silarah.':
+        'Kami sedang memastikan visibilitas Anda saat ini di Silarah.',
+    'Contact support': 'Hubungi Dukungan',
+    'Resume profile': 'Lanjutkan profil',
+    'RESTRICTED': 'DIBATASI',
+    'ATTENTION': 'PERHATIAN',
     'We could not block this member. Please try again.':
         'Kami tidak dapat memblokir anggota ini. Silakan coba lagi.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -1560,7 +1777,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Teruskan mengedit dan meningkatkan profil anda\nuntuk ditemui oleh perlawanan.',
     'Live filter options could not be loaded. Broad filters remain available.':
         'Pilihan penapis langsung tidak dapat dimuatkan. Penapis luas kekal tersedia.',
-    'Live in discovery': 'Hidup dalam penemuan',
+    'Live in discovery': 'Kelihatan dalam Penemuan',
     'Location saving is not configured. Please try again.':
         'Penjimatan lokasi tidak dikonfigurasikan. Sila cuba lagi.',
     'Mabrook!': 'Mabrook!',
@@ -1674,9 +1891,45 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Kami tidak dapat mengesahkan elaun harian anda. Semak sambungan anda dan cuba lagi.',
     'We could not refresh your profile.':
         'Kami tidak dapat memuat semula profil anda.',
-    'Discovery unavailable': 'Penerokaan tidak tersedia',
+    'Discovery unavailable': 'Penemuan tidak tersedia',
     'Profiles are hidden while your account is restricted. Support can review this decision.':
-        'Profil disembunyikan semasa akaun anda dihadkan. Pihak sokongan boleh menyemak keputusan ini.',
+        'Profil disembunyikan semasa akaun anda dihadkan. Pasukan Sokongan boleh menyemak keputusan ini.',
+    'Profile paused': 'Profil dijeda',
+    'You are hidden from discovery.': 'Anda disembunyikan daripada Penemuan.',
+    'Profile suspended': 'Profil digantung',
+    'Discovery access is restricted. Support can review this decision.':
+        'Akses Penemuan dihadkan. Pasukan Sokongan boleh menyemak keputusan ini.',
+    'Account banned': 'Akaun diharamkan',
+    'Your account has an enforced restriction. Contact support to appeal.':
+        'Akaun anda dikenakan sekatan. Hubungi Sokongan untuk membuat rayuan.',
+    'Profile unavailable': 'Profil tidak tersedia',
+    'Contact support for help restoring your profile.':
+        'Hubungi Sokongan untuk bantuan memulihkan profil anda.',
+    'Get help': 'Dapatkan bantuan',
+    'Resume': 'Sambung semula',
+    'Profile deactivated': 'Profil dinyahaktifkan',
+    'Primary photo required': 'Foto utama diperlukan',
+    'Checking account status': 'Menyemak status akaun',
+    'An enforced account restriction is active. Your profile is not shown and protected actions are unavailable. You can contact Support to appeal.':
+        'Sekatan akaun sedang berkuat kuasa. Profil anda tidak dipaparkan dan tindakan yang dilindungi tidak tersedia. Anda boleh menghubungi Sokongan untuk membuat rayuan.',
+    'Your profile is hidden while the account is under review. This status remains here until the restriction is resolved.':
+        'Profil anda disembunyikan semasa akaun disemak. Status ini kekal di sini sehingga sekatan diselesaikan.',
+    'Your profile is not active. Support can guide you through restoring access.':
+        'Profil anda tidak aktif. Pasukan Sokongan boleh membimbing anda untuk memulihkan akses.',
+    'You are hidden from discovery. Resume whenever you are ready—your profile information and matches remain intact.':
+        'Anda disembunyikan daripada Penemuan. Sambung semula bila-bila masa anda bersedia—maklumat profil dan padanan anda kekal.',
+    'Your profile is hidden and needs a safe primary photo before it can return to discovery.':
+        'Profil anda disembunyikan dan memerlukan foto utama yang selamat sebelum boleh kembali ke Penemuan.',
+    'Add a primary photo that passes the safety scan to publish your profile.':
+        'Tambah foto utama yang lulus imbasan keselamatan untuk menerbitkan profil anda.',
+    'Your profile is visible and eligible to appear in discovery.':
+        'Profil anda kelihatan dan layak muncul dalam Penemuan.',
+    'We are confirming your current visibility with Silarah.':
+        'Kami sedang mengesahkan keterlihatan semasa anda di Silarah.',
+    'Contact support': 'Hubungi Sokongan',
+    'Resume profile': 'Sambung semula profil',
+    'RESTRICTED': 'DISEKAT',
+    'ATTENTION': 'PERHATIAN',
     'We could not block this member. Please try again.':
         'Kami tidak dapat menyekat ahli ini. Sila cuba lagi.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -1806,7 +2059,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Profilinizi düzenlemeye ve geliştirmeye devam edin\nkibritlerle keşfedilmek.',
     'Live filter options could not be loaded. Broad filters remain available.':
         'Canlı filtre seçenekleri yüklenemedi. Geniş filtreler kullanılabilir durumda kalır.',
-    'Live in discovery': 'Keşifte yaşa',
+    'Live in discovery': 'Keşif’te görünür',
     'Location saving is not configured. Please try again.':
         'Konum kaydetme yapılandırılmadı. Lütfen tekrar deneyin.',
     'Mabrook!': 'Mabrook!',
@@ -1918,9 +2171,45 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'We could not verify your daily allowance. Check your connection and try again.':
         'Günlük ödeneğinizi doğrulayamadık. Bağlantınızı kontrol edip tekrar deneyin.',
     'We could not refresh your profile.': 'Profilinizi yenileyemedik.',
-    'Discovery unavailable': 'Keşfet kullanılamıyor',
+    'Discovery unavailable': 'Keşif kullanılamıyor',
     'Profiles are hidden while your account is restricted. Support can review this decision.':
-        'Hesabın kısıtlıyken profiller gizlenir. Destek ekibi bu kararı inceleyebilir.',
+        'Hesabınız kısıtlıyken profiller gizlenir. Destek Ekibi bu kararı inceleyebilir.',
+    'Profile paused': 'Profil duraklatıldı',
+    'You are hidden from discovery.': 'Keşif’te gizlisiniz.',
+    'Profile suspended': 'Profil askıya alındı',
+    'Discovery access is restricted. Support can review this decision.':
+        'Keşif erişimi kısıtlandı. Destek Ekibi bu kararı inceleyebilir.',
+    'Account banned': 'Hesap yasaklandı',
+    'Your account has an enforced restriction. Contact support to appeal.':
+        'Hesabınıza uygulanan bir kısıtlama var. İtiraz etmek için Destek Ekibiyle iletişime geçin.',
+    'Profile unavailable': 'Profil kullanılamıyor',
+    'Contact support for help restoring your profile.':
+        'Profilinizi geri yüklemek için yardım almak üzere Destek Ekibiyle iletişime geçin.',
+    'Get help': 'Yardım al',
+    'Resume': 'Devam et',
+    'Profile deactivated': 'Profil devre dışı bırakıldı',
+    'Primary photo required': 'Birincil fotoğraf gerekli',
+    'Checking account status': 'Hesap durumu kontrol ediliyor',
+    'An enforced account restriction is active. Your profile is not shown and protected actions are unavailable. You can contact Support to appeal.':
+        'Hesabınıza uygulanan bir kısıtlama var. Profiliniz gösterilmiyor ve korumalı işlemler kullanılamıyor. İtiraz etmek için Destek Ekibiyle iletişime geçebilirsiniz.',
+    'Your profile is hidden while the account is under review. This status remains here until the restriction is resolved.':
+        'Hesap incelenirken profiliniz gizlenir. Kısıtlama çözülene kadar bu durum burada görünür.',
+    'Your profile is not active. Support can guide you through restoring access.':
+        'Profiliniz etkin değil. Destek Ekibi erişimi geri kazanmanız için size yol gösterebilir.',
+    'You are hidden from discovery. Resume whenever you are ready—your profile information and matches remain intact.':
+        'Keşif’te gizlisiniz. Hazır olduğunuzda devam edin; profil bilgileriniz ve eşleşmeleriniz korunur.',
+    'Your profile is hidden and needs a safe primary photo before it can return to discovery.':
+        'Profiliniz gizli ve Keşif’e dönebilmesi için güvenli bir birincil fotoğraf gerekiyor.',
+    'Add a primary photo that passes the safety scan to publish your profile.':
+        'Profilinizi yayınlamak için güvenlik taramasından geçen bir birincil fotoğraf ekleyin.',
+    'Your profile is visible and eligible to appear in discovery.':
+        'Profiliniz görünür ve Keşif’te yer almaya uygun.',
+    'We are confirming your current visibility with Silarah.':
+        'Silarah’taki mevcut görünürlüğünüzü doğruluyoruz.',
+    'Contact support': 'Destek Ekibiyle iletişime geçin',
+    'Resume profile': 'Profile devam et',
+    'RESTRICTED': 'KISITLI',
+    'ATTENTION': 'DİKKAT',
     'We could not block this member. Please try again.':
         'Bu üyeyi engelleyemedik. Lütfen tekrar deneyin.',
     'Blocked. They can no longer see your profile or contact you.':
@@ -2049,7 +2338,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'اپنے پروفائل میں ترمیم اور بہتری کرتے رہیں\nمیچ کے ذریعے دریافت کرنے کے لیے۔',
     'Live filter options could not be loaded. Broad filters remain available.':
         'لائیو فلٹر کے اختیارات کو لوڈ نہیں کیا جا سکا۔ وسیع فلٹرز دستیاب ہیں۔',
-    'Live in discovery': 'دریافت میں رہتے ہیں۔',
+    'Live in discovery': 'تلاش میں نمایاں',
     'Location saving is not configured. Please try again.':
         'مقام کی بچت کنفیگر نہیں ہے۔ براہ کرم دوبارہ کوشش کریں۔',
     'Mabrook!': 'میبروک!',
@@ -2161,9 +2450,45 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'We could not verify your daily allowance. Check your connection and try again.':
         'ہم آپ کے یومیہ الاؤنس کی تصدیق نہیں کر سکے۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔',
     'We could not refresh your profile.': 'ہم آپ کی پروفائل تازہ نہیں کر سکے۔',
-    'Discovery unavailable': 'ڈسکوری دستیاب نہیں',
+    'Discovery unavailable': 'تلاش دستیاب نہیں',
     'Profiles are hidden while your account is restricted. Support can review this decision.':
         'آپ کا اکاؤنٹ محدود رہنے تک پروفائلز چھپی رہیں گی۔ سپورٹ اس فیصلے کا جائزہ لے سکتی ہے۔',
+    'Profile paused': 'پروفائل روکی گئی ہے',
+    'You are hidden from discovery.': 'آپ تلاش سے چھپے ہوئے ہیں۔',
+    'Profile suspended': 'پروفائل معطل',
+    'Discovery access is restricted. Support can review this decision.':
+        'تلاش تک رسائی محدود ہے۔ سپورٹ اس فیصلے کا جائزہ لے سکتی ہے۔',
+    'Account banned': 'اکاؤنٹ پر پابندی',
+    'Your account has an enforced restriction. Contact support to appeal.':
+        'آپ کے اکاؤنٹ پر ایک پابندی نافذ ہے۔ اپیل کے لیے سپورٹ سے رابطہ کریں۔',
+    'Profile unavailable': 'پروفائل دستیاب نہیں',
+    'Contact support for help restoring your profile.':
+        'اپنی پروفائل بحال کرنے میں مدد کے لیے سپورٹ سے رابطہ کریں۔',
+    'Get help': 'مدد لیں',
+    'Resume': 'دوبارہ شروع کریں',
+    'Profile deactivated': 'پروفائل غیر فعال کر دی گئی',
+    'Primary photo required': 'بنیادی تصویر ضروری ہے',
+    'Checking account status': 'اکاؤنٹ کی حیثیت جانچی جا رہی ہے',
+    'An enforced account restriction is active. Your profile is not shown and protected actions are unavailable. You can contact Support to appeal.':
+        'اکاؤنٹ پر ایک پابندی نافذ ہے۔ آپ کی پروفائل نہیں دکھائی جا رہی اور محفوظ کارروائیاں دستیاب نہیں۔ اپیل کے لیے آپ سپورٹ سے رابطہ کر سکتے ہیں۔',
+    'Your profile is hidden while the account is under review. This status remains here until the restriction is resolved.':
+        'اکاؤنٹ کے جائزے کے دوران آپ کی پروفائل چھپی رہے گی۔ پابندی حل ہونے تک یہ حیثیت یہاں رہے گی۔',
+    'Your profile is not active. Support can guide you through restoring access.':
+        'آپ کی پروفائل فعال نہیں ہے۔ رسائی بحال کرنے میں سپورٹ آپ کی رہنمائی کر سکتی ہے۔',
+    'You are hidden from discovery. Resume whenever you are ready—your profile information and matches remain intact.':
+        'آپ تلاش سے چھپے ہوئے ہیں۔ جب چاہیں دوبارہ شروع کریں—آپ کی پروفائل کی معلومات اور میچز برقرار رہیں گے۔',
+    'Your profile is hidden and needs a safe primary photo before it can return to discovery.':
+        'آپ کی پروفائل چھپی ہوئی ہے اور تلاش میں واپسی کے لیے ایک محفوظ بنیادی تصویر درکار ہے۔',
+    'Add a primary photo that passes the safety scan to publish your profile.':
+        'اپنی پروفائل شائع کرنے کے لیے حفاظتی جانچ میں کامیاب بنیادی تصویر شامل کریں۔',
+    'Your profile is visible and eligible to appear in discovery.':
+        'آپ کی پروفائل نظر آ رہی ہے اور تلاش میں آنے کی اہل ہے۔',
+    'We are confirming your current visibility with Silarah.':
+        'ہم Silarah پر آپ کی موجودہ نمائش کی تصدیق کر رہے ہیں۔',
+    'Contact support': 'سپورٹ سے رابطہ کریں',
+    'Resume profile': 'پروفائل دوبارہ شروع کریں',
+    'RESTRICTED': 'محدود',
+    'ATTENTION': 'توجہ دیں',
     'We could not block this member. Please try again.':
         'ہم اس رکن کو بلاک نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں۔',
     'Blocked. They can no longer see your profile or contact you.':
