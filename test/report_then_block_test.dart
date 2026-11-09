@@ -103,6 +103,14 @@ void main() {
     expect(source, isNot(contains('!state.includesReferral &&')));
   });
 
+  test('Profile Views offers a way forward when Premium stays unconfirmed', () {
+    final source = File('lib/features/home/screens/profile_views_screen.dart')
+        .readAsStringSync();
+    expect(source, contains('slow: _hasLoaded'));
+    expect(source, contains('onRefresh: _refreshPremiumAccess'));
+    expect(source, contains("context.uiCopy('Refresh access')"));
+  });
+
   test('push notifications use a monochrome status-bar icon', () {
     final manifest =
         File('android/app/src/main/AndroidManifest.xml').readAsStringSync();

@@ -50,6 +50,7 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
   // the server agree; retry instead of showing an empty list.
   bool _awaitingServerPremium = false;
   int _premiumRetries = 0;
+  static const _maxPremiumRetries = 20;
   Timer? _premiumRetry;
 
   void _close() {
@@ -152,11 +153,11 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _hasLoaded = !pendingPremium || _premiumRetries >= 20;
+          _hasLoaded = !pendingPremium || _premiumRetries >= _maxPremiumRetries;
           _awaitingServerPremium = pendingPremium;
         });
       }
-      if (pendingPremium && _premiumRetries < 20) {
+      if (pendingPremium && _premiumRetries < _maxPremiumRetries) {
         _premiumRetry?.cancel();
         _premiumRetry = Timer(const Duration(seconds: 3), () {
           if (!mounted) return;
@@ -165,6 +166,14 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
         });
       }
     }
+  }
+
+  void _refreshPremiumAccess() {
+    _premiumRetry?.cancel();
+    _premiumRetries = 0;
+    setState(() => _hasLoaded = false);
+    unawaited(context.read<SubscriptionCubit>().refreshEntitlement());
+    _loadViews();
   }
 
   String _timeLabel(BuildContext context, DateTime dt) {
@@ -222,10 +231,13 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
                     ? _PremiumViewerGate(
                         onUpgrade: () => context.push(AppRoutes.subscription),
                       )
-                    : _isLoading
+                    : _isLoading && !_awaitingServerPremium
                         ? const _ShimmerLoader()
                         : _loadedViewers.isEmpty && _awaitingServerPremium
-                            ? const _PremiumActivatingState()
+                            ? _PremiumActivatingState(
+                                slow: _hasLoaded,
+                                onRefresh: _refreshPremiumAccess,
+                              )
                             : _loadedViewers.isEmpty
                                 ? const _EmptyState()
                                 : Column(
@@ -686,7 +698,11 @@ class _ViewerTile extends StatelessWidget {
 }
 
 class _PremiumActivatingState extends StatelessWidget {
-  const _PremiumActivatingState();
+  const _PremiumActivatingState({required this.slow, required this.onRefresh});
+
+  /// The automatic retries ran out, so the member needs a way forward.
+  final bool slow;
+  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -696,8 +712,10 @@ class _PremiumActivatingState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SilarahPulseLoader(size: 40),
-            const SizedBox(height: AppDimensions.space20),
+            if (!slow) ...[
+              const SilarahPulseLoader(size: 40),
+              const SizedBox(height: AppDimensions.space20),
+            ],
             UiText(
               context.uiCopy('Activating your Premium'),
               textAlign: TextAlign.center,
@@ -705,11 +723,23 @@ class _PremiumActivatingState extends StatelessWidget {
             ),
             const SizedBox(height: AppDimensions.space8),
             UiText(
-              context.uiCopy(
-                  'Your viewers appear here in a few seconds, as soon as Google Play confirms your purchase.'),
+              context.uiCopy(slow
+                  ? 'This is taking longer than usual. Tap Refresh access, or restore your purchase from the Premium screen.'
+                  : 'Your viewers appear here in a few seconds, as soon as Google Play confirms your purchase.'),
               textAlign: TextAlign.center,
               style: AppTypography.bodyMuted,
             ),
+            if (slow) ...[
+              const SizedBox(height: AppDimensions.space20),
+              TextButton(
+                onPressed: onRefresh,
+                child: UiText(
+                  context.uiCopy('Refresh access'),
+                  style: AppTypography.captionMedium
+                      .copyWith(color: AppColors.champagneGold),
+                ),
+              ),
+            ],
           ],
         ),
       ),
