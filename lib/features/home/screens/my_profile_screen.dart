@@ -109,11 +109,14 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   bool _hasVerificationBadge = false;
   bool _verificationLoading = true;
   bool _trustStateLoading = true;
-  bool _emailVerified = false;
+  bool _emailVerified = SupabaseService.isInitialized &&
+      SupabaseService.client.auth.currentUser?.emailConfirmedAt != null;
   PhotoVerificationStatus _photoVerificationStatus =
       const PhotoVerificationStatus.notStarted();
   bool _establishedMember = false;
-  String? _accountEmail;
+  String? _accountEmail = SupabaseService.isInitialized
+      ? SupabaseService.client.auth.currentUser?.email
+      : null;
   String? _primaryPhotoUrl;
   int _approvedPhotoCount = 0;
   // False until the server has answered once, so a failed read is never
@@ -642,6 +645,7 @@ class _MyProfileScreenState extends State<MyProfileScreen>
                   return _ProfilePreviewCard(
                     score: result.score,
                     nextStep: _photoCountKnown ? result.next : null,
+                    stepsKnown: _photoCountKnown,
                     data: data,
                     guardianManaged: guardianManaged,
                     hasVerificationBadge: _hasVerificationBadge,
@@ -2113,6 +2117,7 @@ class _ProfilePreviewCard extends StatelessWidget {
   const _ProfilePreviewCard({
     required this.score,
     required this.nextStep,
+    required this.stepsKnown,
     required this.data,
     required this.guardianManaged,
     required this.hasVerificationBadge,
@@ -2128,6 +2133,7 @@ class _ProfilePreviewCard extends StatelessWidget {
   });
   final int score;
   final ProfileQualityStep? nextStep;
+  final bool stepsKnown;
   final OnboardingData data;
   final bool guardianManaged;
   final bool hasVerificationBadge;
@@ -2161,6 +2167,7 @@ class _ProfilePreviewCard extends StatelessWidget {
     return ProfileQualityCard(
       score: score,
       nextStep: nextStep,
+      stepsKnown: stepsKnown,
       onNextStep: (step) =>
           step.opensPhotos ? onManagePhotos() : onEditProfile(),
       avatar: _ProfileAvatar(

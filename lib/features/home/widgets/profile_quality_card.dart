@@ -88,6 +88,7 @@ class ProfileQualityCard extends StatefulWidget {
     super.key,
     required this.score,
     required this.nextStep,
+    this.stepsKnown = true,
     required this.onNextStep,
     required this.avatar,
     required this.name,
@@ -106,6 +107,10 @@ class ProfileQualityCard extends StatefulWidget {
 
   /// Null once every completeness item is done.
   final ProfileQualityStep? nextStep;
+
+  /// False while the profile is still loading, when a null [nextStep] does
+  /// not yet mean the profile is complete.
+  final bool stepsKnown;
   final ValueChanged<ProfileQualityStep> onNextStep;
   final Widget avatar;
   final String name;
@@ -167,13 +172,19 @@ class _ProfileQualityCardState extends State<ProfileQualityCard>
     } else if (_entrance.isDismissed) {
       _ring.forward();
       _entrance.forward();
-      if (widget.nextStep == null) _sweep.forward();
+      if (widget.stepsKnown && widget.nextStep == null) _sweep.forward();
     }
   }
 
   @override
   void didUpdateWidget(covariant ProfileQualityCard oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.stepsKnown &&
+        !oldWidget.stepsKnown &&
+        widget.nextStep == null &&
+        !_reduceMotion) {
+      _sweep.forward(from: 0);
+    }
     if (oldWidget.score == widget.score) return;
     if (_reduceMotion) {
       _ringFrom = _target;
@@ -298,17 +309,19 @@ class _ProfileQualityCardState extends State<ProfileQualityCard>
                   _buildHeader(context, l10n),
                   if (widget.membership != null)
                     _reveal(0.15, widget.membership!),
-                  const SizedBox(height: AppDimensions.space20),
-                  _reveal(
-                    0.25,
-                    step == null
-                        ? _CompleteTile(sweep: _sweep)
-                        : _NextStepTile(
-                            step: step,
-                            reach: widget.score + step.points,
-                            onTap: () => widget.onNextStep(step),
-                          ),
-                  ),
+                  if (widget.stepsKnown) ...[
+                    const SizedBox(height: AppDimensions.space20),
+                    _reveal(
+                      0.25,
+                      step == null
+                          ? _CompleteTile(sweep: _sweep)
+                          : _NextStepTile(
+                              step: step,
+                              reach: widget.score + step.points,
+                              onTap: () => widget.onNextStep(step),
+                            ),
+                    ),
+                  ],
                   if (tips != null) ...[
                     const SizedBox(height: AppDimensions.space16),
                     _reveal(0.4, _RankChecklist(tips: tips)),

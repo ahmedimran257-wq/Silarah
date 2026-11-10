@@ -127,87 +127,103 @@ class _LegalGateScreenState extends State<LegalGateScreen> {
 
               // Scrollable body
               Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimensions.space24,
-                    vertical: AppDimensions.space24,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _TermsSummaryCard(),
-                      const SizedBox(height: AppDimensions.space24),
-
-                      // Checkboxes
-                      _SilarahCheckbox(
-                        value: _ageConfirmed,
-                        onChanged: (v) =>
-                            setState(() => _ageConfirmed = v ?? false),
-                        label: l10n.legal_checkbox_age,
-                      ),
-                      const SizedBox(height: AppDimensions.space16),
-                      _SilarahCheckbox(
-                        value: _termsConfirmed,
-                        onChanged: (v) =>
-                            setState(() => _termsConfirmed = v ?? false),
-                        richLabel: TextSpan(
-                          style: AppTypography.body,
-                          children: [
-                            TextSpan(text: '${l10n.legal_checkbox_terms}\n'),
-                            TextSpan(
-                              text: l10n.legal_document_terms,
-                              style: AppTypography.body
-                                  .copyWith(color: AppColors.champagneGold),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () => Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => const LegalDocScreen(
-                                          type: 'tos',
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                            const TextSpan(text: ' · '),
-                            TextSpan(
-                              text: l10n.legal_document_privacy,
-                              style: AppTypography.body
-                                  .copyWith(color: AppColors.champagneGold),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () => Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => const LegalDocScreen(
-                                          type: 'privacy',
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                            const TextSpan(text: ' · '),
-                            TextSpan(
-                              text: l10n.legal_document_community,
-                              style: AppTypography.body
-                                  .copyWith(color: AppColors.champagneGold),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () => Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => const LegalDocScreen(
-                                          type: 'community-guidelines',
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppDimensions.space16),
-                      _SilarahCheckbox(
-                        value: _specialCategoryConsent,
-                        onChanged: (v) => setState(
-                            () => _specialCategoryConsent = v ?? false),
-                        label: l10n.legal_specialCategoryConsent,
-                      ),
-                      const SizedBox(height: AppDimensions.space48),
+                // Scrolled text fades out under the heading and above the
+                // button instead of being cut off.
+                child: ShaderMask(
+                  blendMode: BlendMode.dstIn,
+                  shaderCallback: (bounds) => const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0x00FFFFFF),
+                      Color(0xFFFFFFFF),
+                      Color(0xFFFFFFFF),
+                      Color(0x00FFFFFF),
                     ],
+                    stops: [0, 0.04, 0.95, 1],
+                  ).createShader(bounds),
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.space24,
+                      vertical: AppDimensions.space24,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _TermsSummaryCard(),
+                        const SizedBox(height: AppDimensions.space24),
+
+                        // Checkboxes
+                        _SilarahCheckbox(
+                          value: _ageConfirmed,
+                          onChanged: (v) =>
+                              setState(() => _ageConfirmed = v ?? false),
+                          label: l10n.legal_checkbox_age,
+                        ),
+                        const SizedBox(height: AppDimensions.space16),
+                        _SilarahCheckbox(
+                          value: _termsConfirmed,
+                          onChanged: (v) =>
+                              setState(() => _termsConfirmed = v ?? false),
+                          richLabel: TextSpan(
+                            style: AppTypography.body,
+                            children: [
+                              TextSpan(text: '${l10n.legal_checkbox_terms}\n'),
+                              TextSpan(
+                                text: l10n.legal_document_terms,
+                                style: AppTypography.body
+                                    .copyWith(color: AppColors.champagneGold),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => const LegalDocScreen(
+                                            type: 'tos',
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                              const TextSpan(text: ' · '),
+                              TextSpan(
+                                text: l10n.legal_document_privacy,
+                                style: AppTypography.body
+                                    .copyWith(color: AppColors.champagneGold),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => const LegalDocScreen(
+                                            type: 'privacy',
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                              const TextSpan(text: ' · '),
+                              TextSpan(
+                                text: l10n.legal_document_community,
+                                style: AppTypography.body
+                                    .copyWith(color: AppColors.champagneGold),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () => Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => const LegalDocScreen(
+                                            type: 'community-guidelines',
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppDimensions.space16),
+                        _SilarahCheckbox(
+                          value: _specialCategoryConsent,
+                          onChanged: (v) => setState(
+                              () => _specialCategoryConsent = v ?? false),
+                          label: l10n.legal_specialCategoryConsent,
+                        ),
+                        const SizedBox(height: AppDimensions.space48),
+                      ],
+                    ),
                   ),
                 ),
               ),
