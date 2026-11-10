@@ -312,11 +312,9 @@ class WaliModeService {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return false;
 
-      final response = await _supabase
-          .from('my_guardian_wards')
-          .select('id')
-          .eq('guardian_user_id', userId)
-          .limit(1);
+      // The view already returns only the signed-in guardian's wards.
+      final response =
+          await _supabase.from('my_guardian_wards').select('id').limit(1);
 
       return (response as List).isNotEmpty;
     } catch (e) {
