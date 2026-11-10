@@ -1959,40 +1959,9 @@ class _SubscriptionCard extends StatelessWidget {
   }
 
   Widget _buildUpgrade(BuildContext context) {
-    return SilarahPressable(
+    return ProfilePremiumInvite(
       onTap: () => Navigator.of(context).push(
           MaterialPageRoute<void>(builder: (_) => const SubscriptionScreen())),
-      child: _CardShell(
-        borderColor: AppColors.goldBorder,
-        glowColor: AppColors.goldGlow,
-        child: Row(children: [
-          Icon(Icons.lock_outline_rounded,
-              color: AppColors.champagneGold, size: 22),
-          const SizedBox(width: 10),
-          Expanded(
-              child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              UiText('Upgrade to Silarah Premium',
-                  style: AppTypography.bodyMedium
-                      .copyWith(color: AppColors.champagneGold)),
-              UiText(context.uiCopy('Unlock messaging and profile boosts'),
-                  style: AppTypography.caption),
-            ],
-          )),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.champagneGold,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: UiText(context.uiCopy('Plans'),
-                style: AppTypography.caption.copyWith(
-                    color: AppColors.obsidianNight,
-                    fontWeight: FontWeight.w600)),
-          ),
-        ]),
-      ),
     );
   }
 }

@@ -30,19 +30,23 @@ class NotificationsScreen extends StatelessWidget {
         backgroundColor: AppColors.obsidianNight,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        leading: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Container(
-            margin: const EdgeInsets.all(AppDimensions.space8),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceGlass,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.cardBorder),
-            ),
-            child: Icon(
-              Icons.arrow_back_rounded,
-              color: AppColors.pearlWhite,
-              size: AppDimensions.iconSizeMedium,
+        leading: Semantics(
+          button: true,
+          label: context.uiCopy('Back'),
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              margin: const EdgeInsets.all(AppDimensions.space8),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceGlass,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.cardBorder),
+              ),
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.pearlWhite,
+                size: AppDimensions.iconSizeMedium,
+              ),
             ),
           ),
         ),
@@ -444,7 +448,17 @@ class _NotificationTile extends StatelessWidget {
       case 'festival_greeting':
         return AppColors.champagneGold;
       case 'profile_nudge':
+      case 'profile_view':
         return AppColors.champagneGold;
+      case 'subscription_active':
+      case 'subscription_renewed':
+      case 'subscription_updated':
+      case 'subscription_cancelled':
+      case 'subscription_expired':
+      case 'subscription_refunded':
+        return AppColors.premiumGold;
+      case 'billing_issue':
+        return AppColors.expiryAmber;
       default:
         return AppColors.slateMist;
     }

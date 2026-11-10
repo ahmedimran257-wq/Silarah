@@ -24,6 +24,7 @@ import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/silarah_compute.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/widgets/animations/silarah_motion.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
 
 // Viewer row model
@@ -393,39 +394,104 @@ class _PremiumViewerGate extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.champagneGold.withValues(alpha: .1),
-                border: Border.all(color: AppColors.goldBorder),
-              ),
-              child: Icon(
-                Icons.visibility_outlined,
-                color: AppColors.champagneGold,
-                size: 32,
-              ),
-            ),
+            const SilarahEntrance(child: _HiddenViewersPreview()),
             const SizedBox(height: AppDimensions.space24),
-            UiText(
-              context.uiCopy('Your weekly count stays visible'),
-              style: AppTypography.screenTitle.copyWith(fontSize: 22),
-              textAlign: TextAlign.center,
+            SilarahEntrance(
+              delay: const Duration(milliseconds: 80),
+              child: UiText(
+                context.uiCopy('Your weekly count stays visible'),
+                style: AppTypography.screenTitle.copyWith(fontSize: 22),
+                textAlign: TextAlign.center,
+              ),
             ),
             const SizedBox(height: AppDimensions.space10),
-            UiText(
-              'Premium reveals the people behind those views. Silarah never calls interests “likes” or creates a second, confusing action.',
-              style: AppTypography.bodyMuted.copyWith(height: 1.5),
-              textAlign: TextAlign.center,
+            SilarahEntrance(
+              delay: const Duration(milliseconds: 140),
+              child: UiText(
+                'Premium reveals the people behind those views. Silarah never calls interests “likes” or creates a second, confusing action.',
+                style: AppTypography.bodyMuted.copyWith(height: 1.5),
+                textAlign: TextAlign.center,
+              ),
             ),
             const SizedBox(height: AppDimensions.space24),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: onUpgrade,
-                icon: const Icon(Icons.workspace_premium_outlined),
-                label: UiText(context.uiCopy('Explore Premium')),
+            SilarahEntrance(
+              delay: const Duration(milliseconds: 200),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: onUpgrade,
+                  icon: const Icon(Icons.workspace_premium_outlined),
+                  label: UiText(context.uiCopy('Explore Premium')),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Three veiled members with a lock: who viewed you is waiting behind Premium.
+class _HiddenViewersPreview extends StatelessWidget {
+  const _HiddenViewersPreview();
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = AppColors.premiumGold;
+    Widget face(double size, double strength) => Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color.lerp(AppColors.surfaceElevated, gold, 0.26 * strength)!,
+                Color.lerp(AppColors.surfaceElevated, gold, 0.08 * strength)!,
+              ],
+            ),
+            border: Border.all(
+              color: gold.withValues(alpha: 0.5 * strength),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: gold.withValues(alpha: 0.14 * strength),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Icon(
+            Icons.person_rounded,
+            size: size * 0.52,
+            color: gold.withValues(alpha: 0.55 * strength),
+          ),
+        );
+
+    return ExcludeSemantics(
+      child: SizedBox(
+        width: 188,
+        height: 104,
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            Positioned(left: 0, top: 14, child: face(64, 0.6)),
+            Positioned(right: 0, top: 14, child: face(64, 0.6)),
+            face(88, 1),
+            Positioned(
+              bottom: 0,
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.surfaceElevated,
+                  border: Border.all(color: gold.withValues(alpha: 0.6)),
+                ),
+                child: Icon(Icons.lock_outline_rounded, size: 17, color: gold),
               ),
             ),
           ],

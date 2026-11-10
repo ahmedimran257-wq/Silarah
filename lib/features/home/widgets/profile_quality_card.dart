@@ -596,6 +596,135 @@ class ProfileMembershipStrip extends StatelessWidget {
   }
 }
 
+/// The invitation to Premium shown to members who have not subscribed.
+class ProfilePremiumInvite extends StatelessWidget {
+  const ProfilePremiumInvite({super.key, required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = AppColors.premiumGold;
+    final radius = BorderRadius.circular(AppDimensions.radiusCard);
+    return SilarahPressable(
+      onTap: onTap,
+      semanticLabel: context.uiCopy('Upgrade to Silarah Premium'),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          border: Border.all(color: gold.withValues(alpha: 0.38)),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.surfaceElevated,
+              Color.lerp(AppColors.surfaceElevated, gold, 0.12)!,
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: gold.withValues(alpha: 0.10),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Stack(
+            children: [
+              Positioned(
+                top: -38,
+                right: -30,
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    size: const Size.square(124),
+                    painter: _KhatamWatermarkPainter(
+                      color: gold.withValues(alpha: 0.12),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppDimensions.space16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: gold.withValues(alpha: 0.14),
+                        border: Border.all(color: gold.withValues(alpha: 0.4)),
+                      ),
+                      child: Center(
+                        child: CustomPaint(
+                          size: const Size.square(20),
+                          painter: _KhatamGlyphPainter(color: gold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppDimensions.space12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          UiText.verbatim(
+                            'Silarah Premium',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.sectionLabel.copyWith(
+                              color: gold,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                          const SizedBox(height: AppDimensions.space4),
+                          UiText(
+                            context
+                                .uiCopy('Unlock messaging and profile boosts'),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.userName.copyWith(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppDimensions.space12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.space12,
+                        vertical: AppDimensions.space8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: gold,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: UiText(
+                        context.uiCopy('Plans'),
+                        style: AppTypography.captionMedium.copyWith(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.readableOn(gold),
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _NextStepTile extends StatelessWidget {
   const _NextStepTile({
     required this.step,
