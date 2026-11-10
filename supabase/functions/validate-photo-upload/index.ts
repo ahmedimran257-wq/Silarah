@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { Image } from "imagescript";
 import { encode } from "blurhash";
+import { verifyAppCheckToken } from "../_shared/app_check.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { hasSafeJpegDimensions } from "./jpeg_dimensions.ts";
 import {
@@ -12,6 +13,10 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const BUCKET_NAME = "profile-photos";
 const MAX_BYTES = 5 * 1024 * 1024;
+// Off until a Play-delivered build shows valid tokens in the logs: while off,
+// the result is only logged, so a broken attestation cannot hold every photo.
+const ATTESTATION_REQUIRED =
+  Deno.env.get("PHOTO_ATTESTATION_REQUIRED") === "true";
 
 type ValidationPayload = {
   storage_path?: string;
@@ -122,6 +127,10 @@ Deno.serve(async (req: Request) => {
 
     const blurhash = createBlurHash(image);
     const clientScore = boundedScore(payload.moderation?.nsfw_confidence);
+    const attested = await verifyAppCheckToken(
+      req.headers.get("X-Firebase-AppCheck"),
+    );
+    console.log(`[validate-photo-upload] app_check_valid=${attested}`);
     const { data: finalizedRows, error: finalizeError } = await admin.rpc(
       "finalize_profile_photo_upload",
       {
@@ -131,6 +140,7 @@ Deno.serve(async (req: Request) => {
         p_observed_bytes: bytes.byteLength,
         p_blurhash: blurhash,
         p_client_nsfw_score: clientScore,
+        p_device_attested: attested || !ATTESTATION_REQUIRED,
       },
     );
     const finalized = Array.isArray(finalizedRows)

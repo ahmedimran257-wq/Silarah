@@ -33,11 +33,19 @@ import 'paywall_gate_screen.dart';
 import 'profile_route_screen.dart';
 
 /// G12: Profile-aware openers — include the match's name.
-List<String> _buildOpeners(String name) => [
-      'Assalamu Alaikum $name! I came across your profile and was genuinely impressed. May I introduce myself?',
-      'Bismillah. Your profile caught my attention, $name. I would love to learn more about you.',
-      'Assalamu Alaikum $name. I believe we share similar values. Would you be open to getting to know each other?',
-      'Assalamu Alaikum $name! Your dedication to deen resonated with me. May Allah bless this conversation with goodness.',
+List<String> _buildOpeners(BuildContext context, String name) => [
+      context.uiCopyWith(
+          'Assalamu Alaikum {name}! I came across your profile and was genuinely impressed. May I introduce myself?',
+          {'name': name}),
+      context.uiCopyWith(
+          'Bismillah. Your profile caught my attention, {name}. I would love to learn more about you.',
+          {'name': name}),
+      context.uiCopyWith(
+          'Assalamu Alaikum {name}. I believe we share similar values. Would you be open to getting to know each other?',
+          {'name': name}),
+      context.uiCopyWith(
+          'Assalamu Alaikum {name}! Your dedication to deen resonated with me. May Allah bless this conversation with goodness.',
+          {'name': name}),
     ];
 
 // Pre-written Islamic closure messages
@@ -914,8 +922,8 @@ class _EndMatchSheetState extends State<_EndMatchSheet> {
               onPressed: _selected != null && !_submitting
                   ? () async {
                       setState(() => _submitting = true);
-                      final closed =
-                          await widget.onConfirm(_kClosureMessages[_selected!]);
+                      final closed = await widget.onConfirm(
+                          context.uiCopy(_kClosureMessages[_selected!]));
                       if (!context.mounted) return;
                       if (closed) {
                         Navigator.pop(context);
@@ -1075,7 +1083,7 @@ class _SuggestedOpenersArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final openers = _buildOpeners(matchName);
+    final openers = _buildOpeners(context, matchName);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

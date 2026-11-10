@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -452,13 +453,30 @@ class ProfilePhotoService {
     return profile?['id'] as String?;
   }
 
+  /// A failure here must not stop the upload; the server decides what an
+  /// unverified device means.
+  Future<String?> _appCheckToken() async {
+    try {
+      return await FirebaseAppCheck.instance
+          .getToken()
+          .timeout(const Duration(seconds: 8));
+    } catch (error) {
+      debugPrint('[ProfilePhotoService] App Check unavailable: $error');
+      return null;
+    }
+  }
+
   Future<void> _validateUploaded(
     String storagePath,
     PhotoModerationResult moderation,
   ) async {
+    final appCheckToken = await _appCheckToken();
     final response = await SupabaseService.client.functions.invoke(
       'validate-photo-upload',
       region: SupabaseService.functionsRegion,
+      headers: {
+        if (appCheckToken != null) 'X-Firebase-AppCheck': appCheckToken,
+      },
       body: {
         'storage_path': storagePath,
         'moderation': moderation.toValidationPayload(),
