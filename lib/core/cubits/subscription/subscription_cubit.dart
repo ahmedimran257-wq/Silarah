@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
@@ -351,9 +352,16 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
     } catch (e) {
       debugPrint('[SubscriptionCubit] Restore error: $e');
       if (_isCurrentSession(generation)) {
+        final code = e is PlatformException ? storeErrorCode(e) : null;
+        // Retrying cannot help when the purchase is tied to another member.
+        final ownedElsewhere =
+            code == PurchasesErrorCode.receiptAlreadyInUseError ||
+                code == PurchasesErrorCode.receiptInUseByOtherSubscriberError;
         emit(state.copyWith(
           isLoading: false,
-          error: 'Restore failed. Please try again.',
+          error: ownedElsewhere
+              ? _purchaseErrorMessage(code)
+              : 'Restore failed. Please try again.',
         ));
       }
     }

@@ -131,7 +131,7 @@ SubscriptionPurchaseOutcome classifySubscriptionPurchaseError(
 /// RevenueCat's helper parses the code as a number and throws on anything
 /// else. Thrown inside a catch, that escaped as a generic "purchase failed"
 /// even after the payment sheet had opened, when Play may have charged.
-PurchasesErrorCode _storeErrorCode(PlatformException error) {
+PurchasesErrorCode storeErrorCode(PlatformException error) {
   try {
     return PurchasesErrorHelper.getErrorCode(error);
   } on FormatException {
@@ -388,7 +388,7 @@ class SubscriptionService {
         return const SubscriptionPurchaseResult(
             outcome: SubscriptionPurchaseOutcome.failed);
       }
-      final code = _storeErrorCode(error);
+      final code = storeErrorCode(error);
       var outcome = classifySubscriptionPurchaseError(code);
       if (storeOpened &&
           outcome == SubscriptionPurchaseOutcome.failed &&

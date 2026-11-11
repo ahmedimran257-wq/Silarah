@@ -91,6 +91,7 @@ void main() {
   const channel = MethodChannel('purchases_flutter');
   late SupabaseClient client;
   late SubscriptionCubit cubit;
+  PlatformException? restoreError;
   late List<String> charged;
   late bool storePremium;
   late bool loginFails;
@@ -106,6 +107,7 @@ void main() {
     serverDown = false;
     serverGrant = '[{"is_active":false,"source":"none","expires_at":null}]';
     onPurchase = null;
+    restoreError = null;
     client = SupabaseClient('https://billing.example.invalid', 'fixture-key',
         authOptions: const AuthClientOptions(autoRefreshToken: false),
         httpClient: MockClient((request) async {
@@ -132,8 +134,10 @@ void main() {
             'customerInfo': info(premium: storePremium),
             'created': false
           };
-        case 'getCustomerInfo':
         case 'restorePurchases':
+          if (restoreError != null) throw restoreError!;
+          return info(premium: storePremium);
+        case 'getCustomerInfo':
           return info(premium: storePremium);
         case 'syncAttributesAndOfferingsIfNeeded':
           return offerings();
@@ -287,6 +291,32 @@ void main() {
     expect(charged, isEmpty);
     expect(cubit.state.error, contains('Check your internet'));
     expect(cubit.state.isLoading, isFalse);
+  });
+
+  test('restore finds nothing: no Premium and nothing charged', () async {
+    await cubit.loginUser('fixture-user');
+    await cubit.restore();
+    expect(cubit.state.isSubscribed, isFalse);
+    expect(cubit.state.hasPaidPremium, isFalse);
+    expect(charged, isEmpty);
+    expect(cubit.state.error, contains('No previous purchases'));
+  });
+
+  test('restore of a purchase owned by another account grants nothing',
+      () async {
+    await cubit.loginUser('fixture-user');
+    restoreError = storeError(PurchasesErrorCode.receiptAlreadyInUseError);
+    await cubit.restore();
+    expect(cubit.state.isSubscribed, isFalse);
+    expect(cubit.state.error, contains('another Silarah account'));
+  });
+
+  test('restore that fails for any other reason asks to retry', () async {
+    await cubit.loginUser('fixture-user');
+    restoreError = storeError(PurchasesErrorCode.networkError);
+    await cubit.restore();
+    expect(cubit.state.isSubscribed, isFalse);
+    expect(cubit.state.error, 'Restore failed. Please try again.');
   });
 
   test('restore while a purchase is open waits its turn', () async {
