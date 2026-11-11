@@ -256,7 +256,11 @@ class _QuietAuthCanvas extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            AppColors.midnightPlum.withValues(alpha: .34),
+            // Opaque, so whatever sits behind the route cannot show through.
+            Color.alphaBlend(
+              AppColors.midnightPlum.withValues(alpha: .34),
+              AppColors.obsidianNight,
+            ),
             AppColors.obsidianNight,
             AppColors.obsidianNight,
           ],

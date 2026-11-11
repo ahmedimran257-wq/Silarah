@@ -680,6 +680,7 @@ class ProfilePremiumInvite extends StatelessWidget {
                     const SizedBox(width: AppDimensions.space12),
                     Expanded(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           UiText.verbatim(
