@@ -193,12 +193,31 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
                       minimum: const EdgeInsets.only(bottom: 8),
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-                        child: _CtaButton(
-                          selectedPlan: _selectedPlan,
-                          pricing: _pricing,
-                          isLoading: state.isLoading || _purchaseFlowInProgress,
-                          isSmallScreen: isSmallScreen,
-                          onTap: _startPurchase,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _CtaButton(
+                              selectedPlan: _selectedPlan,
+                              pricing: _pricing,
+                              isLoading:
+                                  state.isLoading || _purchaseFlowInProgress,
+                              isSmallScreen: isSmallScreen,
+                              onTap: _startPurchase,
+                            ),
+                            const SizedBox(height: 6),
+                            // Renewal terms belong beside the pay button,
+                            // not only at the end of the page.
+                            UiText(
+                              context.uiCopy(
+                                'Renews automatically at this price until you cancel in Google Play.',
+                              ),
+                              textAlign: TextAlign.center,
+                              style: AppTypography.caption.copyWith(
+                                fontSize: isSmallScreen ? 10 : 11,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),

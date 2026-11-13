@@ -67,8 +67,11 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
   final List<String?> _remoteUrls = [null, null, null, null];
   final List<String?> _initialRemoteUrls = [null, null, null, null];
   final Set<int> _removedRemoteSlots = <int>{};
-  bool _uploading = false;
-  bool _isScanning = false;
+  // Preparing a picked photo and saving are mutually exclusive: one finishing
+  // must never mark the other as done.
+  _PhotoWork _work = _PhotoWork.idle;
+  bool get _uploading => _work == _PhotoWork.uploading;
+  bool get _isScanning => _work == _PhotoWork.scanning;
   bool _loadingExisting = false;
   String? _existingLoadError;
   PhotoPrivacy _privacy = PhotoPrivacy.publicAll;
@@ -137,18 +140,16 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
 
   /// Picks, compresses, validates, and explicit-content scans a photo.
   Future<void> _pickPhoto(int index) async {
-    if (_isScanning || _uploading) return;
+    if (_work != _PhotoWork.idle || _loadingExisting) return;
+    // Claimed before the picker opens, so Save cannot start meanwhile.
+    setState(() => _work = _PhotoWork.scanning);
 
     final ImageSource? source;
 
     source = await _showSourceSheet();
 
     if (source == null) {
-      if (mounted) {
-        setState(() {
-          _isScanning = false;
-        });
-      }
+      if (mounted) setState(() => _work = _PhotoWork.idle);
       return;
     }
     if (!mounted) return;
@@ -171,7 +172,6 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
         detail: 'Optimising the image securely on your device',
         progress: 0.12,
       );
-      setState(() => _isScanning = true);
 
       // JPEG is the canonical profile-photo transport. The server decodes the
       // bytes again before finalization, so the extension, MIME type and
@@ -235,11 +235,8 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isScanning = false;
-          _uploading = false;
-        });
+      if (mounted && _work == _PhotoWork.scanning) {
+        setState(() => _work = _PhotoWork.idle);
       }
     }
   }
@@ -474,6 +471,8 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
   }
 
   void _removePhoto(int index) {
+    // Its file may be the one being prepared or uploaded right now.
+    if (_work != _PhotoWork.idle) return;
     final hadLocalPhoto = _paths[index] != null;
     if (hadLocalPhoto) {
       final file = File(_paths[index]!);
@@ -501,7 +500,7 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
 
   Future<void> _advance() async {
     FocusManager.instance.primaryFocus?.unfocus();
-    if (_uploading || _loadingExisting) {
+    if (_work != _PhotoWork.idle || _loadingExisting) {
       return;
     }
     if (!_hasPrimary) {
@@ -524,7 +523,7 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
           photoLocalPaths: paths.isNotEmpty ? paths : persistedPhotoMarkers,
           photoPrivacy: _privacy,
         );
-    setState(() => _uploading = true);
+    setState(() => _work = _PhotoWork.uploading);
     try {
       await ProfilePhotoService.instance.syncPhotoSlots(
         localSlots,
@@ -600,7 +599,9 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
         );
     } finally {
       if (mounted) {
-        setState(() => _uploading = false);
+        if (_work == _PhotoWork.uploading) {
+          setState(() => _work = _PhotoWork.idle);
+        }
         if (!_operationComplete) _clearOperation();
       }
     }
@@ -652,6 +653,8 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
   void _explainDisabledSave() {
     if (_loadingExisting) {
       _showSaveRequirement('Loading your current photos…');
+    } else if (_isScanning) {
+      _showSaveRequirement('Wait for the photo safety check to finish.');
     } else if (_existingLoadError != null) {
       _showSaveRequirement(_existingLoadError!);
     } else if (!_hasPrimary) {
@@ -721,7 +724,7 @@ class _PhotoUploadScreenState extends State<PhotoUploadScreen> {
           headerTitle: 'Photo library',
           isCtaEnabled: _hasPrimary &&
               _primaryReady &&
-              !_uploading &&
+              _work == _PhotoWork.idle &&
               !_loadingExisting &&
               _existingLoadError == null,
           isCtaLoading: isLoading || _uploading || _loadingExisting,
@@ -1537,3 +1540,6 @@ class _PrivacyTile extends StatelessWidget {
     );
   }
 }
+
+/// What the photo screen is busy with.
+enum _PhotoWork { idle, scanning, uploading }

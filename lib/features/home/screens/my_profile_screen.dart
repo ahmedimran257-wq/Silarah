@@ -127,7 +127,8 @@ class _MyProfileScreenState extends State<MyProfileScreen>
   bool _profileQuietRetryUsed = false;
   bool _photoRefreshInFlight = false;
   bool _profilePreviewOpening = false;
-  bool _profileRefreshInFlight = false;
+  Future<void>? _profileRefreshRun;
+  Future<void>? _profileRefreshFollowUp;
   IncognitoSetting? _incognito;
   DateTime? _lastProfileRefreshAt;
   static const _profileFreshness = Duration(minutes: 5);
@@ -410,15 +411,32 @@ class _MyProfileScreenState extends State<MyProfileScreen>
     }
   }
 
-  Future<void> _refreshProfileFromDb({bool force = false}) async {
-    if (!SupabaseService.isInitialized || _profileRefreshInFlight) return;
+  Future<void> _refreshProfileFromDb({bool force = false}) {
+    if (!SupabaseService.isInitialized) return Future.value();
+    final running = _profileRefreshRun;
+    if (running != null) {
+      if (!force) return running;
+      // A save finished after this read began, so its answer may be stale.
+      // Read once more when it ends; later forced requests share that read.
+      return _profileRefreshFollowUp ??= running.then((_) {
+        _profileRefreshFollowUp = null;
+        return _refreshProfileFromDb(force: true);
+      });
+    }
     final lastRefresh = _lastProfileRefreshAt;
     if (!force &&
         lastRefresh != null &&
         DateTime.now().difference(lastRefresh) < _profileFreshness) {
-      return;
+      return Future.value();
     }
-    _profileRefreshInFlight = true;
+    final run = _runProfileRefresh(force: force);
+    _profileRefreshRun = run;
+    return run.whenComplete(() {
+      if (identical(_profileRefreshRun, run)) _profileRefreshRun = null;
+    });
+  }
+
+  Future<void> _runProfileRefresh({required bool force}) async {
     try {
       await context.read<OnboardingCubit>().refreshProfileFromDb(force: force);
       await Future.wait([
@@ -452,8 +470,6 @@ class _MyProfileScreenState extends State<MyProfileScreen>
           });
         }
       }
-    } finally {
-      _profileRefreshInFlight = false;
     }
   }
 

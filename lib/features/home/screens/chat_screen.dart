@@ -371,7 +371,12 @@ class _ChatScreenState extends State<ChatScreen>
               await chatCubit.closeMatch(widget.conversationId, message);
           if (!mounted || !closed) return false;
           interestsCubit.markMatchClosed(widget.conversationId);
-          await discoveryCubit.refreshIfChanged(forceCheck: true);
+          try {
+            await discoveryCubit.refreshIfChanged(forceCheck: true);
+          } catch (_) {
+            // The closure is already saved; the feed catches up on its next
+            // refresh.
+          }
           if (!mounted) return false;
           _scrollToBottom(animated: true);
           return true;
@@ -922,8 +927,13 @@ class _EndMatchSheetState extends State<_EndMatchSheet> {
               onPressed: _selected != null && !_submitting
                   ? () async {
                       setState(() => _submitting = true);
-                      final closed = await widget.onConfirm(
-                          context.uiCopy(_kClosureMessages[_selected!]));
+                      bool closed;
+                      try {
+                        closed = await widget.onConfirm(
+                            context.uiCopy(_kClosureMessages[_selected!]));
+                      } catch (_) {
+                        closed = false;
+                      }
                       if (!context.mounted) return;
                       if (closed) {
                         Navigator.pop(context);

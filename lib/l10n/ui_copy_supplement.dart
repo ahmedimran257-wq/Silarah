@@ -480,6 +480,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'View {name} profile': 'عرض الملف الشخصي لـ {name}',
     'Wait for the main photo safety check to finish.':
         'يُرجى انتظار انتهاء فحص سلامة الصورة الرئيسية.',
+    'Wait for the photo safety check to finish.':
+        'يُرجى انتظار انتهاء فحص سلامة الصورة.',
+    'Renews automatically at this price until you cancel in Google Play.':
+        "يتجدد تلقائيًا بهذا السعر حتى تلغيه في Google Play.",
     'Waiting for Guardian approval': 'في انتظار موافقة الوصي',
     'Waiting for your decision': 'في انتظار قراركم',
     'Warm ivory with deep emerald and antique gold':
@@ -1375,6 +1379,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'View {name} profile': '{name}-এর প্রোফাইল দেখুন',
     'Wait for the main photo safety check to finish.':
         'প্রধান ছবির নিরাপত্তা যাচাই শেষ হওয়া পর্যন্ত অপেক্ষা করুন।',
+    'Wait for the photo safety check to finish.':
+        'ছবির নিরাপত্তা যাচাই শেষ হওয়া পর্যন্ত অপেক্ষা করুন।',
+    'Renews automatically at this price until you cancel in Google Play.':
+        "আপনি Google Play-তে বাতিল না করা পর্যন্ত এই দামে স্বয়ংক্রিয়ভাবে নবায়ন হবে।",
     'Waiting for Guardian approval': 'Guardian অনুমোদনের অপেক্ষায়',
     'Waiting for your decision': 'আপনার সিদ্ধান্তের অপেক্ষায়',
     'Warm ivory with deep emerald and antique gold':
@@ -2292,6 +2300,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'View {name} profile': 'Profil von {name} ansehen',
     'Wait for the main photo safety check to finish.':
         'Warten Sie, bis die Sicherheitsprüfung des Hauptfotos abgeschlossen ist.',
+    'Wait for the photo safety check to finish.':
+        'Warten Sie, bis die Sicherheitsprüfung des Fotos abgeschlossen ist.',
+    'Renews automatically at this price until you cancel in Google Play.':
+        "Verlängert sich automatisch zu diesem Preis, bis Sie in Google Play kündigen.",
     'Waiting for Guardian approval':
         'Warten auf Genehmigung durch den Guardian',
     'Waiting for your decision': 'Wartet auf Ihre Entscheidung',
@@ -3218,6 +3230,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'View {name} profile': 'Voir le profil de {name}',
     'Wait for the main photo safety check to finish.':
         'Attendez la fin du contrôle de sécurité de la photo principale.',
+    'Wait for the photo safety check to finish.':
+        'Attendez la fin du contrôle de sécurité de la photo.',
+    'Renews automatically at this price until you cancel in Google Play.':
+        "Renouvelé automatiquement à ce prix jusqu'à résiliation dans Google Play.",
     'Waiting for Guardian approval': 'En attente d’approbation du Guardian',
     'Waiting for your decision': 'En attente de votre décision',
     'Warm ivory with deep emerald and antique gold':
@@ -4130,6 +4146,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'View {name} profile': '{name} की प्रोफ़ाइल देखें',
     'Wait for the main photo safety check to finish.':
         'मुख्य तस्वीर की सुरक्षा जाँच पूरी होने की प्रतीक्षा करें।',
+    'Wait for the photo safety check to finish.':
+        'तस्वीर की सुरक्षा जाँच पूरी होने की प्रतीक्षा करें।',
+    'Renews automatically at this price until you cancel in Google Play.':
+        "Google Play में रद्द करने तक इसी कीमत पर अपने-आप नवीनीकृत होता है।",
     'Waiting for Guardian approval': 'Guardian की मंज़ूरी की प्रतीक्षा है',
     'Waiting for your decision': 'आपके निर्णय की प्रतीक्षा है',
     'Warm ivory with deep emerald and antique gold':
@@ -5037,6 +5057,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'View {name} profile': 'Lihat profil {name}',
     'Wait for the main photo safety check to finish.':
         'Tunggu hingga pemeriksaan keamanan foto utama selesai.',
+    'Wait for the photo safety check to finish.':
+        'Tunggu hingga pemeriksaan keamanan foto selesai.',
+    'Renews automatically at this price until you cancel in Google Play.':
+        "Diperpanjang otomatis dengan harga ini sampai Anda membatalkannya di Google Play.",
     'Waiting for Guardian approval': 'Menunggu persetujuan Guardian',
     'Waiting for your decision': 'Menunggu keputusan Anda',
     'Warm ivory with deep emerald and antique gold':
@@ -5945,6 +5969,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'View {name} profile': 'Lihat profil {name}',
     'Wait for the main photo safety check to finish.':
         'Tunggu semakan keselamatan foto utama selesai.',
+    'Wait for the photo safety check to finish.':
+        'Tunggu semakan keselamatan foto selesai.',
+    'Renews automatically at this price until you cancel in Google Play.':
+        "Diperbaharui secara automatik pada harga ini sehingga anda membatalkannya di Google Play.",
     'Waiting for Guardian approval': 'Menunggu kelulusan Guardian',
     'Waiting for your decision': 'Menunggu keputusan anda',
     'Warm ivory with deep emerald and antique gold':
@@ -6853,6 +6881,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'View {name} profile': '{name} profilini görüntüle',
     'Wait for the main photo safety check to finish.':
         'Ana fotoğrafın güvenlik kontrolünün bitmesini bekleyin.',
+    'Wait for the photo safety check to finish.':
+        'Fotoğrafın güvenlik kontrolünün bitmesini bekleyin.',
+    'Renews automatically at this price until you cancel in Google Play.':
+        "Google Play'den iptal edene kadar bu fiyattan otomatik olarak yenilenir.",
     'Waiting for Guardian approval': 'Guardian onayı bekleniyor',
     'Waiting for your decision': 'Kararınız bekleniyor',
     'Warm ivory with deep emerald and antique gold':
@@ -7754,6 +7786,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'View {name} profile': '{name} کا پروفائل دیکھیں',
     'Wait for the main photo safety check to finish.':
         'مرکزی تصویر کی حفاظتی جانچ مکمل ہونے کا انتظار کریں۔',
+    'Wait for the photo safety check to finish.':
+        'تصویر کی حفاظتی جانچ مکمل ہونے کا انتظار کریں۔',
+    'Renews automatically at this price until you cancel in Google Play.':
+        "Google Play میں منسوخ کرنے تک اسی قیمت پر خود بخود تجدید ہوتی ہے۔",
     'Waiting for Guardian approval': 'Guardian کی منظوری کا انتظار ہے',
     'Waiting for your decision': 'آپ کے فیصلے کا انتظار ہے',
     'Warm ivory with deep emerald and antique gold':

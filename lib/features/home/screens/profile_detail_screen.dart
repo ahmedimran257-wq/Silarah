@@ -74,6 +74,9 @@ class ProfileDetailScreen extends StatefulWidget {
 class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   bool _bookmarked = false;
   bool _bookmarkUpdating = false;
+  // Bumped on every local save change; an answer to an older read or write
+  // must not overwrite a newer choice.
+  int _bookmarkRevision = 0;
   // Covers the quota check, note sheet and send, so a double tap cannot
   // stack two note sheets or send twice.
   bool _sendingInterest = false;
@@ -124,8 +127,9 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     }
     _scheduleRematchCountdown();
     // Load persisted bookmark state
+    final bookmarkRevision = _bookmarkRevision;
     BookmarkService.load().then((ids) {
-      if (mounted) {
+      if (mounted && bookmarkRevision == _bookmarkRevision) {
         setState(() => _bookmarked = ids.contains(widget.profile.id));
       }
     }).catchError((_) {});
@@ -376,19 +380,20 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     _bookmarkUpdating = true;
     HapticFeedback.selectionClick();
     final previous = _bookmarked;
+    final revision = ++_bookmarkRevision;
     setState(() => _bookmarked = !_bookmarked);
 
     try {
       final ids =
           await BookmarkService.setSaved(widget.profile.id, _bookmarked);
-      if (mounted) {
+      if (mounted && revision == _bookmarkRevision) {
         setState(() {
           _bookmarked = ids.contains(widget.profile.id);
           if (!_bookmarked) _shortlistDetail = null;
         });
       }
     } catch (_) {
-      if (mounted) {
+      if (mounted && revision == _bookmarkRevision) {
         setState(() => _bookmarked = previous);
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
@@ -420,13 +425,22 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       await PaywallGateSheet.show(context);
       return;
     }
-    if (_shortlistLoading) return;
+    if (_shortlistLoading || _bookmarkUpdating) return;
     setState(() => _shortlistLoading = true);
     try {
       if (!_bookmarked) {
-        final ids = await BookmarkService.setSaved(widget.profile.id, true);
+        _bookmarkUpdating = true;
+        final revision = ++_bookmarkRevision;
+        final Set<String> ids;
+        try {
+          ids = await BookmarkService.setSaved(widget.profile.id, true);
+        } finally {
+          _bookmarkUpdating = false;
+        }
         if (!mounted) return;
-        setState(() => _bookmarked = ids.contains(widget.profile.id));
+        if (revision == _bookmarkRevision) {
+          setState(() => _bookmarked = ids.contains(widget.profile.id));
+        }
       }
       if (!mounted || !_bookmarked) return;
       final result = await showShortlistEditor(

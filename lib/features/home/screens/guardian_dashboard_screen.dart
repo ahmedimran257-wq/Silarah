@@ -382,6 +382,9 @@ class _GuardianTranscriptScreenState extends State<_GuardianTranscriptScreen>
       _messages.clear();
       _composer.clear();
       _hasOlder = false;
+      // A page still loading belongs to the old access check; its result is
+      // dropped, so it must not leave the older-messages loader stuck on.
+      _loadingOlder = false;
       _loading = false;
       _error = revoked
           ? 'Guardian access is no longer available.'
@@ -538,7 +541,9 @@ class _GuardianTranscriptScreenState extends State<_GuardianTranscriptScreen>
       if (WaliModeService.isAccessDenied(error)) {
         _invalidateAccess(revoked: true);
       }
-      if (mounted) setState(() => _loadingOlder = false);
+      if (mounted && generation == _accessGeneration) {
+        setState(() => _loadingOlder = false);
+      }
     }
   }
 
