@@ -1,17 +1,49 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
-/// Opens an external push destination as the router's canonical location.
+/// The Home tab a screen opened from a notification sits on, so Back lands
+/// somewhere sensible.
+String notificationHomeFallback(String path) {
+  final route = Uri.parse(path).path;
+  if (route.startsWith('/chat')) return '/home?tab=2';
+  if (route.startsWith('/profile/')) return '/home?tab=1';
+  if (route == '/notifications') return '/home?tab=0';
+  return '/home?tab=3';
+}
+
+/// Opens an external push destination above a real Home tab.
 ///
-/// A terminated Android app can be launched with an empty platform route.
-/// Stacking a push destination on that route preserves an invalid base that
-/// fails when authentication refreshes. Replacing it also gives notification
-/// taps the expected single, deterministic entry point.
+/// A terminated Android app can be launched with an empty platform route, so
+/// the launch route is first replaced with Home. The destination is then
+/// pushed on top: opened alone it had nothing beneath it, and its Back
+/// button left a blank screen while a swipe closed the app.
 void navigateFromPushNotification(GoRouter router, String path) {
   if (!path.startsWith('/')) {
     throw ArgumentError.value(path, 'path', 'Must be an absolute app path');
   }
-  router.go(path);
+  if (Uri.parse(path).path == '/home') {
+    router.go(path);
+    return;
+  }
+  final home = notificationHomeFallback(path);
+  final delegate = router.routerDelegate;
+  if (delegate.currentConfiguration.uri.toString() == home) {
+    router.push(path);
+    return;
+  }
+  // Push only once Home is really in place; pushed earlier, the destination
+  // is replaced when Home arrives. The start-up gate may show first on a cold
+  // start, so wait through it. Sign-in or onboarding instead drops the stale
+  // destination.
+  void pushOnHome() {
+    final shown = delegate.currentConfiguration.uri.path;
+    if (shown == '/boot') return;
+    delegate.removeListener(pushOnHome);
+    if (shown == '/home') router.push(path);
+  }
+
+  delegate.addListener(pushOnHome);
+  router.go(home);
 }
 
 /// Returns from a full-screen route without ever exposing an empty navigator.
