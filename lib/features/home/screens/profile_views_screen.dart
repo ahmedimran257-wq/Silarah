@@ -218,6 +218,7 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
                   ),
                   child: Icon(
                     Icons.arrow_back_rounded,
+                    semanticLabel: context.uiCopy('Back'),
                     color: AppColors.pearlWhite,
                     size: AppDimensions.iconSizeMedium,
                   ),

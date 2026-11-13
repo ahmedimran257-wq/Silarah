@@ -140,6 +140,7 @@ class _BlockListAppBar extends StatelessWidget implements PreferredSizeWidget {
                 border: Border.all(color: AppColors.cardBorder),
               ),
               child: Icon(Icons.arrow_back_rounded,
+                  semanticLabel: context.uiCopy('Back'),
                   color: AppColors.pearlWhite,
                   size: AppDimensions.iconSizeMedium),
             ),
