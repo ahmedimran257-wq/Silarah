@@ -64,7 +64,7 @@ export default async function DeletionsPage() {
             <section className="card">
               <div className="card-head">
                 <div>
-                  <p className="eyebrow"><Mail size={12} style={{ verticalAlign: "-2px", marginRight: 6 }} />privacy@silarah.com</p>
+                  <p className="eyebrow"><Mail size={12} />privacy@silarah.com</p>
                   <h2>Record an email deletion request</h2>
                 </div>
               </div>
