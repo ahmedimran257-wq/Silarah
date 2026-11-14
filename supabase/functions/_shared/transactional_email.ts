@@ -180,6 +180,7 @@ export async function sendBrevoTransactionalEmail(args: {
   recipientName?: string | null;
   email: RenderedTransactionalEmail;
   dedupeKey: string;
+  tags?: string[];
 }): Promise<string | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000);
@@ -204,7 +205,7 @@ export async function sendBrevoTransactionalEmail(args: {
         subject: args.email.subject,
         htmlContent: args.email.html,
         textContent: args.email.text,
-        tags: ["transactional", "subscription"],
+        tags: args.tags ?? ["transactional", "subscription"],
         headers: { "X-Silarah-Dedupe-Key": args.dedupeKey },
       }),
     });

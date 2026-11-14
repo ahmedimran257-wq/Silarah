@@ -519,3 +519,103 @@ function adminSiteUrl() {
   }
   throw new Error("NEXT_PUBLIC_ADMIN_SITE_URL is required before staff invites can be sent in production.");
 }
+
+const deletionSchema = z.object({
+  userId: uuidSchema,
+  reason: z.string().trim()
+    .min(6, "Give a reason of at least 6 characters for the audit log.")
+    .max(500),
+  immediate: z.enum(["true", "false"]).default("false"),
+});
+const testPremiumSchema = z.object({
+  userId: uuidSchema,
+  days: z.coerce.number().int().min(1, "Choose 1 to 7 days.").max(7, "Choose 1 to 7 days."),
+  note: z.string().trim().max(200).optional().default(""),
+});
+
+// Database messages that are safe and useful to show to staff as written.
+const accountErrors = [
+  "already scheduled or removed",
+  "purge has already started",
+  "Only an active, unbanned member",
+  "1 to 7 days",
+];
+
+async function runAccountRpc<T>(name: string, values: Record<string, unknown>) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc(name, values);
+  if (error) {
+    const known = accountErrors.find((fragment) => error.message.includes(fragment));
+    if (known) throw new UserFacingError(error.message);
+    throw new Error(error.message);
+  }
+  return data as T;
+}
+
+// Deletion controls appear on the queue and on a member's page; return to
+// whichever one was used.
+function deletionReturnPath(formData: FormData) {
+  return formString(formData, "returnTo").startsWith("/users/") ? "/users" : "/deletions";
+}
+
+export async function scheduleAccountDeletion(formData: FormData) {
+  const immediate = formString(formData, "immediate") === "true";
+  await guardedAction(deletionReturnPath(formData), async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "manageDeletions");
+    const parsed = deletionSchema.parse({
+      userId: formData.get("userId"),
+      reason: formData.get("reason"),
+      immediate: immediate ? "true" : "false",
+    });
+    await runAccountRpc("admin_schedule_account_deletion", {
+      p_user_id: parsed.userId,
+      p_reason: parsed.reason,
+      p_immediate: parsed.immediate === "true",
+    });
+  }, immediate
+    ? "Deletion started. The account will be purged within minutes and the member emailed."
+    : "Deletion scheduled for 30 days from now. The member has been emailed.", formData);
+}
+
+export async function cancelAccountDeletion(formData: FormData) {
+  await guardedAction(deletionReturnPath(formData), async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "manageDeletions");
+    const parsed = deletionSchema.parse({
+      userId: formData.get("userId"),
+      reason: formData.get("reason"),
+    });
+    const cancelled = await runAccountRpc<boolean>("admin_cancel_account_deletion", {
+      p_user_id: parsed.userId,
+      p_reason: parsed.reason,
+    });
+    if (!cancelled) throw new UserFacingError("This account is not waiting for deletion.");
+  }, "Deletion cancelled. The member has been emailed.", formData);
+}
+
+export async function grantTestPremium(formData: FormData) {
+  await guardedAction("/users", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "grantTestPremium");
+    const parsed = testPremiumSchema.parse({
+      userId: formData.get("userId"),
+      days: formData.get("days"),
+      note: formData.get("note") ?? "",
+    });
+    await runAccountRpc("admin_grant_test_premium", {
+      p_user_id: parsed.userId,
+      p_days: parsed.days,
+      p_note: parsed.note,
+    });
+  }, "Test Premium granted.", formData);
+}
+
+export async function revokeTestPremium(formData: FormData) {
+  await guardedAction("/users", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "grantTestPremium");
+    const userId = uuidSchema.parse(formData.get("userId"));
+    await runAccountRpc("admin_revoke_test_premium", { p_user_id: userId });
+  }, "Test Premium removed.", formData);
+}

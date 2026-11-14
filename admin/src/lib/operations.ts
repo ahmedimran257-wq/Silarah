@@ -241,3 +241,53 @@ export type MemberReview = {
   previewError?:string|null;
 };
 export type CampaignCountry = { iso_code:string; name:string; members:number };
+
+export type AccountDeletionRow = {
+  userId: string;
+  email: string | null;
+  name: string | null;
+  requestedAt: string | null;
+  purgeAfter: string;
+  reason: string | null;
+  byStaff: boolean;
+  purgePhase: string | null;
+  purgeStatus: string | null;
+  purgeAttempts: number | null;
+  purgeError: string | null;
+};
+
+export type AccountDeletionQueue = {
+  pending: AccountDeletionRow[];
+  stuck: {
+    userId: string;
+    phase: string;
+    status: string;
+    attempts: number;
+    error: string | null;
+    nextAttemptAt: string | null;
+  }[];
+  completedLast30Days: number;
+  emailsWaiting: number;
+  emailsFailed: number;
+};
+
+export async function getAccountDeletions(): Promise<AccountDeletionQueue> {
+  return rpc<AccountDeletionQueue>("admin_account_deletions", { p_limit: 200 });
+}
+
+export type MemberAccountState = {
+  deletionStatus: "active" | "pending_deletion" | "purged";
+  requestedAt: string | null;
+  purgeAfter: string | null;
+  deletionReason: string | null;
+  purgePhase: string | null;
+  purgeStatus: string | null;
+  canCancelDeletion: boolean;
+  paidStatus: string | null;
+  paidUntil: string | null;
+  testPremiumUntil: string | null;
+};
+
+export async function getMemberAccountState(userId: string): Promise<MemberAccountState | null> {
+  return rpc<MemberAccountState | null>("admin_member_account_state", { p_user_id: userId });
+}

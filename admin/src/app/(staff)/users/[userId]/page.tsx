@@ -5,8 +5,8 @@ import { SubmitButton } from "@/components/client-ui";
 import { EmptyState, NoAccess, PageHeader, StatusPill, formatDate, formatDateTime, relativeTime } from "@/components/ui";
 import { can } from "@/lib/access";
 import { requireArea } from "@/lib/auth";
-import { getMemberReview, type MemberReview, type MemberReviewPhoto } from "@/lib/operations";
-import { accountAction, resolveReport } from "../../actions";
+import { getMemberAccountState, getMemberReview, type MemberAccountState, type MemberReview, type MemberReviewPhoto } from "@/lib/operations";
+import { accountAction, cancelAccountDeletion, grantTestPremium, resolveReport, revokeTestPremium, scheduleAccountDeletion } from "../../actions";
 
 export const metadata = { title: "Member review" };
 
@@ -63,7 +63,10 @@ export default async function MemberReviewPage({
   if (!uuid.test(userId)) notFound();
   const reportId = report && uuid.test(report) ? report : null;
 
-  const review = await getMemberReview(userId, reportId);
+  const [review, accountState] = await Promise.all([
+    getMemberReview(userId, reportId),
+    getMemberAccountState(userId).catch((): MemberAccountState | null => null),
+  ]);
   if (!review) {
     return (
       <div className="card">
@@ -214,6 +217,76 @@ export default async function MemberReviewPage({
               ) : null}
             </div>
           </section>
+
+          {accountState ? (
+            <section className="card">
+              <div className="card-head"><h2>Account and Premium</h2></div>
+              <div className="card-body stack">
+                <dl className="kv">
+                  <Fact label="Account" value={accountState.deletionStatus === "pending_deletion"
+                    ? `Deletion pending · purge ${formatDate(accountState.purgeAfter)}`
+                    : accountState.deletionStatus === "purged" ? "Deleted" : "Active"} />
+                  <Fact label="Deletion reason" value={accountState.deletionReason} />
+                  <Fact label="Paid Premium" value={accountState.paidStatus && accountState.paidStatus !== "none"
+                    ? `${words(accountState.paidStatus)}${accountState.paidUntil ? ` until ${formatDate(accountState.paidUntil)}` : ""}`
+                    : "None"} />
+                  <Fact label="Test Premium" value={accountState.testPremiumUntil ? `Until ${formatDateTime(accountState.testPremiumUntil)}` : "None"} />
+                </dl>
+
+                {can(admin.role, "grantTestPremium") && accountState.deletionStatus === "active" && !review.isBanned ? (
+                  <div className="action-row">
+                    <form action={grantTestPremium} className="action-row">
+                      <input type="hidden" name="userId" value={review.userId} />
+                      <input type="hidden" name="returnTo" value={returnTo} />
+                      <label className="sr-only" htmlFor="test-premium-days">Days of test Premium</label>
+                      <select id="test-premium-days" name="days" className="select" defaultValue="7">
+                        {[1, 2, 3, 5, 7].map((days) => <option key={days} value={days}>{days} {days === 1 ? "day" : "days"}</option>)}
+                      </select>
+                      <SubmitButton className="btn">{accountState.testPremiumUntil ? "Renew test Premium" : "Give test Premium"}</SubmitButton>
+                    </form>
+                    {accountState.testPremiumUntil ? (
+                      <form action={revokeTestPremium}>
+                        <input type="hidden" name="userId" value={review.userId} />
+                        <input type="hidden" name="returnTo" value={returnTo} />
+                        <SubmitButton className="btn" confirm="Remove this member's test Premium now?">Remove test Premium</SubmitButton>
+                      </form>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {can(admin.role, "manageDeletions") ? (
+                  accountState.deletionStatus === "active" ? (
+                    <details className="disclosure">
+                      <summary className="link">Delete this account</summary>
+                      <form action={scheduleAccountDeletion} className="stack">
+                        <input type="hidden" name="userId" value={review.userId} />
+                        <input type="hidden" name="returnTo" value={returnTo} />
+                        <p className="muted">Use this only for a verified request from the member, or a legal requirement. The member is emailed, the profile is hidden at once, and the purge runs after 30 days unless you delete now.</p>
+                        <label className="field">Reason for the audit log
+                          <input name="reason" className="input" minLength={6} maxLength={500} required placeholder="e.g. Verified email request from the member" />
+                        </label>
+                        <div className="action-row">
+                          <SubmitButton className="btn" name="immediate" value="false" confirm="Schedule this account for deletion in 30 days?">Schedule deletion</SubmitButton>
+                          <SubmitButton className="btn btn-danger" name="immediate" value="true" confirm="Delete this account now? This cannot be undone.">Delete now</SubmitButton>
+                        </div>
+                      </form>
+                    </details>
+                  ) : accountState.deletionStatus === "pending_deletion" && accountState.canCancelDeletion ? (
+                    <form action={cancelAccountDeletion} className="stack">
+                      <input type="hidden" name="userId" value={review.userId} />
+                      <input type="hidden" name="returnTo" value={returnTo} />
+                      <label className="field">Reason for cancelling the deletion
+                        <input name="reason" className="input" minLength={6} maxLength={500} required placeholder="e.g. Member asked by email to keep the account" />
+                      </label>
+                      <div className="action-row"><SubmitButton className="btn">Cancel deletion</SubmitButton></div>
+                    </form>
+                  ) : accountState.deletionStatus === "pending_deletion" ? (
+                    <p className="faint">The purge has started, so this deletion can no longer be cancelled.</p>
+                  ) : null
+                ) : null}
+              </div>
+            </section>
+          ) : null}
 
           {can(admin.role, "moderateAccounts") && (!review.isBanned || canBan) ? (
             <section className="card">

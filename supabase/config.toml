@@ -152,6 +152,11 @@ import_map = "./functions/deno.json"
 verify_jwt = false
 import_map = "./functions/deno.json"
 
+[functions.account-email]
+# Woken by pg_net and pg_cron with the Vault-backed cron credential.
+verify_jwt = false
+import_map = "./functions/deno.json"
+
 [functions.storage-lifecycle-worker]
 # Private pg_cron request authenticated by the Vault-backed cron credential.
 verify_jwt = false

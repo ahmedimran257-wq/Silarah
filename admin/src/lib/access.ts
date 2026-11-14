@@ -36,6 +36,7 @@ export const areaRoles = {
   content: publishing,
   stories: publishing,
   privacy: publishing,
+  deletions: publishing,
   security: owner,
   staff: owner,
 } as const satisfies Record<string, readonly AdminRole[]>;
@@ -53,6 +54,8 @@ export const actionRoles = {
   manageStories: publishing,
   answerPrivacy: publishing,
   holdPrivacy: owner,
+  manageDeletions: owner,
+  grantTestPremium: owner,
   manageStaff: owner,
 } as const satisfies Record<string, readonly AdminRole[]>;
 
@@ -99,6 +102,7 @@ export const navGroups: { label: string; items: NavItem[] }[] = [
         urgent: (c) => (c.openReports ?? 0) + (c.messageReports ?? 0) > 0,
       },
       { href: "/privacy", label: "Member rights", area: "privacy", icon: "privacy", count: (c) => c.privacyOpen ?? 0, urgent: (c) => (c.privacyOverdue ?? 0) > 0 },
+      { href: "/deletions", label: "Deletions", area: "deletions", icon: "deletions" },
     ],
   },
   {
