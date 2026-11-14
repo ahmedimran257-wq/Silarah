@@ -539,6 +539,15 @@ const accountErrors = [
   "purge has already started",
   "Only an active, unbanned member",
   "1 to 7 days",
+  "already removed",
+  "2 to 80 characters",
+  "1 to 80 characters",
+  "10 to 300 characters",
+  "listed app screens",
+  "cannot receive messages",
+  "30 member messages this hour",
+  "3 to 2000 characters",
+  "at least 6 characters",
 ];
 
 async function runAccountRpc<T>(name: string, values: Record<string, unknown>) {
@@ -618,4 +627,107 @@ export async function revokeTestPremium(formData: FormData) {
     const userId = uuidSchema.parse(formData.get("userId"));
     await runAccountRpc("admin_revoke_test_premium", { p_user_id: userId });
   }, "Test Premium removed.", formData);
+}
+
+const reasonedSchema = z.object({
+  reason: z.string().trim()
+    .min(6, "Give a reason of at least 6 characters for the audit log.")
+    .max(500),
+});
+
+export async function removeMemberPhoto(formData: FormData) {
+  await guardedAction("/users", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "removePhotos");
+    const photoId = uuidSchema.parse(formData.get("photoId"));
+    const { reason } = reasonedSchema.parse({ reason: formData.get("reason") });
+    await runAccountRpc("admin_remove_member_photo", { p_photo_id: photoId, p_reason: reason });
+  }, "Photo removed. The file is deleted shortly and the member has been told.", formData);
+}
+
+export async function sendMemberMessage(formData: FormData) {
+  await guardedAction("/users", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "messageMembers");
+    const parsed = z.object({
+      userId: uuidSchema,
+      title: z.string().trim().min(1, "Add a title.").max(80, "Keep the title under 80 characters."),
+      body: z.string().trim().min(10, "Write at least 10 characters.").max(300, "Keep the message under 300 characters."),
+      link: z.string().trim().max(60).optional().default(""),
+    }).parse({
+      userId: formData.get("userId"),
+      title: formData.get("title"),
+      body: formData.get("body"),
+      link: formData.get("link") ?? "",
+    });
+    await runAccountRpc("admin_send_member_notification", {
+      p_user_id: parsed.userId,
+      p_title: parsed.title,
+      p_body: parsed.body,
+      p_deep_link: parsed.link || null,
+    });
+  }, "Message sent to the member.", formData);
+}
+
+export async function addMemberNote(formData: FormData) {
+  await guardedAction("/users", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "writeNotes");
+    const userId = uuidSchema.parse(formData.get("userId"));
+    const body = z.string().trim().min(3, "Write at least 3 characters.").max(2000)
+      .parse(formData.get("body"));
+    await runAccountRpc("admin_add_member_note", { p_user_id: userId, p_body: body });
+  }, "Note added.", formData);
+}
+
+export async function removeGuardianLink(formData: FormData) {
+  await guardedAction("/users", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "removeGuardian");
+    const userId = uuidSchema.parse(formData.get("userId"));
+    const { reason } = reasonedSchema.parse({ reason: formData.get("reason") });
+    const removed = await runAccountRpc<boolean>("admin_remove_guardian_link", { p_user_id: userId, p_reason: reason });
+    if (!removed) throw new UserFacingError("This member has no linked guardian.");
+  }, "Guardian link removed.", formData);
+}
+
+export async function saveBlockedTerm(formData: FormData) {
+  await guardedAction("/chat-filter", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "manageChatFilter");
+    const parsed = z.object({
+      term: z.string().trim().min(2, "Enter at least 2 characters.").max(80),
+      severity: z.enum(["block", "flag"]),
+      reason: z.string().trim().max(200).optional().default(""),
+    }).parse({
+      term: formData.get("term"),
+      severity: formData.get("severity"),
+      reason: formData.get("reason") ?? "",
+    });
+    await runAccountRpc("admin_upsert_blocked_term", {
+      p_term: parsed.term,
+      p_severity: parsed.severity,
+      p_reason: parsed.reason,
+    });
+  }, "Chat filter updated.", formData);
+}
+
+export async function deleteBlockedTerm(formData: FormData) {
+  await guardedAction("/chat-filter", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "manageChatFilter");
+    const term = z.string().trim().min(1).max(80).parse(formData.get("term"));
+    await runAccountRpc("admin_delete_blocked_term", { p_term: term });
+  }, "Removed from the chat filter.", formData);
+}
+
+export async function endReferralGrant(formData: FormData) {
+  await guardedAction("/referrals", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "endReferralGrants");
+    const grantId = uuidSchema.parse(formData.get("grantId"));
+    const { reason } = reasonedSchema.parse({ reason: formData.get("reason") });
+    const ended = await runAccountRpc<boolean>("admin_end_referral_grant", { p_grant_id: grantId, p_reason: reason });
+    if (!ended) throw new UserFacingError("This reward has already ended.");
+  }, "Referral reward ended.", formData);
 }

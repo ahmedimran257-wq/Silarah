@@ -291,3 +291,61 @@ export type MemberAccountState = {
 export async function getMemberAccountState(userId: string): Promise<MemberAccountState | null> {
   return rpc<MemberAccountState | null>("admin_member_account_state", { p_user_id: userId });
 }
+
+export type MemberNote = {
+  id: string;
+  body: string;
+  createdAt: string;
+  author: string | null;
+  authorRole: string | null;
+};
+
+export async function getMemberNotes(userId: string): Promise<MemberNote[]> {
+  return rpc<MemberNote[]>("admin_member_notes", { p_user_id: userId });
+}
+
+export type BlockedTerm = {
+  term: string;
+  severity: "block" | "flag";
+  reason: string | null;
+  created_at: string;
+};
+
+export async function getBlockedTerms(): Promise<BlockedTerm[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("chat_blocked_terms")
+    .select("term,severity,reason,created_at")
+    .order("term");
+  if (error) throw new Error("Silarah data request chat_blocked_terms failed.");
+  return (data ?? []) as BlockedTerm[];
+}
+
+export type ReferralGrant = {
+  id: string;
+  role: "referrer" | "referred";
+  startsAt: string;
+  expiresAt: string;
+  active: boolean;
+};
+
+export type ReferralRow = {
+  id: string;
+  createdAt: string;
+  referrerId: string;
+  referrer: string | null;
+  referredId: string;
+  referred: string | null;
+  rewarded: boolean;
+  rewardType: string | null;
+  grants: ReferralGrant[];
+};
+
+export type ReferralOverview = {
+  totals: { referrals: number; rewarded: number; activeGrants: number };
+  referrals: ReferralRow[];
+};
+
+export async function getReferralOverview(): Promise<ReferralOverview> {
+  return rpc<ReferralOverview>("admin_referral_overview", { p_limit: 200 });
+}

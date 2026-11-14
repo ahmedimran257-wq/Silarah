@@ -5,8 +5,8 @@ import { SubmitButton } from "@/components/client-ui";
 import { EmptyState, NoAccess, PageHeader, StatusPill, formatDate, formatDateTime, relativeTime } from "@/components/ui";
 import { can } from "@/lib/access";
 import { requireArea } from "@/lib/auth";
-import { getMemberAccountState, getMemberReview, type MemberAccountState, type MemberReview, type MemberReviewPhoto } from "@/lib/operations";
-import { accountAction, cancelAccountDeletion, grantTestPremium, resolveReport, revokeTestPremium, scheduleAccountDeletion } from "../../actions";
+import { getMemberAccountState, getMemberNotes, getMemberReview, type MemberAccountState, type MemberNote, type MemberReview, type MemberReviewPhoto } from "@/lib/operations";
+import { accountAction, addMemberNote, cancelAccountDeletion, grantTestPremium, removeGuardianLink, removeMemberPhoto, resolveReport, revokeTestPremium, scheduleAccountDeletion, sendMemberMessage } from "../../actions";
 
 export const metadata = { title: "Member review" };
 
@@ -63,9 +63,10 @@ export default async function MemberReviewPage({
   if (!uuid.test(userId)) notFound();
   const reportId = report && uuid.test(report) ? report : null;
 
-  const [review, accountState] = await Promise.all([
+  const [review, accountState, notes] = await Promise.all([
     getMemberReview(userId, reportId),
     getMemberAccountState(userId).catch((): MemberAccountState | null => null),
+    getMemberNotes(userId).catch((): MemberNote[] | null => null),
   ]);
   if (!review) {
     return (
@@ -171,6 +172,19 @@ export default async function MemberReviewPage({
                         {photo.nsfwScore !== null ? ` · scan ${Number(photo.nsfwScore).toFixed(2)}` : ""}
                         {photo.moderationReason ? ` · ${photo.moderationReason}` : ""}
                       </figcaption>
+                      {can(admin.role, "removePhotos") && photo.status !== "deletion_pending" ? (
+                        <details className="disclosure">
+                          <summary className="link">Remove photo</summary>
+                          <form action={removeMemberPhoto} className="stack">
+                            <input type="hidden" name="photoId" value={photo.id} />
+                            <input type="hidden" name="returnTo" value={returnTo} />
+                            <label className="field">Reason for the audit log
+                              <input name="reason" className="input" required minLength={6} maxLength={500} placeholder="e.g. Reported as another person&apos;s photo" />
+                            </label>
+                            <SubmitButton className="btn btn-danger" confirm="Remove this photo? The file is deleted and the member is told.">Remove photo</SubmitButton>
+                          </form>
+                        </details>
+                      ) : null}
                     </figure>
                   );
                 })}
@@ -254,6 +268,20 @@ export default async function MemberReviewPage({
                   </div>
                 ) : null}
 
+                {can(admin.role, "removeGuardian") && review.guardianMode && review.guardianMode !== "none" ? (
+                  <details className="disclosure">
+                    <summary className="link">Remove guardian link</summary>
+                    <form action={removeGuardianLink} className="stack">
+                      <input type="hidden" name="userId" value={review.userId} />
+                      <input type="hidden" name="returnTo" value={returnTo} />
+                      <label className="field">Reason for the audit log
+                        <input name="reason" className="input" required minLength={6} maxLength={500} placeholder="e.g. Member asked us to remove the guardian" />
+                      </label>
+                      <SubmitButton className="btn" confirm="Remove this guardian's access to the member?">Remove guardian link</SubmitButton>
+                    </form>
+                  </details>
+                ) : null}
+
                 {can(admin.role, "manageDeletions") ? (
                   accountState.deletionStatus === "active" ? (
                     <details className="disclosure">
@@ -287,6 +315,62 @@ export default async function MemberReviewPage({
               </div>
             </section>
           ) : null}
+
+          <section className="card">
+            <div className="card-head"><h2>Message this member</h2></div>
+            <div className="card-body">
+              <form action={sendMemberMessage} className="stack">
+                <input type="hidden" name="userId" value={review.userId} />
+                <input type="hidden" name="returnTo" value={returnTo} />
+                <label className="field">Title
+                  <input name="title" className="input" required maxLength={80} placeholder="e.g. Please update your main photo" />
+                </label>
+                <label className="field">Message (arrives as an app notification)
+                  <textarea name="body" className="textarea" required minLength={10} maxLength={300} rows={3} />
+                </label>
+                <label className="field">Opens
+                  <select name="link" className="select" defaultValue="">
+                    <option value="">Notifications only</option>
+                    <option value="silarah://photos">Photos</option>
+                    <option value="silarah://complete-profile">Edit profile</option>
+                    <option value="silarah://verify">Photo check</option>
+                    <option value="silarah://profile">Profile</option>
+                    <option value="silarah://help-support">Help</option>
+                    <option value="silarah://subscription">Plans</option>
+                  </select>
+                </label>
+                <div className="form-actions"><SubmitButton className="btn btn-primary">Send message</SubmitButton></div>
+              </form>
+            </div>
+          </section>
+
+          <section className="card">
+            <div className="card-head"><h2>Staff notes</h2><span className="muted">Private to staff</span></div>
+            <div className="card-body stack">
+              {notes === null ? <p className="notice danger"><span>Notes could not load.</span></p> : notes.length === 0 ? (
+                <p className="faint">No notes yet.</p>
+              ) : (
+                <div className="list">
+                  {notes.map((note) => (
+                    <div className="list-item" key={note.id}>
+                      <div>
+                        <p>{note.body}</p>
+                        <div className="meta"><span>{formatDateTime(note.createdAt)}</span><span>{note.author ?? "Staff"}{note.authorRole ? ` · ${note.authorRole.replaceAll("_", " ")}` : ""}</span></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <form action={addMemberNote} className="stack">
+                <input type="hidden" name="userId" value={review.userId} />
+                <input type="hidden" name="returnTo" value={returnTo} />
+                <label className="field">Add a note
+                  <textarea name="body" className="textarea" required minLength={3} maxLength={2000} rows={2} placeholder="What happened and what you did" />
+                </label>
+                <div className="form-actions"><SubmitButton className="btn">Save note</SubmitButton></div>
+              </form>
+            </div>
+          </section>
 
           {can(admin.role, "moderateAccounts") && (!review.isBanned || canBan) ? (
             <section className="card">

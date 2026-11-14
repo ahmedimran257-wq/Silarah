@@ -37,6 +37,9 @@ export const areaRoles = {
   stories: publishing,
   privacy: publishing,
   deletions: publishing,
+  chatFilter: trust,
+  referrals: publishing,
+  exports: owner,
   security: owner,
   staff: owner,
 } as const satisfies Record<string, readonly AdminRole[]>;
@@ -55,6 +58,13 @@ export const actionRoles = {
   answerPrivacy: publishing,
   holdPrivacy: owner,
   manageDeletions: owner,
+  removePhotos: trust,
+  manageChatFilter: trust,
+  messageMembers: everyone,
+  writeNotes: everyone,
+  endReferralGrants: owner,
+  removeGuardian: trust,
+  exportData: owner,
   grantTestPremium: owner,
   manageStaff: owner,
 } as const satisfies Record<string, readonly AdminRole[]>;
@@ -103,6 +113,7 @@ export const navGroups: { label: string; items: NavItem[] }[] = [
       },
       { href: "/privacy", label: "Member rights", area: "privacy", icon: "privacy", count: (c) => c.privacyOpen ?? 0, urgent: (c) => (c.privacyOverdue ?? 0) > 0 },
       { href: "/deletions", label: "Deletions", area: "deletions", icon: "deletions" },
+      { href: "/chat-filter", label: "Chat filter", area: "chatFilter", icon: "chatFilter" },
     ],
   },
   {
@@ -111,6 +122,7 @@ export const navGroups: { label: string; items: NavItem[] }[] = [
       { href: "/users", label: "Members", area: "users", icon: "members" },
       { href: "/matches", label: "Matches", area: "matches", icon: "matches" },
       { href: "/subscriptions", label: "Subscriptions", area: "subscriptions", icon: "subscriptions" },
+      { href: "/referrals", label: "Referrals", area: "referrals", icon: "referrals" },
     ],
   },
   {
@@ -128,6 +140,7 @@ export const navGroups: { label: string; items: NavItem[] }[] = [
       { href: "/security", label: "Security", area: "security", icon: "security" },
       { href: "/staff", label: "Staff access", area: "staff", icon: "staff" },
       { href: "/system", label: "System health", area: "system", icon: "system" },
+      { href: "/exports", label: "Exports", area: "exports", icon: "exports" },
     ],
   },
 ];
