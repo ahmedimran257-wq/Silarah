@@ -58,6 +58,7 @@ export const actionRoles = {
   answerPrivacy: publishing,
   holdPrivacy: owner,
   manageDeletions: owner,
+  recordEmailDeletion: publishing,
   removePhotos: trust,
   manageChatFilter: trust,
   messageMembers: everyone,

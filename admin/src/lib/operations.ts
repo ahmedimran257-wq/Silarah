@@ -250,6 +250,7 @@ export type AccountDeletionRow = {
   purgeAfter: string;
   reason: string | null;
   byStaff: boolean;
+  source?: "email" | "staff" | "app";
   purgePhase: string | null;
   purgeStatus: string | null;
   purgeAttempts: number | null;

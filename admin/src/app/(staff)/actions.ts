@@ -195,13 +195,16 @@ function withNotice(
 
 async function guardedAction(
   path: string,
-  work: () => Promise<void>,
+  work: () => Promise<void | string>,
   successMessage = "Action completed.",
   formData?: FormData,
 ) {
   const target = returnTarget(path, formData);
+  let message = successMessage;
   try {
-    await work();
+    // Work may return a more specific success message.
+    const result = await work();
+    if (typeof result === "string") message = result;
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     withNotice(target, "admin_error", actionMessage(error));
@@ -209,7 +212,7 @@ async function guardedAction(
   // The layout re-renders with the action response, so the sidebar counts
   // update together with the page.
   revalidatePath(path);
-  withNotice(target, "admin_success", successMessage);
+  withNotice(target, "admin_success", message);
 }
 
 export async function accountAction(formData: FormData) {
@@ -548,6 +551,11 @@ const accountErrors = [
   "30 member messages this hour",
   "3 to 2000 characters",
   "at least 6 characters",
+  "No account uses this email address",
+  "More than one account matches",
+  "Enter the full email address",
+  "received date must be within",
+  "Only a super admin can delete immediately",
 ];
 
 async function runAccountRpc<T>(name: string, values: Record<string, unknown>) {
@@ -585,6 +593,51 @@ export async function scheduleAccountDeletion(formData: FormData) {
   }, immediate
     ? "Deletion started. The account will be purged within minutes and the member emailed."
     : "Deletion scheduled for 30 days from now. The member has been emailed.", formData);
+}
+
+const emailDeletionSchema = z.object({
+  email: z.string().trim().toLowerCase()
+    .email("Enter the full email address the request came from.")
+    .max(320),
+  receivedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose the date the email arrived."),
+  note: z.string().trim().max(400).optional(),
+});
+
+// A member who emails privacy@ instead of using the app. The database only
+// accepts an exact match with the registered address, which is the ownership
+// check the public deletion page promises.
+export async function recordEmailDeletionRequest(formData: FormData) {
+  await guardedAction("/deletions", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "recordEmailDeletion");
+    const immediate = formString(formData, "immediate") === "true";
+    if (immediate) assertCan(admin, "manageDeletions");
+    const parsed = emailDeletionSchema.parse({
+      email: formData.get("email"),
+      receivedOn: formData.get("receivedOn"),
+      note: formString(formData, "note") || undefined,
+    });
+    const result = await runAccountRpc<{ status: string; purgeAfter: string | null }>(
+      "admin_record_email_deletion_request",
+      {
+        p_email: parsed.email,
+        // Start of that day in India, so "today" is never in the future.
+        p_received_at: `${parsed.receivedOn}T00:00:00+05:30`,
+        p_note: parsed.note ?? null,
+        p_immediate: immediate,
+      },
+    );
+    const purgeOn = result?.purgeAfter
+      ? new Date(result.purgeAfter).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" })
+      : null;
+    if (result?.status === "already_pending") {
+      return `This account is already waiting for deletion${purgeOn ? ` (purge on ${purgeOn})` : ""}. Nothing changed.`;
+    }
+    if (result?.status === "deleting_now") {
+      return "Deletion started. The account will be purged within minutes and the member emailed.";
+    }
+    return `Deletion scheduled${purgeOn ? ` for ${purgeOn}` : ""}. The member has been emailed and can still cancel by signing in.`;
+  }, "Request recorded.", formData);
 }
 
 export async function cancelAccountDeletion(formData: FormData) {
