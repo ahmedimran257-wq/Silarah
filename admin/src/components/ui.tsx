@@ -88,7 +88,7 @@ const toneByStatus: Record<string, string> = {
   scheduled: "info", archived: "plain", rejected: "danger", suspended: "danger",
   banned: "danger", shadowbanned: "warn", revoked: "danger", hidden: "warn",
   deactivated: "plain", profile_pending: "warn", none: "plain", expired: "plain",
-  cancelled: "plain", failed: "danger",
+  cancelled: "plain", failed: "danger", test_premium: "info",
 };
 
 export function StatusPill({ status, label }: { status: string; label?: string }) {

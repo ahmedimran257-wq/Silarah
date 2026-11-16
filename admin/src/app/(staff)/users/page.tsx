@@ -13,6 +13,10 @@ export const metadata = { title: "Members" };
 
 const bulkFormId = "bulk-user-action";
 
+// The directory reports "test_premium" for members on staff-granted test
+// Premium who have no paid subscription.
+const planLabel: Record<string, string> = { none: "Free", test_premium: "Test Premium" };
+
 function href(query: string, after?: string) {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
@@ -105,7 +109,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
                           {user.approval_block_reason ? ` · ${user.approval_block_reason}` : ""}
                         </span>
                       </td>
-                      <td><StatusPill status={user.subscription_status || "none"} label={user.subscription_status === "none" ? "Free" : undefined} /></td>
+                      <td><StatusPill status={user.subscription_status || "none"} label={planLabel[user.subscription_status] ?? undefined} /></td>
                       <td><StatusPill status={status} /></td>
                       {canModerate ? (
                         <td className="right">
