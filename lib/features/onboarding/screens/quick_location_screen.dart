@@ -32,6 +32,7 @@ class _QuickLocationScreenState extends State<QuickLocationScreen> {
   CityResult? _city;
   String? _initialCity;
   bool _saving = false;
+  bool _singleCountry = false;
 
   @override
   void initState() {
@@ -110,6 +111,7 @@ class _QuickLocationScreenState extends State<QuickLocationScreen> {
     final selectedCountry = matches.isNotEmpty ? matches.first : _country;
     setState(() {
       _country = selectedCountry;
+      _singleCountry = launch.isSingleCountry;
       _restoreSavedLocation(data, selectedCountry);
     });
   }
@@ -197,9 +199,17 @@ class _QuickLocationScreenState extends State<QuickLocationScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const StepHeader(
+          // In a single-country launch the country cannot be changed, so say
+          // which country's cities to search. Testers abroad otherwise search
+          // their own city, see no results and cannot continue.
+          StepHeader(
             title: 'Where are you?',
-            subtitle: 'This helps us show you relevant matches nearby.',
+            subtitle: _singleCountry
+                ? context.uiCopyWith(
+                    'Silarah is open in {country} first. Choose a city in {country} to see matches nearby.',
+                    {'country': _country.name},
+                  )
+                : 'This helps us show you relevant matches nearby.',
           ),
           const SizedBox(height: AppDimensions.space32),
           UiText(context.uiCopy('Country'), style: AppTypography.sectionLabel),
@@ -268,6 +278,12 @@ class _QuickLocationScreenState extends State<QuickLocationScreen> {
                 ? 'Search your city or area'
                 : context.uiCopyWith(
                     'Search city in {region}', {'region': _region!.name}),
+            noResultsMessage: _singleCountry
+                ? context.uiCopyWith(
+                    'No match in {country}. Silarah is only open in {country} for now, so search for a city there.',
+                    {'country': _country.name},
+                  )
+                : null,
             onSelected: (result) {
               _dismissKeyboard();
               setState(() {

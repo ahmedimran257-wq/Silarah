@@ -13,6 +13,17 @@ const LOCATION_RESULT_SIGNING_SECRET =
 const PHOTON_URL = "https://photon.komoot.io/api";
 const TIMEOUT_MS = 6_000;
 const MAX_RESPONSE_BYTES = 512 * 1024;
+// Results requested from Photon before the country filter (about 15 KB).
+const PROVIDER_WINDOW = 50;
+
+function featureCountryCode(raw: unknown): string {
+  if (!raw || typeof raw !== "object") return "";
+  const properties = (raw as Record<string, unknown>).properties;
+  if (!properties || typeof properties !== "object") return "";
+  return String((properties as Record<string, unknown>).countrycode ?? "")
+    .trim()
+    .toUpperCase();
+}
 
 type SearchPayload = {
   query?: unknown;
@@ -32,7 +43,21 @@ type ResolutionClaim = {
   country_code: string;
   lat: number;
   lng: number;
+  // District (Photon "county"). Optional so tokens issued before it was added
+  // still verify during their ten-minute lifetime.
+  district?: string;
 };
+
+// India alone has dozens of villages called Ramnagar or Shivajinagar in one
+// state. Cities are unique per (region, name), so a same-name place in another
+// district gets its district in the stored name instead of sharing a row.
+function catalogCityName(claim: ResolutionClaim): string {
+  const city = claim.city.trim();
+  const district = (claim.district ?? "").trim();
+  if (!district || district.toLowerCase() === city.toLowerCase()) return city;
+  const qualified = `${city} (${district})`;
+  return qualified.length <= 100 ? qualified : city;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -72,7 +97,7 @@ Deno.serve(async (req) => {
       const { data: cityId, error: cityError } = await admin.rpc(
         "get_or_create_city",
         {
-          p_city_name: claim.city,
+          p_city_name: catalogCityName(claim),
           p_region_name: claim.state || claim.country,
           p_country_name: claim.country,
           p_country_code: claim.country_code,
@@ -124,10 +149,17 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Photon searches the whole world and has no country filter. Asking for
+    // only the requested `limit` meant short prefixes ("Ban", "Kan", "Pat")
+    // returned 15 foreign places and no Indian city at all. Ask for a wider,
+    // place-only window and keep the selected country's results.
     const url = new URL(PHOTON_URL);
     url.searchParams.set("q", query);
-    url.searchParams.set("limit", String(limit));
-    if (mode === "region") url.searchParams.append("osm_tag", "place:state");
+    url.searchParams.set("limit", String(PROVIDER_WINDOW));
+    url.searchParams.append(
+      "osm_tag",
+      mode === "region" ? "place:state" : "place",
+    );
 
     const response = await fetch(url, {
       headers: {
@@ -150,7 +182,9 @@ Deno.serve(async (req) => {
       features?: unknown[];
     };
     const features = Array.isArray(data.features)
-      ? data.features.slice(0, limit)
+      ? data.features
+        .filter((feature) => featureCountryCode(feature) === countryCode)
+        .slice(0, limit)
       : [];
     if (!LOCATION_RESULT_SIGNING_SECRET) {
       return json(503, { error: "location_resolution_unavailable" });
@@ -208,6 +242,9 @@ function locationClaim(
   const country = String(properties.country ?? "").trim();
   const countryCode = String(properties.countrycode ?? "").trim().toUpperCase();
   const osmKey = String(properties.osm_key ?? "").trim().toLowerCase();
+  const district = String(properties.county ?? properties.district ?? "")
+    .trim()
+    .slice(0, 100);
   const lat = coordinates[1];
   const lng = coordinates[0];
   if (
@@ -234,6 +271,7 @@ function locationClaim(
     country_code: countryCode,
     lat,
     lng,
+    ...(district ? { district } : {}),
   };
 }
 
@@ -269,6 +307,8 @@ async function verifyResolutionToken(
       claim.country.length < 2 ||
       claim.country.length > 100 ||
       claim.state.length > 100 ||
+      (claim.district !== undefined &&
+        (typeof claim.district !== "string" || claim.district.length > 100)) ||
       !Number.isFinite(claim.lat) ||
       claim.lat < -90 ||
       claim.lat > 90 ||

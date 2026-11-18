@@ -33,6 +33,7 @@ class CityResult {
     required this.lng,
     this.resolutionToken,
     this.catalogCityId,
+    this.district = '',
   });
 
   final String city;
@@ -46,6 +47,10 @@ class CityResult {
   final double lng;
   final String? resolutionToken;
   final String? catalogCityId;
+
+  /// District, taluk or mandal from the provider. Shown so that villages with
+  /// the same name in one state (there are dozens of each) can be told apart.
+  final String district;
 
   @override
   String toString() => fullAddress;
@@ -102,6 +107,9 @@ class CountryContextService {
     'province',
     'region',
   };
+  /// With this many cached matches the cache alone is a full answer.
+  static const _enoughCachedCities = 5;
+
   static const _photonCityAreaOsmValues = {
     'city',
     'town',
@@ -115,6 +123,9 @@ class CountryContextService {
     'district',
     'borough',
     'island',
+    // Rural settlements and taluk/mandal-level places people live in.
+    'isolated_dwelling',
+    'county',
     'state',
     'province',
     'region',
@@ -295,7 +306,10 @@ class CountryContextService {
     final selectedRegion = regionName?.trim();
     if (query.trim().length < 2 || selectedCountry.isEmpty) return [];
 
-    // 1. Try the Supabase city cache first.
+    // 1. Try the Supabase city cache first. The cache only holds cities members
+    // have already chosen, so a single hit ("Hyd" -> Hyderabad) must not hide
+    // every other city; a short cache list is merged with provider results.
+    var cached = const <CityResult>[];
     if (SupabaseService.isInitialized) {
       try {
         debugPrint(
@@ -315,7 +329,7 @@ class CountryContextService {
           if (list.isNotEmpty) {
             debugPrint(
                 '[CountryContextService] Found ${list.length} cities from Supabase');
-            return list
+            cached = list
                 .map((row) => _cityResultFromSupabaseRow(
                       row as Map<String, dynamic>,
                       selectedCountry: selectedCountry,
@@ -323,6 +337,7 @@ class CountryContextService {
                     ))
                 .whereType<CityResult>()
                 .toList();
+            if (cached.length >= _enoughCachedCities) return cached;
           }
         }
       } catch (e) {
@@ -340,8 +355,13 @@ class CountryContextService {
     try {
       debugPrint(
           '[CountryContextService] Querying Photon Geocoding API for "$query" (countryCode: $countryCode)...');
+      // The provider has no region filter. Naming the chosen state in the
+      // query ("Ramnagar Telangana") ranks that state's places first.
+      final regionQuery = selectedRegion == null || selectedRegion.isEmpty
+          ? query.trim()
+          : '${query.trim()} $selectedRegion';
       final features = await _fetchPhotonFeatures(
-        query.trim(),
+        regionQuery.length <= 80 ? regionQuery : query.trim(),
         countryCode: selectedCountry,
         limit: 15,
       );
@@ -358,7 +378,10 @@ class CountryContextService {
       if (parsedResults.isNotEmpty) {
         debugPrint(
             '[CountryContextService] Found ${parsedResults.length} cities from Photon');
-        return _rankPhotonCities(parsedResults, query.trim());
+        return _mergeCityResults(
+          cached,
+          _rankPhotonCities(parsedResults, query.trim()),
+        );
       }
     } catch (e) {
       debugPrint('[CountryContextService] Photon search failed: $e');
@@ -369,9 +392,11 @@ class CountryContextService {
     }
 
     // 3. Do not accept unverified free text: matching needs real coordinates.
-    debugPrint(
-        '[CountryContextService] No matches found, returning empty list.');
-    return const [];
+    if (cached.isEmpty) {
+      debugPrint(
+          '[CountryContextService] No matches found, returning empty list.');
+    }
+    return cached;
   }
 
   Future<List<RegionResult>> _searchPhotonRegions(
@@ -483,6 +508,12 @@ class CountryContextService {
       return null;
     }
 
+    final rawDistrict = (properties['county'] as String? ??
+            properties['district'] as String? ??
+            '')
+        .trim();
+    final district =
+        rawDistrict.toLowerCase() == cityName.toLowerCase() ? '' : rawDistrict;
     final isRegionLike = _photonRegionOsmValues.contains(osmValue);
     final stateName = rawState.isNotEmpty
         ? rawState
@@ -504,6 +535,7 @@ class CountryContextService {
       postalCode: properties['postcode'] as String? ?? '',
       fullAddress: _joinDistinctLocationParts([
         cityName,
+        district,
         stateName,
         countryName,
       ]),
@@ -511,13 +543,48 @@ class CountryContextService {
       lat: (coords[1] as num).toDouble(),
       lng: (coords[0] as num).toDouble(),
       resolutionToken: feature['silarah_resolution_token'] as String?,
+      district: district,
     );
+  }
+
+  /// Same name and state is not the same place: villages repeat across
+  /// districts, so the district is part of the identity.
+  static String _cityResultKey(CityResult result) =>
+      '${result.countryCode}|${result.city.toLowerCase()}|'
+      '${result.district.toLowerCase()}|${result.state.toLowerCase()}';
+
+  static const _maxCityResults = 15;
+
+  /// Cache rows already carry a city ID, so they come first; provider rows
+  /// that name the same city and state are dropped.
+  List<CityResult> _mergeCityResults(
+    List<CityResult> cached,
+    List<CityResult> provider,
+  ) {
+    final seen = <String>{};
+    final cachedNames = {
+      for (final result in cached)
+        '${result.countryCode}|${result.city.toLowerCase()}|${result.state.toLowerCase()}',
+    };
+    return [
+      ...cached,
+      // A cached row has no district; drop the provider row it came from.
+      ...provider.where((result) => !cachedNames.contains(
+            '${result.countryCode}|${result.city.toLowerCase()}|${result.state.toLowerCase()}',
+          )),
+    ].where((result) => seen.add(_cityResultKey(result))).take(_maxCityResults).toList();
   }
 
   List<CityResult> _rankPhotonCities(List<CityResult> results, String query) {
     final q = query.trim().toLowerCase();
-    final ranked = [...results];
-    ranked.sort((a, b) {
+    // Provider order reflects importance (Kolkata before Kollam for "Kol"),
+    // so it breaks ties instead of name length.
+    final ranked = [
+      for (var i = 0; i < results.length; i++) (index: i, result: results[i]),
+    ];
+    ranked.sort((x, y) {
+      final a = x.result;
+      final b = y.result;
       final aExact = a.city.toLowerCase() == q ? 0 : 1;
       final bExact = b.city.toLowerCase() == q ? 0 : 1;
       if (aExact != bExact) return aExact.compareTo(bExact);
@@ -526,17 +593,14 @@ class CountryContextService {
       final bStarts = b.city.toLowerCase().startsWith(q) ? 0 : 1;
       if (aStarts != bStarts) return aStarts.compareTo(bStarts);
 
-      return a.city.length.compareTo(b.city.length);
+      return x.index.compareTo(y.index);
     });
 
     final seen = <String>{};
     return ranked
-        .where((result) {
-          final key =
-              '${result.countryCode}|${result.city.toLowerCase()}|${result.state.toLowerCase()}';
-          return seen.add(key);
-        })
-        .take(8)
+        .map((entry) => entry.result)
+        .where((result) => seen.add(_cityResultKey(result)))
+        .take(_maxCityResults)
         .toList();
   }
 

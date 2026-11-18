@@ -183,9 +183,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         if (state is AuthError) {
           // Validation and consent messages say nothing about whether an
           // account exists. Every other send failure stays generic.
+          // New members often tap "Send sign-in code" first. The sign-in
+          // message points them to Create profile for every send failure, so
+          // it still reveals nothing about whether the address is registered.
           final visibleMessage = _otpSent || state.kind != AuthErrorKind.general
               ? state.message
-              : 'We could not send a verification code. Check the address or try again shortly.';
+              : _mode == EmailAuthMode.signIn
+                  ? 'We could not send a sign-in code. Check the address or try again shortly. New to Silarah? Tap Create profile below.'
+                  : 'We could not send a verification code. Check the address or try again shortly.';
           if (_otpSent) {
             setState(() => _otpResetNonce++);
           }

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'country_context_service.dart';
+import 'operational_telemetry_service.dart';
 import 'supabase_service.dart';
 
 class LocationResolution {
@@ -51,6 +52,9 @@ abstract final class LocationService {
       debugPrint('LocationService: city resolution failed: $error');
     }
 
+    // Saving a chosen city is the only way past the location step, so a
+    // failure here must be visible in Crashlytics, not just the debug log.
+    OperationalTelemetryService.record('location', 'city_resolution_failed');
     return const LocationResolution(
       errorMessage: 'We could not save that city. Please try again.',
     );

@@ -40,6 +40,7 @@ class CitySearchField extends StatefulWidget {
     this.initialValue,
     this.label,
     this.hint,
+    this.noResultsMessage,
     this.enabled = true,
   });
 
@@ -50,6 +51,10 @@ class CitySearchField extends StatefulWidget {
   final String? initialValue;
   final String? label;
   final String? hint;
+
+  /// Already-localized text shown when a search finds nothing. Onboarding
+  /// passes a launch-market hint so people abroad know which cities count.
+  final String? noResultsMessage;
   final bool enabled;
 
   @override
@@ -57,6 +62,8 @@ class CitySearchField extends StatefulWidget {
 }
 
 class _CitySearchFieldState extends State<CitySearchField> {
+  static const double _dropdownOffset = 62;
+
   final _ctrl = TextEditingController();
   final _focus = FocusNode();
   final _service = CountryContextService.instance;
@@ -222,13 +229,29 @@ class _CitySearchFieldState extends State<CitySearchField> {
       builder: (context) {
         final renderBox = this.context.findRenderObject() as RenderBox?;
         final width = renderBox?.size.width ?? 300.0;
+        // Fit the results between the field and the keyboard. Without a limit
+        // the list ran under the keyboard and off screen, where nobody could
+        // tap a result.
+        final media = MediaQuery.of(context);
+        final fieldTop = renderBox != null && renderBox.hasSize
+            ? renderBox.localToGlobal(Offset.zero).dy
+            : 0.0;
+        final spaceBelow = media.size.height -
+            media.viewInsets.bottom -
+            fieldTop -
+            _dropdownOffset -
+            12;
+        final maxHeight = spaceBelow.clamp(140.0, 420.0).toDouble();
         return Positioned(
           width: width,
           child: CompositedTransformFollower(
             link: _layerLink,
             showWhenUnlinked: false,
-            offset: const Offset(0, 62),
-            child: _buildDropdown(),
+            offset: const Offset(0, _dropdownOffset),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxHeight),
+              child: _buildDropdown(),
+            ),
           ),
         );
       },
@@ -344,8 +367,9 @@ class _CitySearchFieldState extends State<CitySearchField> {
                 ? Padding(
                     padding: const EdgeInsets.all(16),
                     child: UiText(
-                      context.uiCopy(
-                          'No matching city or area found. Try a different spelling.'),
+                      widget.noResultsMessage ??
+                          context.uiCopy(
+                              'No matching city or area found. Try a different spelling.'),
                       style: AppTypography.bodyMuted,
                     ),
                   )
@@ -354,7 +378,9 @@ class _CitySearchFieldState extends State<CitySearchField> {
                     // inside the overlay and draws an empty band on top.
                     padding: EdgeInsets.zero,
                     shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
+                    // The overlay is height-limited to the space above the
+                    // keyboard, so longer result lists must scroll.
+                    physics: const ClampingScrollPhysics(),
                     itemCount: _results.length,
                     separatorBuilder: (_, __) => Divider(
                       height: 1,
@@ -388,6 +414,7 @@ class _CityTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final subtitle = [
+      if (result.district.isNotEmpty) result.district,
       if (result.state.isNotEmpty &&
           result.state.toLowerCase() != result.city.toLowerCase())
         result.state,

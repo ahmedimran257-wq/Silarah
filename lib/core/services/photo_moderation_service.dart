@@ -12,6 +12,8 @@ import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
+import 'operational_telemetry_service.dart';
+
 enum PhotoModerationDecision { approved, flagged, rejected, scanFailed }
 
 class PhotoModerationResult {
@@ -181,6 +183,9 @@ class PhotoModerationService {
       return _invalidImage();
     } catch (error, stackTrace) {
       debugPrint('[PhotoModerationService] scan failed: $error\n$stackTrace');
+      // A device that cannot run the on-device scan blocks the photo step, the
+      // last onboarding gate. Report a stable code (never the error text).
+      OperationalTelemetryService.record('photo', 'moderation_scan_failed');
       return PhotoModerationResult(
         decision: PhotoModerationDecision.scanFailed,
         confidence: 0,

@@ -211,6 +211,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'New message': 'رسالة جديدة',
     'New profile activity': 'نشاط جديد على الملف الشخصي',
     'New to Silarah? Create profile': 'جديد على Silarah؟ أنشئوا ملفًا شخصيًا',
+    'We could not send a sign-in code. Check the address or try again shortly. New to Silarah? Tap Create profile below.':
+        'تعذّر إرسال رمز تسجيل الدخول. تحقّقوا من العنوان أو حاولوا مرة أخرى بعد قليل. جديد على Silarah؟ اضغطوا «أنشئوا ملفًا شخصيًا» أدناه.',
+    'Silarah is open in {country} first. Choose a city in {country} to see matches nearby.':
+        'Silarah متاح أولًا في {country}. اختاروا مدينة في {country} لرؤية التطابقات القريبة.',
+    'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
+        'لا توجد نتيجة في {country}. Silarah متاح حاليًا في {country} فقط، لذا ابحثوا عن مدينة هناك.',
     'No previous purchases found for this account.':
         'لم يتم العثور على عمليات شراء سابقة لهذا الحساب.',
     'Not Sure': 'غير متأكد',
@@ -1104,6 +1110,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'New message': 'নতুন বার্তা',
     'New profile activity': 'প্রোফাইলে নতুন কার্যকলাপ',
     'New to Silarah? Create profile': 'Silarah-এ নতুন? প্রোফাইল তৈরি করুন',
+    'We could not send a sign-in code. Check the address or try again shortly. New to Silarah? Tap Create profile below.':
+        'সাইন-ইন কোড পাঠানো যায়নি। ঠিকানাটি যাচাই করুন বা একটু পরে আবার চেষ্টা করুন। Silarah-এ নতুন? নিচে "প্রোফাইল তৈরি করুন" ট্যাপ করুন।',
+    'Silarah is open in {country} first. Choose a city in {country} to see matches nearby.':
+        'Silarah প্রথমে {country}-এ চালু হয়েছে। কাছাকাছি ম্যাচ দেখতে {country}-এর একটি শহর বেছে নিন।',
+    'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
+        '{country}-এ কোনো মিল পাওয়া যায়নি। Silarah এখন শুধু {country}-এ চালু, তাই সেখানকার একটি শহর খুঁজুন।',
     'No previous purchases found for this account.':
         'এই অ্যাকাউন্টের জন্য কোনো পূর্ববর্তী কেনাকাটা পাওয়া যায়নি।',
     'Not Sure': 'নিশ্চিত নই',
@@ -2014,6 +2026,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'New message': 'Neue Nachricht',
     'New profile activity': 'Neue Profilaktivität',
     'New to Silarah? Create profile': 'Neu bei Silarah? Profil erstellen',
+    'We could not send a sign-in code. Check the address or try again shortly. New to Silarah? Tap Create profile below.':
+        'Wir konnten keinen Anmeldecode senden. Prüfen Sie die Adresse oder versuchen Sie es gleich noch einmal. Neu bei Silarah? Tippen Sie unten auf „Profil erstellen“.',
+    'Silarah is open in {country} first. Choose a city in {country} to see matches nearby.':
+        'Silarah startet zuerst in {country}. Wählen Sie eine Stadt in {country}, um Matches in Ihrer Nähe zu sehen.',
+    'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
+        'Kein Treffer in {country}. Silarah ist vorerst nur in {country} verfügbar. Suchen Sie bitte nach einer Stadt dort.',
     'No previous purchases found for this account.':
         'Für dieses Konto wurden keine früheren Käufe gefunden.',
     'Not Sure': 'Nicht sicher',
@@ -2945,6 +2963,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'New message': 'Nouveau message',
     'New profile activity': 'Nouvelle activité sur le profil',
     'New to Silarah? Create profile': 'Nouveau sur Silarah ? Créer un profil',
+    'We could not send a sign-in code. Check the address or try again shortly. New to Silarah? Tap Create profile below.':
+        'Nous n’avons pas pu envoyer de code de connexion. Vérifiez l’adresse ou réessayez dans un instant. Nouveau sur Silarah ? Touchez « Créer un profil » ci-dessous.',
+    'Silarah is open in {country} first. Choose a city in {country} to see matches nearby.':
+        'Silarah est d’abord disponible en {country}. Choisissez une ville en {country} pour voir des profils près de chez vous.',
+    'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
+        'Aucun résultat en {country}. Silarah n’est disponible qu’en {country} pour le moment : recherchez une ville là-bas.',
     'No previous purchases found for this account.':
         'Aucun achat précédent trouvé pour ce compte.',
     'Not Sure': 'Pas sûr(e)',
@@ -3869,6 +3893,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'New message': 'नया संदेश',
     'New profile activity': 'प्रोफ़ाइल पर नई गतिविधि',
     'New to Silarah? Create profile': 'Silarah पर नए हैं? प्रोफ़ाइल बनाएँ',
+    'We could not send a sign-in code. Check the address or try again shortly. New to Silarah? Tap Create profile below.':
+        'साइन-इन कोड नहीं भेजा जा सका। पता जाँचें या थोड़ी देर बाद फिर कोशिश करें। Silarah पर नए हैं? नीचे "प्रोफ़ाइल बनाएँ" पर टैप करें।',
+    'Silarah is open in {country} first. Choose a city in {country} to see matches nearby.':
+        'Silarah पहले {country} में शुरू हुआ है। आस-पास के मैच देखने के लिए {country} का कोई शहर चुनें।',
+    'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
+        '{country} में कोई मिलान नहीं मिला। Silarah अभी केवल {country} में उपलब्ध है, इसलिए वहाँ का कोई शहर खोजें।',
     'No previous purchases found for this account.':
         'इस खाते के लिए कोई पिछली खरीदारी नहीं मिली।',
     'Not Sure': 'पक्का नहीं',
@@ -4776,6 +4806,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'New message': 'Pesan baru',
     'New profile activity': 'Aktivitas profil baru',
     'New to Silarah? Create profile': 'Baru di Silarah? Buat profil',
+    'We could not send a sign-in code. Check the address or try again shortly. New to Silarah? Tap Create profile below.':
+        'Kami tidak dapat mengirim kode masuk. Periksa alamatnya atau coba lagi sebentar lagi. Baru di Silarah? Ketuk "Buat profil" di bawah.',
+    'Silarah is open in {country} first. Choose a city in {country} to see matches nearby.':
+        'Silarah dibuka lebih dulu di {country}. Pilih kota di {country} untuk melihat kecocokan di dekat Anda.',
+    'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
+        'Tidak ada hasil di {country}. Saat ini Silarah hanya tersedia di {country}, jadi cari kota di sana.',
     'No previous purchases found for this account.':
         'Tidak ditemukan pembelian sebelumnya untuk akun ini.',
     'Not Sure': 'Belum Yakin',
@@ -5687,6 +5723,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'New message': 'Mesej baharu',
     'New profile activity': 'Aktiviti profil baharu',
     'New to Silarah? Create profile': 'Baharu di Silarah? Buat profil',
+    'We could not send a sign-in code. Check the address or try again shortly. New to Silarah? Tap Create profile below.':
+        'Kami tidak dapat menghantar kod log masuk. Semak alamat atau cuba lagi sebentar lagi. Baharu di Silarah? Ketik "Buat profil" di bawah.',
+    'Silarah is open in {country} first. Choose a city in {country} to see matches nearby.':
+        'Silarah dibuka di {country} dahulu. Pilih bandar di {country} untuk melihat padanan berdekatan.',
+    'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
+        'Tiada padanan di {country}. Silarah hanya dibuka di {country} buat masa ini, jadi cari bandar di sana.',
     'No previous purchases found for this account.':
         'Tiada pembelian terdahulu ditemui untuk akaun ini.',
     'Not Sure': 'Tidak Pasti',
@@ -6600,6 +6642,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'New profile activity': 'Yeni profil etkinliği',
     'New to Silarah? Create profile':
         'Silarah’ta yeni misiniz? Profil oluşturun',
+    'We could not send a sign-in code. Check the address or try again shortly. New to Silarah? Tap Create profile below.':
+        'Giriş kodu gönderilemedi. Adresi kontrol edin veya birazdan tekrar deneyin. Silarah’ta yeni misiniz? Aşağıdaki "Profil oluşturun" seçeneğine dokunun.',
+    'Silarah is open in {country} first. Choose a city in {country} to see matches nearby.':
+        'Silarah önce {country} ülkesinde açıldı. Yakınınızdaki eşleşmeleri görmek için {country} içinde bir şehir seçin.',
+    'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
+        '{country} içinde eşleşme yok. Silarah şimdilik yalnızca {country} ülkesinde açık, bu yüzden oradan bir şehir arayın.',
     'No previous purchases found for this account.':
         'Bu hesap için önceki satın alma bulunamadı.',
     'Not Sure': 'Emin Değilim',
@@ -7509,6 +7557,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'New message': 'نیا پیغام',
     'New profile activity': 'پروفائل پر نئی سرگرمی',
     'New to Silarah? Create profile': 'Silarah پر نئے ہیں؟ پروفائل بنائیں',
+    'We could not send a sign-in code. Check the address or try again shortly. New to Silarah? Tap Create profile below.':
+        'سائن اِن کوڈ نہیں بھیجا جا سکا۔ پتہ چیک کریں یا تھوڑی دیر بعد دوبارہ کوشش کریں۔ Silarah پر نئے ہیں؟ نیچے "پروفائل بنائیں" پر ٹیپ کریں۔',
+    'Silarah is open in {country} first. Choose a city in {country} to see matches nearby.':
+        'Silarah پہلے {country} میں شروع ہوا ہے۔ قریبی میچز دیکھنے کے لیے {country} کا کوئی شہر منتخب کریں۔',
+    'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
+        '{country} میں کوئی نتیجہ نہیں ملا۔ Silarah فی الحال صرف {country} میں دستیاب ہے، اس لیے وہاں کا کوئی شہر تلاش کریں۔',
     'No previous purchases found for this account.':
         'اس اکاؤنٹ کے لیے کوئی پچھلی خریداری نہیں ملی۔',
     'Not Sure': 'یقین نہیں',

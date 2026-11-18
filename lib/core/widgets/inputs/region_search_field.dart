@@ -39,6 +39,8 @@ class RegionSearchField extends StatefulWidget {
 }
 
 class _RegionSearchFieldState extends State<RegionSearchField> {
+  static const double _dropdownOffset = 62;
+
   final _ctrl = TextEditingController();
   final _focus = FocusNode();
   final _service = CountryContextService.instance;
@@ -182,16 +184,30 @@ class _RegionSearchFieldState extends State<RegionSearchField> {
     if (!mounted) return;
     _hideOverlay();
     _overlayEntry = OverlayEntry(
-      builder: (_) {
+      builder: (overlayContext) {
         final renderBox = context.findRenderObject() as RenderBox?;
         final width = renderBox?.size.width ?? 300.0;
+        // Keep the list between the field and the keyboard, and scrollable.
+        final media = MediaQuery.of(overlayContext);
+        final fieldTop = renderBox != null && renderBox.hasSize
+            ? renderBox.localToGlobal(Offset.zero).dy
+            : 0.0;
+        final spaceBelow = media.size.height -
+            media.viewInsets.bottom -
+            fieldTop -
+            _dropdownOffset -
+            12;
+        final maxHeight = spaceBelow.clamp(140.0, 420.0).toDouble();
         return Positioned(
           width: width,
           child: CompositedTransformFollower(
             link: _layerLink,
             showWhenUnlinked: false,
-            offset: const Offset(0, 62),
-            child: _buildDropdown(),
+            offset: const Offset(0, _dropdownOffset),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxHeight),
+              child: _buildDropdown(),
+            ),
           ),
         );
       },
@@ -294,8 +310,9 @@ class _RegionSearchFieldState extends State<RegionSearchField> {
                     ),
                   )
                 : ListView.separated(
+                    padding: EdgeInsets.zero,
                     shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
+                    physics: const ClampingScrollPhysics(),
                     itemCount: _results.length,
                     separatorBuilder: (_, __) => Divider(
                       height: 1,
