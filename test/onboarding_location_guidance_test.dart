@@ -58,6 +58,9 @@ void main() {
       expect(source, contains('media.viewInsets.bottom'));
       expect(source, contains('BoxConstraints(maxHeight: maxHeight)'));
       expect(source, isNot(contains('NeverScrollableScrollPhysics')));
+      // Scrolling the results must not count as a tap outside the field.
+      expect(source, contains('groupId: _tapGroup'));
+      expect(source, contains('TapRegion('));
     }
   });
 

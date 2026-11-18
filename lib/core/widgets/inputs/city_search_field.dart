@@ -64,6 +64,11 @@ class CitySearchField extends StatefulWidget {
 class _CitySearchFieldState extends State<CitySearchField> {
   static const double _dropdownOffset = 62;
 
+  /// Shared by the field and its results overlay. Without it, touching the
+  /// results counted as a tap outside the field, which unfocused it and closed
+  /// the list 250 ms later, so the list could never be scrolled.
+  final Object _tapGroup = Object();
+
   final _ctrl = TextEditingController();
   final _focus = FocusNode();
   final _service = CountryContextService.instance;
@@ -248,9 +253,12 @@ class _CitySearchFieldState extends State<CitySearchField> {
             link: _layerLink,
             showWhenUnlinked: false,
             offset: const Offset(0, _dropdownOffset),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: maxHeight),
-              child: _buildDropdown(),
+            child: TapRegion(
+              groupId: _tapGroup,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: maxHeight),
+                child: _buildDropdown(),
+              ),
             ),
           ),
         );
@@ -294,6 +302,7 @@ class _CitySearchFieldState extends State<CitySearchField> {
         enabled: widget.enabled,
         controller: _ctrl,
         focusNode: _focus,
+        groupId: _tapGroup,
         onChanged: _onChanged,
         onTapOutside: (_) => _focus.unfocus(),
         style: AppTypography.inputText,

@@ -41,6 +41,10 @@ class RegionSearchField extends StatefulWidget {
 class _RegionSearchFieldState extends State<RegionSearchField> {
   static const double _dropdownOffset = 62;
 
+  /// Shared by the field and its results overlay so scrolling the results is
+  /// not treated as a tap outside the field (which closed the list).
+  final Object _tapGroup = Object();
+
   final _ctrl = TextEditingController();
   final _focus = FocusNode();
   final _service = CountryContextService.instance;
@@ -204,9 +208,12 @@ class _RegionSearchFieldState extends State<RegionSearchField> {
             link: _layerLink,
             showWhenUnlinked: false,
             offset: const Offset(0, _dropdownOffset),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: maxHeight),
-              child: _buildDropdown(),
+            child: TapRegion(
+              groupId: _tapGroup,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: maxHeight),
+                child: _buildDropdown(),
+              ),
             ),
           ),
         );
@@ -231,6 +238,7 @@ class _RegionSearchFieldState extends State<RegionSearchField> {
           enabled: widget.enabled,
           controller: _ctrl,
           focusNode: _focus,
+          groupId: _tapGroup,
           onChanged: _onChanged,
           onTapOutside: (_) => _focus.unfocus(),
           style: AppTypography.inputText,
