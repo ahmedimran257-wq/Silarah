@@ -32,6 +32,7 @@ import '../../../core/widgets/inputs/city_search_field.dart';
 import '../../../core/widgets/inputs/region_search_field.dart';
 import '../../../core/widgets/inputs/silarah_field_frame.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
+import '../../../core/widgets/overlays/silarah_dialog.dart';
 import '../../onboarding/screens/photo_upload_screen.dart';
 
 // City data import — reuse same list from basic_identity_screen
@@ -88,6 +89,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Gender? _gender;
   bool _isSaving = false;
+
+  /// Every editable value as loaded, so leaving can tell whether anything
+  /// changed. Location changes are tracked by [_locationChanged].
+  late final String _initialSnapshot;
 
   @override
   void initState() {
@@ -156,6 +161,68 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _openToDiaspora = d.openToDiaspora ?? false;
     _interests = List<String>.from(d.interests ?? []);
     _gender = d.gender;
+    _initialSnapshot = _editableSnapshot();
+  }
+
+  String _editableSnapshot() => [
+        _firstNameCtrl.text.trim(),
+        _lastNameCtrl.text.trim(),
+        _professionCtrl.text.trim(),
+        _bioCtrl.text.trim(),
+        _sect?.name,
+        _deenLevel?.name,
+        _praysFive,
+        _hijabStyle,
+        _beardStyle,
+        _educationLabel,
+        _familyType?.name,
+        _siblingCount,
+        _parentsStatus,
+        _marriageTimeline,
+        _willingToRelocate,
+        _partnerAgeMin.round(),
+        _partnerAgeMax.round(),
+        _openToDivorced,
+        _openToWidowed,
+        _openToHasChildren,
+        _openToDiaspora,
+        _interests.join('\u0001'),
+      ].join('\u0000');
+
+  bool get _hasUnsavedChanges =>
+      _locationChanged || _editableSnapshot() != _initialSnapshot;
+
+  /// Back arrow, system back and the back gesture all come here when there
+  /// are unsaved edits; saving pops directly and is never asked.
+  Future<void> _confirmLeave() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final discard = await showSilarahDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.surfaceElevated,
+        title: UiText(context.uiCopy('Discard changes?'),
+            style: AppTypography.bodyMedium),
+        content: UiText(
+          context.uiCopy(
+              'Your profile changes have not been saved yet. If you leave now, they will be lost.'),
+          style: AppTypography.bodyMuted,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: UiText(context.uiCopy('Keep editing')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: UiText(
+              context.uiCopy('Discard'),
+              style: AppTypography.button.copyWith(color: AppColors.softCoral),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (discard == true && mounted) Navigator.pop(context);
   }
 
   @override
@@ -355,357 +422,366 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<OnboardingCubit, OnboardingState>(
       builder: (context, state) {
-        return Scaffold(
-          backgroundColor: AppColors.obsidianNight,
-          appBar: AppBar(
+        return PopScope(
+          // System back and the back gesture: leave freely when nothing
+          // changed (or while saving); otherwise ask first.
+          canPop: _isSaving || !_hasUnsavedChanges,
+          onPopInvokedWithResult: (didPop, _) {
+            if (didPop) return;
+            _confirmLeave();
+          },
+          child: Scaffold(
             backgroundColor: AppColors.obsidianNight,
-            surfaceTintColor: Colors.transparent,
-            elevation: 0,
-            leading: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                margin: const EdgeInsets.all(AppDimensions.space8),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceGlass,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.cardBorder),
-                ),
-                child: Icon(
-                  Icons.arrow_back_rounded,
-                  semanticLabel: context.uiCopy('Back'),
-                  color: AppColors.pearlWhite,
-                  size: AppDimensions.iconSizeMedium,
-                ),
-              ),
-            ),
-            title: UiText(context.uiCopy('Edit Profile'),
-                style: AppTypography.screenTitle.copyWith(fontSize: 20)),
-          ),
-          bottomNavigationBar: SafeArea(
-            top: false,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 14),
-              decoration: BoxDecoration(
-                color: AppColors.navBarSurface,
-                border: Border(top: BorderSide(color: AppColors.cardBorder)),
-              ),
-              child: SilarahPressable(
-                onTap: _isSaving ? null : _saveProfile,
-                semanticLabel: context.uiCopy('Save profile changes'),
-                child: AnimatedContainer(
-                  duration: AppDimensions.durationTransition,
-                  height: 54,
-                  alignment: Alignment.center,
+            appBar: AppBar(
+              backgroundColor: AppColors.obsidianNight,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              leading: GestureDetector(
+                onTap: () => Navigator.maybePop(context),
+                child: Container(
+                  margin: const EdgeInsets.all(AppDimensions.space8),
                   decoration: BoxDecoration(
-                    gradient: _isSaving
-                        ? null
-                        : LinearGradient(colors: [
-                            AppColors.champagneLight,
-                            AppColors.champagneGold,
-                          ]),
-                    color: _isSaving ? AppColors.surfaceGlassHover : null,
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.radiusButton),
+                    color: AppColors.surfaceGlass,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.cardBorder),
                   ),
-                  child: _isSaving
-                      ? const SilarahPulseLoader(size: 26)
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.check_rounded,
-                                color: AppColors.obsidianNight, size: 20),
-                            const SizedBox(width: AppDimensions.space8),
-                            UiText(context.uiCopy('Save changes'),
-                                style: AppTypography.button),
-                          ],
-                        ),
+                  child: Icon(
+                    Icons.arrow_back_rounded,
+                    semanticLabel: context.uiCopy('Back'),
+                    color: AppColors.pearlWhite,
+                    size: AppDimensions.iconSizeMedium,
+                  ),
+                ),
+              ),
+              title: UiText(context.uiCopy('Edit Profile'),
+                  style: AppTypography.screenTitle.copyWith(fontSize: 20)),
+            ),
+            bottomNavigationBar: SafeArea(
+              top: false,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 14),
+                decoration: BoxDecoration(
+                  color: AppColors.navBarSurface,
+                  border: Border(top: BorderSide(color: AppColors.cardBorder)),
+                ),
+                child: SilarahPressable(
+                  onTap: _isSaving ? null : _saveProfile,
+                  semanticLabel: context.uiCopy('Save profile changes'),
+                  child: AnimatedContainer(
+                    duration: AppDimensions.durationTransition,
+                    height: 54,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      gradient: _isSaving
+                          ? null
+                          : LinearGradient(colors: [
+                              AppColors.champagneLight,
+                              AppColors.champagneGold,
+                            ]),
+                      color: _isSaving ? AppColors.surfaceGlassHover : null,
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusButton),
+                    ),
+                    child: _isSaving
+                        ? const SilarahPulseLoader(size: 26)
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.check_rounded,
+                                  color: AppColors.obsidianNight, size: 20),
+                              const SizedBox(width: AppDimensions.space8),
+                              UiText(context.uiCopy('Save changes'),
+                                  style: AppTypography.button),
+                            ],
+                          ),
+                  ),
                 ),
               ),
             ),
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(
-              AppDimensions.space24,
-              AppDimensions.space8,
-              AppDimensions.space24,
-              AppDimensions.space40,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _EditorIntro(),
-                const SizedBox(height: AppDimensions.space24),
-                // Photos
-                const _SectionHeader(label: 'Photos'),
-                const SizedBox(height: AppDimensions.space12),
-                _PhotoGrid(
-                  onTap: () async {
-                    final onboardingCubit = context.read<OnboardingCubit>();
-                    final saved = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute<bool>(
-                        builder: (_) => const PhotoUploadScreen(
-                          returnToPreviousOnSave: true,
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.space24,
+                AppDimensions.space8,
+                AppDimensions.space24,
+                AppDimensions.space40,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const _EditorIntro(),
+                  const SizedBox(height: AppDimensions.space24),
+                  // Photos
+                  const _SectionHeader(label: 'Photos'),
+                  const SizedBox(height: AppDimensions.space12),
+                  _PhotoGrid(
+                    onTap: () async {
+                      final onboardingCubit = context.read<OnboardingCubit>();
+                      final saved = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute<bool>(
+                          builder: (_) => const PhotoUploadScreen(
+                            returnToPreviousOnSave: true,
+                          ),
                         ),
-                      ),
-                    );
-                    if (saved == true && mounted) {
-                      await onboardingCubit.refreshProfileFromDb(force: true);
-                      setState(() {});
-                    }
-                  },
-                ),
-                const SizedBox(height: AppDimensions.space28),
+                      );
+                      if (saved == true && mounted) {
+                        await onboardingCubit.refreshProfileFromDb(force: true);
+                        setState(() {});
+                      }
+                    },
+                  ),
+                  const SizedBox(height: AppDimensions.space28),
 
-                // Basic Info
-                const _SectionHeader(label: 'Basic Info'),
-                const SizedBox(height: AppDimensions.space12),
-                _SilarahTextField(
-                  label: 'First name',
-                  controller: _firstNameCtrl,
-                  onChanged: (_) => setState(() {}),
-                ),
-                const SizedBox(height: AppDimensions.space12),
-                _SilarahTextField(
-                  label: 'Last name',
-                  controller: _lastNameCtrl,
-                  onChanged: (_) => setState(() {}),
-                ),
-                const SizedBox(height: AppDimensions.space24),
-                _LocationEditor(
-                  country: _country,
-                  region: _region,
-                  selectedCity: _selectedCity,
-                  initialRegion: _initialRegion,
-                  initialCity: _initialCity,
-                  onCountryTap: () {
-                    FocusManager.instance.primaryFocus?.unfocus();
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => CountryPickerScreen(
-                          selected: _country,
-                          onSelected: _selectCountry,
+                  // Basic Info
+                  const _SectionHeader(label: 'Basic Info'),
+                  const SizedBox(height: AppDimensions.space12),
+                  _SilarahTextField(
+                    label: 'First name',
+                    controller: _firstNameCtrl,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: AppDimensions.space12),
+                  _SilarahTextField(
+                    label: 'Last name',
+                    controller: _lastNameCtrl,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: AppDimensions.space24),
+                  _LocationEditor(
+                    country: _country,
+                    region: _region,
+                    selectedCity: _selectedCity,
+                    initialRegion: _initialRegion,
+                    initialCity: _initialCity,
+                    onCountryTap: () {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => CountryPickerScreen(
+                            selected: _country,
+                            onSelected: _selectCountry,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  onRegionSelected: _selectRegion,
-                  onRegionCleared: () => setState(() {
-                    _region = null;
-                    _initialRegion = null;
-                    _selectedCity = null;
-                    _initialCity = null;
-                    _locationChanged = true;
-                  }),
-                  onCitySelected: _selectCity,
-                  onCityCleared: _clearCity,
-                ),
-                const SizedBox(height: AppDimensions.space28),
+                      );
+                    },
+                    onRegionSelected: _selectRegion,
+                    onRegionCleared: () => setState(() {
+                      _region = null;
+                      _initialRegion = null;
+                      _selectedCity = null;
+                      _initialCity = null;
+                      _locationChanged = true;
+                    }),
+                    onCitySelected: _selectCity,
+                    onCityCleared: _clearCity,
+                  ),
+                  const SizedBox(height: AppDimensions.space28),
 
-                // Islamic Identity
-                const _SectionHeader(label: 'Islamic Identity'),
-                const SizedBox(height: AppDimensions.space12),
-                _DropdownField(
-                  label: 'Sect',
-                  value: _sectValue(_sect),
-                  options: const ['sunni', 'shia', 'preferNotToSay', 'other'],
-                  optionLabels: const [
-                    'Sunni',
-                    'Shia',
-                    'Prefer not to say',
-                    'Other'
-                  ],
-                  onChanged: (v) => setState(() => _sect = _parseSect(v)),
-                ),
-                const SizedBox(height: AppDimensions.space12),
-                _DropdownField(
-                  label: 'Deen Level',
-                  value: _deenLevelValue(_deenLevel),
-                  options: const ['practicing', 'moderate', 'cultural'],
-                  optionLabels: const [
-                    'Practicing',
-                    'Moderate',
-                    'Cultural Muslim'
-                  ],
-                  onChanged: (v) =>
-                      setState(() => _deenLevel = _parseDeenLevel(v)),
-                ),
-                const SizedBox(height: AppDimensions.space12),
-                _ToggleRow(
-                  label: 'Prays five times daily',
-                  value: _praysFive,
-                  onChanged: (v) => setState(() => _praysFive = v),
-                ),
-                // Female-only: hijab dropdown
-                if (_gender == Gender.female) ...[
+                  // Islamic Identity
+                  const _SectionHeader(label: 'Islamic Identity'),
                   const SizedBox(height: AppDimensions.space12),
                   _DropdownField(
-                    label: 'Hijab style',
-                    value: _hijabStyle ?? 'No hijab',
-                    options: const [
-                      'No hijab',
-                      'Occasionally',
-                      'Hijab',
-                      'Niqab',
+                    label: 'Sect',
+                    value: _sectValue(_sect),
+                    options: const ['sunni', 'shia', 'preferNotToSay', 'other'],
+                    optionLabels: const [
+                      'Sunni',
+                      'Shia',
+                      'Prefer not to say',
+                      'Other'
                     ],
-                    onChanged: (v) => setState(() => _hijabStyle = v),
+                    onChanged: (v) => setState(() => _sect = _parseSect(v)),
                   ),
-                ],
-                // Male-only: beard toggle
-                if (_gender == Gender.male) ...[
                   const SizedBox(height: AppDimensions.space12),
                   _DropdownField(
-                    label: 'Beard',
-                    value: _beardStyle ?? 'prefer_not_to_say',
-                    options: const ['yes', 'no', 'prefer_not_to_say'],
-                    optionLabels: const ['Yes', 'No', 'Prefer not to say'],
-                    onChanged: (v) => setState(() => _beardStyle = v),
+                    label: 'Deen Level',
+                    value: _deenLevelValue(_deenLevel),
+                    options: const ['practicing', 'moderate', 'cultural'],
+                    optionLabels: const [
+                      'Practicing',
+                      'Moderate',
+                      'Cultural Muslim'
+                    ],
+                    onChanged: (v) =>
+                        setState(() => _deenLevel = _parseDeenLevel(v)),
                   ),
+                  const SizedBox(height: AppDimensions.space12),
+                  _ToggleRow(
+                    label: 'Prays five times daily',
+                    value: _praysFive,
+                    onChanged: (v) => setState(() => _praysFive = v),
+                  ),
+                  // Female-only: hijab dropdown
+                  if (_gender == Gender.female) ...[
+                    const SizedBox(height: AppDimensions.space12),
+                    _DropdownField(
+                      label: 'Hijab style',
+                      value: _hijabStyle ?? 'No hijab',
+                      options: const [
+                        'No hijab',
+                        'Occasionally',
+                        'Hijab',
+                        'Niqab',
+                      ],
+                      onChanged: (v) => setState(() => _hijabStyle = v),
+                    ),
+                  ],
+                  // Male-only: beard toggle
+                  if (_gender == Gender.male) ...[
+                    const SizedBox(height: AppDimensions.space12),
+                    _DropdownField(
+                      label: 'Beard',
+                      value: _beardStyle ?? 'prefer_not_to_say',
+                      options: const ['yes', 'no', 'prefer_not_to_say'],
+                      optionLabels: const ['Yes', 'No', 'Prefer not to say'],
+                      onChanged: (v) => setState(() => _beardStyle = v),
+                    ),
+                  ],
+                  const SizedBox(height: AppDimensions.space28),
+
+                  // About
+                  const _SectionHeader(label: 'About'),
+                  const SizedBox(height: AppDimensions.space12),
+                  _SilarahTextField(
+                    label: 'Bio',
+                    hint: 'Describe yourself with honesty and dignity.',
+                    controller: _bioCtrl,
+                    maxLines: 5,
+                    maxLength: 300,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: AppDimensions.space12),
+                  _InterestChips(
+                    selected: _interests,
+                    onChanged: (v) => setState(() => _interests = v),
+                  ),
+                  const SizedBox(height: AppDimensions.space28),
+
+                  // Education & Career
+                  const _SectionHeader(label: 'Education & Career'),
+                  const SizedBox(height: AppDimensions.space12),
+                  _DropdownField(
+                    label: 'Education Level',
+                    value: _educationLabel ?? 'Bachelor\'s Degree',
+                    options: const [
+                      'Below Secondary',
+                      'Secondary / O-Level',
+                      'Higher Secondary / A-Level',
+                      'Diploma / Associate',
+                      'Bachelor\'s Degree',
+                      'Master\'s Degree',
+                      'Doctorate / PhD',
+                    ],
+                    onChanged: (v) => setState(() => _educationLabel = v),
+                  ),
+                  const SizedBox(height: AppDimensions.space12),
+                  _SilarahTextField(
+                    label: 'Profession',
+                    hint: 'e.g. Software Engineer',
+                    controller: _professionCtrl,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: AppDimensions.space28),
+
+                  // Family
+                  const _SectionHeader(label: 'Family'),
+                  const SizedBox(height: AppDimensions.space12),
+                  _DropdownField(
+                    label: 'Family Type',
+                    value: _familyTypeValue(_familyType),
+                    options: const ['nuclear', 'joint', 'extended'],
+                    optionLabels: const ['Nuclear', 'Joint', 'Extended'],
+                    onChanged: (v) =>
+                        setState(() => _familyType = _parseFamilyType(v)),
+                  ),
+                  const SizedBox(height: AppDimensions.space12),
+                  _StepperRow(
+                    label: 'Siblings',
+                    value: _siblingCount,
+                    min: 0,
+                    max: 15,
+                    onChanged: (v) => setState(() => _siblingCount = v),
+                  ),
+                  const SizedBox(height: AppDimensions.space12),
+                  _DropdownField(
+                    label: 'Parents\' Status',
+                    value: _parentsStatus ?? 'Both alive',
+                    options: const [
+                      'Both alive',
+                      'Father passed away',
+                      'Mother passed away',
+                      'Both passed away',
+                    ],
+                    onChanged: (v) => setState(() => _parentsStatus = v),
+                  ),
+                  const SizedBox(height: AppDimensions.space12),
+                  _DropdownField(
+                    label: 'Marriage Timeline',
+                    value: _marriageTimeline ?? 'not_sure',
+                    options: const [
+                      'asap',
+                      '6_months',
+                      '1_year',
+                      '2_plus_years',
+                      'not_sure'
+                    ],
+                    optionLabels: const [
+                      'ASAP',
+                      '6 Months',
+                      '1 Year',
+                      '2+ Years',
+                      'Not Sure'
+                    ],
+                    onChanged: (v) => setState(() => _marriageTimeline = v),
+                  ),
+                  const SizedBox(height: AppDimensions.space12),
+                  _DropdownField(
+                    label: 'Willing to Relocate',
+                    value: _willingToRelocate ?? 'open_to_discussion',
+                    options: const ['yes', 'no', 'open_to_discussion'],
+                    optionLabels: const ['Yes', 'No', 'Open to Discussion'],
+                    onChanged: (v) => setState(() => _willingToRelocate = v),
+                  ),
+                  const SizedBox(height: AppDimensions.space28),
+
+                  // Partner Preferences
+                  const _SectionHeader(label: 'Partner Preferences'),
+                  const SizedBox(height: AppDimensions.space12),
+                  _AgeRangeField(
+                    min: _partnerAgeMin,
+                    max: _partnerAgeMax,
+                    onChanged: (lo, hi) => setState(() {
+                      _partnerAgeMin = lo;
+                      _partnerAgeMax = hi;
+                    }),
+                  ),
+                  const SizedBox(height: AppDimensions.space12),
+                  _ToggleRow(
+                    label: 'Open to divorced',
+                    value: _openToDivorced,
+                    onChanged: (v) => setState(() => _openToDivorced = v),
+                  ),
+                  const SizedBox(height: AppDimensions.space12),
+                  _ToggleRow(
+                    label: 'Open to widowed',
+                    value: _openToWidowed,
+                    onChanged: (v) => setState(() => _openToWidowed = v),
+                  ),
+                  const SizedBox(height: AppDimensions.space12),
+                  _ToggleRow(
+                    label: 'Open to someone with children',
+                    value: _openToHasChildren,
+                    onChanged: (v) => setState(() => _openToHasChildren = v),
+                  ),
+                  const SizedBox(height: AppDimensions.space12),
+                  _ToggleRow(
+                    label: 'Open to members living abroad',
+                    value: _openToDiaspora,
+                    onChanged: (v) => setState(() => _openToDiaspora = v),
+                  ),
+
+                  const SizedBox(height: AppDimensions.space40),
                 ],
-                const SizedBox(height: AppDimensions.space28),
-
-                // About
-                const _SectionHeader(label: 'About'),
-                const SizedBox(height: AppDimensions.space12),
-                _SilarahTextField(
-                  label: 'Bio',
-                  hint: 'Describe yourself with honesty and dignity.',
-                  controller: _bioCtrl,
-                  maxLines: 5,
-                  maxLength: 300,
-                  onChanged: (_) => setState(() {}),
-                ),
-                const SizedBox(height: AppDimensions.space12),
-                _InterestChips(
-                  selected: _interests,
-                  onChanged: (v) => setState(() => _interests = v),
-                ),
-                const SizedBox(height: AppDimensions.space28),
-
-                // Education & Career
-                const _SectionHeader(label: 'Education & Career'),
-                const SizedBox(height: AppDimensions.space12),
-                _DropdownField(
-                  label: 'Education Level',
-                  value: _educationLabel ?? 'Bachelor\'s Degree',
-                  options: const [
-                    'Below Secondary',
-                    'Secondary / O-Level',
-                    'Higher Secondary / A-Level',
-                    'Diploma / Associate',
-                    'Bachelor\'s Degree',
-                    'Master\'s Degree',
-                    'Doctorate / PhD',
-                  ],
-                  onChanged: (v) => setState(() => _educationLabel = v),
-                ),
-                const SizedBox(height: AppDimensions.space12),
-                _SilarahTextField(
-                  label: 'Profession',
-                  hint: 'e.g. Software Engineer',
-                  controller: _professionCtrl,
-                  onChanged: (_) => setState(() {}),
-                ),
-                const SizedBox(height: AppDimensions.space28),
-
-                // Family
-                const _SectionHeader(label: 'Family'),
-                const SizedBox(height: AppDimensions.space12),
-                _DropdownField(
-                  label: 'Family Type',
-                  value: _familyTypeValue(_familyType),
-                  options: const ['nuclear', 'joint', 'extended'],
-                  optionLabels: const ['Nuclear', 'Joint', 'Extended'],
-                  onChanged: (v) =>
-                      setState(() => _familyType = _parseFamilyType(v)),
-                ),
-                const SizedBox(height: AppDimensions.space12),
-                _StepperRow(
-                  label: 'Siblings',
-                  value: _siblingCount,
-                  min: 0,
-                  max: 15,
-                  onChanged: (v) => setState(() => _siblingCount = v),
-                ),
-                const SizedBox(height: AppDimensions.space12),
-                _DropdownField(
-                  label: 'Parents\' Status',
-                  value: _parentsStatus ?? 'Both alive',
-                  options: const [
-                    'Both alive',
-                    'Father passed away',
-                    'Mother passed away',
-                    'Both passed away',
-                  ],
-                  onChanged: (v) => setState(() => _parentsStatus = v),
-                ),
-                const SizedBox(height: AppDimensions.space12),
-                _DropdownField(
-                  label: 'Marriage Timeline',
-                  value: _marriageTimeline ?? 'not_sure',
-                  options: const [
-                    'asap',
-                    '6_months',
-                    '1_year',
-                    '2_plus_years',
-                    'not_sure'
-                  ],
-                  optionLabels: const [
-                    'ASAP',
-                    '6 Months',
-                    '1 Year',
-                    '2+ Years',
-                    'Not Sure'
-                  ],
-                  onChanged: (v) => setState(() => _marriageTimeline = v),
-                ),
-                const SizedBox(height: AppDimensions.space12),
-                _DropdownField(
-                  label: 'Willing to Relocate',
-                  value: _willingToRelocate ?? 'open_to_discussion',
-                  options: const ['yes', 'no', 'open_to_discussion'],
-                  optionLabels: const ['Yes', 'No', 'Open to Discussion'],
-                  onChanged: (v) => setState(() => _willingToRelocate = v),
-                ),
-                const SizedBox(height: AppDimensions.space28),
-
-                // Partner Preferences
-                const _SectionHeader(label: 'Partner Preferences'),
-                const SizedBox(height: AppDimensions.space12),
-                _AgeRangeField(
-                  min: _partnerAgeMin,
-                  max: _partnerAgeMax,
-                  onChanged: (lo, hi) => setState(() {
-                    _partnerAgeMin = lo;
-                    _partnerAgeMax = hi;
-                  }),
-                ),
-                const SizedBox(height: AppDimensions.space12),
-                _ToggleRow(
-                  label: 'Open to divorced',
-                  value: _openToDivorced,
-                  onChanged: (v) => setState(() => _openToDivorced = v),
-                ),
-                const SizedBox(height: AppDimensions.space12),
-                _ToggleRow(
-                  label: 'Open to widowed',
-                  value: _openToWidowed,
-                  onChanged: (v) => setState(() => _openToWidowed = v),
-                ),
-                const SizedBox(height: AppDimensions.space12),
-                _ToggleRow(
-                  label: 'Open to someone with children',
-                  value: _openToHasChildren,
-                  onChanged: (v) => setState(() => _openToHasChildren = v),
-                ),
-                const SizedBox(height: AppDimensions.space12),
-                _ToggleRow(
-                  label: 'Open to members living abroad',
-                  value: _openToDiaspora,
-                  onChanged: (v) => setState(() => _openToDiaspora = v),
-                ),
-
-                const SizedBox(height: AppDimensions.space40),
-              ],
+              ),
             ),
           ),
         );

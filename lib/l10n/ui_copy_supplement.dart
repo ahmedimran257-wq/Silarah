@@ -217,6 +217,14 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah متاح أولًا في {country}. اختاروا مدينة في {country} لرؤية التطابقات القريبة.',
     'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
         'لا توجد نتيجة في {country}. Silarah متاح حاليًا في {country} فقط، لذا ابحثوا عن مدينة هناك.',
+    'Discard changes?':
+        'تجاهل التغييرات؟',
+    'Your profile changes have not been saved yet. If you leave now, they will be lost.':
+        'لم يتم حفظ تغييرات ملفكم الشخصي بعد. إذا غادرتم الآن، ستضيع.',
+    'Keep editing':
+        'متابعة التعديل',
+    'Discard':
+        'تجاهل',
     'No previous purchases found for this account.':
         'لم يتم العثور على عمليات شراء سابقة لهذا الحساب.',
     'Not Sure': 'غير متأكد',
@@ -1116,6 +1124,14 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah প্রথমে {country}-এ চালু হয়েছে। কাছাকাছি ম্যাচ দেখতে {country}-এর একটি শহর বেছে নিন।',
     'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
         '{country}-এ কোনো মিল পাওয়া যায়নি। Silarah এখন শুধু {country}-এ চালু, তাই সেখানকার একটি শহর খুঁজুন।',
+    'Discard changes?':
+        'পরিবর্তন বাতিল করবেন?',
+    'Your profile changes have not been saved yet. If you leave now, they will be lost.':
+        'আপনার প্রোফাইলের পরিবর্তনগুলো এখনও সেভ হয়নি। এখন চলে গেলে সেগুলো হারিয়ে যাবে।',
+    'Keep editing':
+        'সম্পাদনা চালিয়ে যান',
+    'Discard':
+        'বাতিল করুন',
     'No previous purchases found for this account.':
         'এই অ্যাকাউন্টের জন্য কোনো পূর্ববর্তী কেনাকাটা পাওয়া যায়নি।',
     'Not Sure': 'নিশ্চিত নই',
@@ -2032,6 +2048,14 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah startet zuerst in {country}. Wählen Sie eine Stadt in {country}, um Matches in Ihrer Nähe zu sehen.',
     'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
         'Kein Treffer in {country}. Silarah ist vorerst nur in {country} verfügbar. Suchen Sie bitte nach einer Stadt dort.',
+    'Discard changes?':
+        'Änderungen verwerfen?',
+    'Your profile changes have not been saved yet. If you leave now, they will be lost.':
+        'Ihre Profiländerungen sind noch nicht gespeichert. Wenn Sie jetzt gehen, gehen sie verloren.',
+    'Keep editing':
+        'Weiter bearbeiten',
+    'Discard':
+        'Verwerfen',
     'No previous purchases found for this account.':
         'Für dieses Konto wurden keine früheren Käufe gefunden.',
     'Not Sure': 'Nicht sicher',
@@ -2969,6 +2993,14 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah est d’abord disponible en {country}. Choisissez une ville en {country} pour voir des profils près de chez vous.',
     'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
         'Aucun résultat en {country}. Silarah n’est disponible qu’en {country} pour le moment : recherchez une ville là-bas.',
+    'Discard changes?':
+        'Abandonner les modifications ?',
+    'Your profile changes have not been saved yet. If you leave now, they will be lost.':
+        'Les modifications de votre profil ne sont pas encore enregistrées. Si vous quittez maintenant, elles seront perdues.',
+    'Keep editing':
+        'Continuer à modifier',
+    'Discard':
+        'Abandonner',
     'No previous purchases found for this account.':
         'Aucun achat précédent trouvé pour ce compte.',
     'Not Sure': 'Pas sûr(e)',
@@ -3899,6 +3931,14 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah पहले {country} में शुरू हुआ है। आस-पास के मैच देखने के लिए {country} का कोई शहर चुनें।',
     'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
         '{country} में कोई मिलान नहीं मिला। Silarah अभी केवल {country} में उपलब्ध है, इसलिए वहाँ का कोई शहर खोजें।',
+    'Discard changes?':
+        'बदलाव छोड़ दें?',
+    'Your profile changes have not been saved yet. If you leave now, they will be lost.':
+        'आपकी प्रोफ़ाइल के बदलाव अभी सेव नहीं हुए हैं। अभी बाहर जाने पर वे खो जाएँगे।',
+    'Keep editing':
+        'बदलाव जारी रखें',
+    'Discard':
+        'छोड़ दें',
     'No previous purchases found for this account.':
         'इस खाते के लिए कोई पिछली खरीदारी नहीं मिली।',
     'Not Sure': 'पक्का नहीं',
@@ -4812,6 +4852,14 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah dibuka lebih dulu di {country}. Pilih kota di {country} untuk melihat kecocokan di dekat Anda.',
     'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
         'Tidak ada hasil di {country}. Saat ini Silarah hanya tersedia di {country}, jadi cari kota di sana.',
+    'Discard changes?':
+        'Buang perubahan?',
+    'Your profile changes have not been saved yet. If you leave now, they will be lost.':
+        'Perubahan profil Anda belum disimpan. Jika keluar sekarang, perubahan itu akan hilang.',
+    'Keep editing':
+        'Lanjutkan mengedit',
+    'Discard':
+        'Buang',
     'No previous purchases found for this account.':
         'Tidak ditemukan pembelian sebelumnya untuk akun ini.',
     'Not Sure': 'Belum Yakin',
@@ -5729,6 +5777,14 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah dibuka di {country} dahulu. Pilih bandar di {country} untuk melihat padanan berdekatan.',
     'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
         'Tiada padanan di {country}. Silarah hanya dibuka di {country} buat masa ini, jadi cari bandar di sana.',
+    'Discard changes?':
+        'Buang perubahan?',
+    'Your profile changes have not been saved yet. If you leave now, they will be lost.':
+        'Perubahan profil anda belum disimpan. Jika anda keluar sekarang, perubahan itu akan hilang.',
+    'Keep editing':
+        'Teruskan mengedit',
+    'Discard':
+        'Buang',
     'No previous purchases found for this account.':
         'Tiada pembelian terdahulu ditemui untuk akaun ini.',
     'Not Sure': 'Tidak Pasti',
@@ -6648,6 +6704,14 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah önce {country} ülkesinde açıldı. Yakınınızdaki eşleşmeleri görmek için {country} içinde bir şehir seçin.',
     'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
         '{country} içinde eşleşme yok. Silarah şimdilik yalnızca {country} ülkesinde açık, bu yüzden oradan bir şehir arayın.',
+    'Discard changes?':
+        'Değişiklikler silinsin mi?',
+    'Your profile changes have not been saved yet. If you leave now, they will be lost.':
+        'Profil değişiklikleriniz henüz kaydedilmedi. Şimdi çıkarsanız kaybolacaklar.',
+    'Keep editing':
+        'Düzenlemeye devam et',
+    'Discard':
+        'Sil',
     'No previous purchases found for this account.':
         'Bu hesap için önceki satın alma bulunamadı.',
     'Not Sure': 'Emin Değilim',
@@ -7563,6 +7627,14 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah پہلے {country} میں شروع ہوا ہے۔ قریبی میچز دیکھنے کے لیے {country} کا کوئی شہر منتخب کریں۔',
     'No match in {country}. Silarah is only open in {country} for now, so search for a city there.':
         '{country} میں کوئی نتیجہ نہیں ملا۔ Silarah فی الحال صرف {country} میں دستیاب ہے، اس لیے وہاں کا کوئی شہر تلاش کریں۔',
+    'Discard changes?':
+        'تبدیلیاں ختم کریں؟',
+    'Your profile changes have not been saved yet. If you leave now, they will be lost.':
+        'آپ کی پروفائل کی تبدیلیاں ابھی محفوظ نہیں ہوئیں۔ ابھی باہر جانے پر وہ ضائع ہو جائیں گی۔',
+    'Keep editing':
+        'ترمیم جاری رکھیں',
+    'Discard':
+        'ختم کریں',
     'No previous purchases found for this account.':
         'اس اکاؤنٹ کے لیے کوئی پچھلی خریداری نہیں ملی۔',
     'Not Sure': 'یقین نہیں',
