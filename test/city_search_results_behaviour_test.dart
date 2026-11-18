@@ -122,6 +122,51 @@ void main() {
     });
   });
 
+  testWidgets('a field just above the keyboard opens its results upwards',
+      (tester) async {
+    // On the phone the page scrolls the focused field to just above the
+    // keyboard, leaving no room below it; the list must open above.
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 3;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 780);
+    addTearDown(tester.view.reset);
+
+    await _withFeatures(
+      [
+        for (var i = 0; i < 6; i++)
+          _place(id: i, name: 'Kosigi', state: 'Andhra Pradesh', county: 'Mandal $i'),
+      ],
+      () async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              resizeToAvoidBottomInset: false,
+              body: Padding(
+                padding: const EdgeInsets.only(top: 300),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: CitySearchField(
+                    countryCode: 'IN',
+                    onSelected: (_) {},
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.enterText(find.byType(TextField), 'Kosigi');
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pumpAndSettle();
+
+        final listRect = tester.getRect(find.byType(ListView));
+        final fieldRect = tester.getRect(find.byType(TextField));
+        expect(listRect.bottom, lessThanOrEqualTo(fieldRect.top));
+        expect(listRect.top, greaterThanOrEqualTo(0));
+        expect(find.text('Mandal 0 · Andhra Pradesh'), findsOneWidget);
+      },
+    );
+  });
+
   testWidgets('results fit above the keyboard and the last one can be tapped',
       (tester) async {
     // A 360 x 640 phone with the keyboard covering the bottom 260 points,

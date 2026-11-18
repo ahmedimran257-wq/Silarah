@@ -41,6 +41,9 @@ class RegionSearchField extends StatefulWidget {
 class _RegionSearchFieldState extends State<RegionSearchField> {
   static const double _dropdownOffset = 62;
 
+  /// Below this much room under the field, the results open above it.
+  static const double _minComfortableHeight = 220;
+
   /// Shared by the field and its results overlay so scrolling the results is
   /// not treated as a tap outside the field (which closed the list).
   final Object _tapGroup = Object();
@@ -191,23 +194,32 @@ class _RegionSearchFieldState extends State<RegionSearchField> {
       builder: (overlayContext) {
         final renderBox = context.findRenderObject() as RenderBox?;
         final width = renderBox?.size.width ?? 300.0;
-        // Keep the list between the field and the keyboard, and scrollable.
+        // Keep the list between the field and the keyboard, and scrollable;
+        // open upwards when the field sits just above the keyboard.
         final media = MediaQuery.of(overlayContext);
-        final fieldTop = renderBox != null && renderBox.hasSize
-            ? renderBox.localToGlobal(Offset.zero).dy
+        final fieldBottom = renderBox != null && renderBox.hasSize
+            ? renderBox.localToGlobal(Offset(0, renderBox.size.height)).dy
             : 0.0;
-        final spaceBelow = media.size.height -
-            media.viewInsets.bottom -
-            fieldTop -
-            _dropdownOffset -
-            12;
-        final maxHeight = spaceBelow.clamp(140.0, 420.0).toDouble();
+        final inputTop = fieldBottom - _dropdownOffset;
+        final spaceBelow =
+            media.size.height - media.viewInsets.bottom - fieldBottom - 12;
+        final spaceAbove = inputTop - media.padding.top - 12;
+        final openUpwards =
+            spaceBelow < _minComfortableHeight && spaceAbove > spaceBelow;
+        final maxHeight = (openUpwards ? spaceAbove : spaceBelow)
+            .clamp(120.0, 420.0)
+            .toDouble();
         return Positioned(
           width: width,
           child: CompositedTransformFollower(
             link: _layerLink,
             showWhenUnlinked: false,
-            offset: const Offset(0, _dropdownOffset),
+            targetAnchor: Alignment.topLeft,
+            followerAnchor:
+                openUpwards ? Alignment.bottomLeft : Alignment.topLeft,
+            offset: openUpwards
+                ? const Offset(0, -6)
+                : const Offset(0, _dropdownOffset),
             child: TapRegion(
               groupId: _tapGroup,
               child: ConstrainedBox(
