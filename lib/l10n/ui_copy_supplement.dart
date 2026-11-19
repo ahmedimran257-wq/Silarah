@@ -271,6 +271,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'تظهر الرسائل هنا عندما يستطيع هذا العضو قراءتها. يحتاج الرجال إلى سيلارا بريميوم للمحادثات.',
     'Unlimited browsing, private shortlist and profile boosts':
         'تصفّح غير محدود وقائمة مختصرة خاصة وتعزيز للملف',
+    'This member declined your interest. You can send another after 30 days.':
+        'رفض هذا العضو اهتمامك. يمكنك إرسال اهتمام آخر بعد 30 يومًا.',
+    'Please remove phone numbers, emails and social media handles from your note.':
+        'يرجى إزالة أرقام الهواتف وعناوين البريد الإلكتروني وحسابات التواصل الاجتماعي من ملاحظتك.',
     'No previous purchases found for this account.':
         'لم يتم العثور على عمليات شراء سابقة لهذا الحساب.',
     'Not Sure': 'غير متأكد',
@@ -1224,6 +1228,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'এই সদস্য বার্তা পড়তে পারলে সেগুলো এখানে দেখাবে। চ্যাটের জন্য পুরুষদের Silarah প্রিমিয়াম লাগে।',
     'Unlimited browsing, private shortlist and profile boosts':
         'সীমাহীন ব্রাউজিং, ব্যক্তিগত শর্টলিস্ট ও প্রোফাইল বুস্ট',
+    'This member declined your interest. You can send another after 30 days.':
+        'এই সদস্য আপনার আগ্রহ প্রত্যাখ্যান করেছেন। 30 দিন পরে আবার পাঠাতে পারবেন।',
+    'Please remove phone numbers, emails and social media handles from your note.':
+        'আপনার নোট থেকে ফোন নম্বর, ইমেল ও সোশ্যাল মিডিয়া হ্যান্ডেল সরিয়ে দিন।',
     'No previous purchases found for this account.':
         'এই অ্যাকাউন্টের জন্য কোনো পূর্ববর্তী কেনাকাটা পাওয়া যায়নি।',
     'Not Sure': 'নিশ্চিত নই',
@@ -2194,6 +2202,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Nachrichten erscheinen hier, sobald dieses Mitglied sie lesen kann. Männer brauchen Silarah Premium für Chats.',
     'Unlimited browsing, private shortlist and profile boosts':
         'Unbegrenztes Stöbern, private Merkliste und Profil-Boosts',
+    'This member declined your interest. You can send another after 30 days.':
+        'Dieses Mitglied hat Ihr Interesse abgelehnt. Sie können nach 30 Tagen erneut eines senden.',
+    'Please remove phone numbers, emails and social media handles from your note.':
+        'Bitte entfernen Sie Telefonnummern, E-Mail-Adressen und Social-Media-Namen aus Ihrer Nachricht.',
     'No previous purchases found for this account.':
         'Für dieses Konto wurden keine früheren Käufe gefunden.',
     'Not Sure': 'Nicht sicher',
@@ -3185,6 +3197,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Les messages s\'affichent ici dès que ce membre peut les lire. Les hommes ont besoin de Silarah Premium pour discuter.',
     'Unlimited browsing, private shortlist and profile boosts':
         'Navigation illimitée, liste privée et mises en avant du profil',
+    'This member declined your interest. You can send another after 30 days.':
+        'Ce membre a décliné votre intérêt. Vous pourrez en envoyer un autre dans 30 jours.',
+    'Please remove phone numbers, emails and social media handles from your note.':
+        'Veuillez retirer les numéros de téléphone, adresses e-mail et pseudos de réseaux sociaux de votre note.',
     'No previous purchases found for this account.':
         'Aucun achat précédent trouvé pour ce compte.',
     'Not Sure': 'Pas sûr(e)',
@@ -4169,6 +4185,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'जब यह सदस्य संदेश पढ़ सकेगा, तब वे यहाँ दिखेंगे। चैट के लिए पुरुषों को Silarah प्रीमियम चाहिए।',
     'Unlimited browsing, private shortlist and profile boosts':
         'असीमित ब्राउज़िंग, निजी शॉर्टलिस्ट और प्रोफ़ाइल बूस्ट',
+    'This member declined your interest. You can send another after 30 days.':
+        'इस सदस्य ने आपकी रुचि अस्वीकार कर दी। आप 30 दिन बाद फिर भेज सकते हैं।',
+    'Please remove phone numbers, emails and social media handles from your note.':
+        'कृपया अपने नोट से फ़ोन नंबर, ईमेल और सोशल मीडिया हैंडल हटा दें।',
     'No previous purchases found for this account.':
         'इस खाते के लिए कोई पिछली खरीदारी नहीं मिली।',
     'Not Sure': 'पक्का नहीं',
@@ -5136,6 +5156,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Pesan muncul di sini setelah anggota ini dapat membacanya. Pria memerlukan Silarah Premium untuk mengobrol.',
     'Unlimited browsing, private shortlist and profile boosts':
         'Jelajah tanpa batas, daftar pilihan pribadi, dan boost profil',
+    'This member declined your interest. You can send another after 30 days.':
+        'Anggota ini menolak minat Anda. Anda dapat mengirim lagi setelah 30 hari.',
+    'Please remove phone numbers, emails and social media handles from your note.':
+        'Hapus nomor telepon, email, dan akun media sosial dari catatan Anda.',
     'No previous purchases found for this account.':
         'Tidak ditemukan pembelian sebelumnya untuk akun ini.',
     'Not Sure': 'Belum Yakin',
@@ -6107,6 +6131,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Mesej dipaparkan di sini apabila ahli ini boleh membacanya. Lelaki memerlukan Silarah Premium untuk berbual.',
     'Unlimited browsing, private shortlist and profile boosts':
         'Layari tanpa had, senarai pendek peribadi dan boost profil',
+    'This member declined your interest. You can send another after 30 days.':
+        'Ahli ini menolak minat anda. Anda boleh menghantar lagi selepas 30 hari.',
+    'Please remove phone numbers, emails and social media handles from your note.':
+        'Sila buang nombor telefon, e-mel dan akaun media sosial daripada nota anda.',
     'No previous purchases found for this account.':
         'Tiada pembelian terdahulu ditemui untuk akaun ini.',
     'Not Sure': 'Tidak Pasti',
@@ -7080,6 +7108,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Bu üye mesajları okuyabildiğinde burada görünür. Erkeklerin sohbet için Silarah Premium\'a ihtiyacı var.',
     'Unlimited browsing, private shortlist and profile boosts':
         'Sınırsız göz atma, özel kısa liste ve profil öne çıkarma',
+    'This member declined your interest. You can send another after 30 days.':
+        'Bu üye ilgini reddetti. 30 gün sonra yeniden gönderebilirsin.',
+    'Please remove phone numbers, emails and social media handles from your note.':
+        'Lütfen notundan telefon numaralarını, e-postaları ve sosyal medya hesaplarını kaldır.',
     'No previous purchases found for this account.':
         'Bu hesap için önceki satın alma bulunamadı.',
     'Not Sure': 'Emin Değilim',
@@ -8049,6 +8081,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'جب یہ رکن پیغامات پڑھ سکے گا تو وہ یہاں نظر آئیں گے۔ چیٹ کے لیے مردوں کو Silarah پریمیم چاہیے۔',
     'Unlimited browsing, private shortlist and profile boosts':
         'لامحدود براؤزنگ، نجی شارٹ لسٹ اور پروفائل بوسٹ',
+    'This member declined your interest. You can send another after 30 days.':
+        'اس رکن نے آپ کی دلچسپی رد کر دی۔ آپ 30 دن بعد دوبارہ بھیج سکتے ہیں۔',
+    'Please remove phone numbers, emails and social media handles from your note.':
+        'براہ کرم اپنے نوٹ سے فون نمبر، ای میل اور سوشل میڈیا ہینڈل ہٹا دیں۔',
     'No previous purchases found for this account.':
         'اس اکاؤنٹ کے لیے کوئی پچھلی خریداری نہیں ملی۔',
     'Not Sure': 'یقین نہیں',

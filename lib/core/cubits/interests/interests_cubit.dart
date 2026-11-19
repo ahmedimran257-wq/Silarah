@@ -105,6 +105,12 @@ class InterestsCubit extends Cubit<InterestsState> {
     if (message.contains('rematch_cooldown')) {
       return InterestSendFailure.rematchCooldown;
     }
+    if (message.contains('interest_declined_cooldown')) {
+      return InterestSendFailure.declinedCooldown;
+    }
+    if (message.contains('interest_note_blocked')) {
+      return InterestSendFailure.noteBlocked;
+    }
     if (message.contains('interest_note_too_long') ||
         message.contains('interests_note_check')) {
       return InterestSendFailure.noteTooLong;

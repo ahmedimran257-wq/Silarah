@@ -44,7 +44,11 @@ enum InterestSendFailure {
   generic(
       'Your interest could not be sent. Check your connection and try again.'),
   rematchCooldown('You can reconnect after the 7-day cooling-off period.'),
+  declinedCooldown(
+      'This member declined your interest. You can send another after 30 days.'),
   noteTooLong('Your note is too long. Please keep it to 150 characters.'),
+  noteBlocked(
+      'Please remove phone numbers, emails and social media handles from your note.'),
   alreadyConnected('You already have an interest or match with this member.'),
   profileUnavailable('This profile is unavailable right now.'),
   accountRestricted(

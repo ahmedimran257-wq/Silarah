@@ -145,6 +145,8 @@ void main() {
     test('server rejections map to a clear reason', () {
       const expected = {
         'rematch_cooldown': InterestSendFailure.rematchCooldown,
+        'interest_declined_cooldown': InterestSendFailure.declinedCooldown,
+        'interest_note_blocked': InterestSendFailure.noteBlocked,
         'interest_note_too_long': InterestSendFailure.noteTooLong,
         'new row violates check constraint "interests_note_check"':
             InterestSendFailure.noteTooLong,
