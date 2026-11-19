@@ -168,7 +168,9 @@ class NotificationsScreen extends StatelessWidget {
                       if (item.type == 'new_message') {
                         context.read<ChatCubit>().scheduleInboxReconciliation();
                       }
-                      if (item.type == 'referral_reward') {
+                      if (item.type == 'referral_reward' ||
+                          Uri.parse(path).path == '/home') {
+                        // Home links switch tabs; never stack a second Home.
                         context.go(path);
                       } else {
                         context.push(path);

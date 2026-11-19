@@ -930,16 +930,18 @@ class ProfileWriteService {
   }
 
   /// Loads profile data from Supabase for the current user to restore onboarding state.
+  ///
+  /// Returns null only when nobody is signed in. A failed read throws
+  /// [ProfileLoadException]: treating it as "no profile" once let Edit
+  /// Profile open blank and a save then overwrite the real profile.
   static Future<OnboardingData?> loadProfile() async {
     if (!_canWrite || _userId == null) return null;
 
     try {
       // 1. Fetch users row first: early onboarding data exists before profiles.
       final userId = _userId!;
-      Map<String, dynamic>? userRes;
-      try {
-        userRes = await MyAccountSnapshot.instance.user(userId);
-      } catch (_) {}
+      final Map<String, dynamic>? userRes =
+          await MyAccountSnapshot.instance.user(userId);
 
       // 2. Fetch profiles table row
       final profileRes = await MyAccountSnapshot.instance.profile(userId);
@@ -957,8 +959,8 @@ class ProfileWriteService {
 
       // 4. Construct and return OnboardingData
       return _mapDbToOnboardingData(profileRes, prefRes, userRes);
-    } catch (_) {
-      return null;
+    } catch (error) {
+      throw ProfileLoadException(error);
     }
   }
 
@@ -1470,4 +1472,15 @@ class ProfileWriteService {
       input.entries.where((e) => e.value != null),
     );
   }
+}
+
+/// The profile could not be read (offline, timeout, server error). Callers
+/// keep what they have and never treat this as an empty profile.
+class ProfileLoadException implements Exception {
+  const ProfileLoadException(this.cause);
+
+  final Object cause;
+
+  @override
+  String toString() => 'ProfileLoadException: $cause';
 }

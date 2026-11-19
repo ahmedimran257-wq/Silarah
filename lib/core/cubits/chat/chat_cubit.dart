@@ -561,36 +561,51 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  Future<void> reportMessage(
+  /// True only when the server accepted the report, so the screen never
+  /// says "reported" for a report that was not sent.
+  Future<bool> reportMessage(
     String conversationId,
     String messageId,
     String reason, {
     String? description,
   }) async {
-    if (!_isRealMode || !_conversationExists(conversationId)) return;
-    await SupabaseService.client.rpc(
-      'report_chat_message',
-      params: {
-        'p_message_id': messageId,
-        'p_reason': reason,
-        'p_description': description,
-      },
-    );
+    if (!_isRealMode || !_conversationExists(conversationId)) return false;
+    try {
+      await SupabaseService.client.rpc(
+        'report_chat_message',
+        params: {
+          'p_message_id': messageId,
+          'p_reason': reason,
+          'p_description': description,
+        },
+      );
+      return true;
+    } catch (e) {
+      debugPrint('ChatCubit: Error reporting message: $e');
+      return false;
+    }
   }
 
-  Future<void> blockUser(String conversationId, {String? reason}) async {
-    if (!_isRealMode) return;
+  /// True only when the block reached the server. A failure is reported to
+  /// the screen instead of escaping as an uncaught error.
+  Future<bool> blockUser(String conversationId, {String? reason}) async {
+    if (!_isRealMode) return false;
     final conv = _findConversation(conversationId);
     final otherUserId = conv?.otherUserId;
-    if (conv == null || otherUserId == null) return;
+    if (conv == null || otherUserId == null) return false;
 
-    await SupabaseService.client.rpc(
-      'block_chat_user',
-      params: {
-        'p_user_id': otherUserId,
-        'p_reason': reason,
-      },
-    );
+    try {
+      await SupabaseService.client.rpc(
+        'block_chat_user',
+        params: {
+          'p_user_id': otherUserId,
+          'p_reason': reason,
+        },
+      );
+    } catch (e) {
+      debugPrint('ChatCubit: Error blocking member: $e');
+      return false;
+    }
 
     final updated = state.conversations.map((c) {
       if (c.id != conversationId) return c;
@@ -601,6 +616,7 @@ class ChatCubit extends Cubit<ChatState> {
       );
     }).toList();
     emit(state.copyWith(conversations: updated));
+    return true;
   }
 
   Future<bool> closeMatch(String conversationId, String message) async {

@@ -212,6 +212,29 @@ class FcmService {
   /// Deletes the FCM token row to prevent ghost push notifications.
   Future<void> onUserLogout() async {
     _syncedRegistration = null;
+    try {
+      await _unregisterFromServer();
+    } finally {
+      // Always retire this device's token, even when the session is already
+      // gone (remote sign-out, revoked session, ban) or the server call
+      // failed: the old token stops working, so pushes for the signed-out
+      // account can never reach this phone. The next sign-in registers a
+      // fresh token.
+      await _discardDeviceToken();
+    }
+  }
+
+  Future<void> _discardDeviceToken() async {
+    _pushRegistrationFuture = null;
+    if (!_hasUsableFirebaseConfig()) return;
+    try {
+      await _messaging.deleteToken();
+    } catch (error) {
+      debugPrint('[FcmService] Device token not deleted: $error');
+    }
+  }
+
+  Future<void> _unregisterFromServer() async {
     if (!SupabaseService.isInitialized || _deviceId == null) return;
 
     final session = SupabaseService.client.auth.currentSession;

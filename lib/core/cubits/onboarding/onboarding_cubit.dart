@@ -7,6 +7,9 @@
 // Completion thresholds:
 //   Myself   → completeAt 5
 //   Guardian → completeAt 5
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/onboarding_data.dart';
@@ -28,6 +31,12 @@ class OnboardingCubit extends Cubit<OnboardingState> {
   bool _refreshInFlight = false;
   Future<void>? _initializationInFlight;
   DateTime? _lastProfileLoadAt;
+
+  /// True once this account's profile has been read from (or written to)
+  /// the server. Edit Profile's full save is refused until then, so a
+  /// failed read can never send blank fields over the real profile.
+  bool _profileLoaded = false;
+  bool get profileLoaded => _profileLoaded;
   static const _profileFreshness = Duration(minutes: 5);
 
   // Initialization
@@ -55,10 +64,23 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     OnboardingData data = const OnboardingData();
 
     // 1. Attempt to load from Supabase if real mode is enabled
-    final dbData = await ProfileWriteService.loadProfile();
+    final OnboardingData? dbData;
+    try {
+      dbData = await ProfileWriteService.loadProfile();
+    } on ProfileLoadException catch (error) {
+      // Offline or a server error: keep whatever this session already has,
+      // never move the member back a step and never clear their device
+      // copy. Screens retry the read (My Profile shows its notice).
+      debugPrint('OnboardingCubit: profile load failed: $error');
+      if (!isClosed) {
+        emit(OnboardingActive(step: _currentStep, data: currentData));
+      }
+      return;
+    }
     if (dbData != null) {
       data = dbData;
       _lastProfileLoadAt = DateTime.now();
+      _profileLoaded = true;
     } else {
       // Every resumable step is server-backed. Intimate profile, location,
       // guardian and photo data is never restored from SharedPreferences.
@@ -268,6 +290,18 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     bool locationChanged = false,
   }) async {
     final previousData = currentData;
+    if (!_profileLoaded) {
+      // Never write a profile this session has not read: the fields would
+      // be blanks and overwrite the member's real answers.
+      emit(OnboardingError(
+        step: _currentStep,
+        data: previousData,
+        message:
+            'Your profile has not finished loading. Check your connection and try again.',
+      ));
+      unawaited(refreshProfileFromDb(force: true).catchError((_) {}));
+      return false;
+    }
     final savedData = await ProfileWriteService.saveFullProfile(
       data,
       locationChanged: locationChanged,
@@ -295,10 +329,12 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     }
     _refreshInFlight = true;
     try {
+      // A failed read throws (ProfileLoadException) so the caller can say so.
       final dbData = await ProfileWriteService.loadProfile();
       if (dbData == null) return;
       await _persistLocalCache(dbData);
       _lastProfileLoadAt = DateTime.now();
+      _profileLoaded = true;
       emit(OnboardingActive(step: _currentStep, data: dbData));
     } finally {
       _refreshInFlight = false;
@@ -341,6 +377,17 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     // Deliberately memory-only. Supabase is the resume source and callers keep
     // [data] in Cubit state for the current process.
     await clearSensitiveDeviceState(userId: _authenticatedUserId);
+  }
+
+  /// Forgets everything about the signed-out account, so the next account on
+  /// this phone never sees (or saves) the previous member's profile.
+  void reset() {
+    _profileLoaded = false;
+    _lastProfileLoadAt = null;
+    _initializationInFlight = null;
+    _saveInFlight = false;
+    _refreshInFlight = false;
+    if (!isClosed) emit(const OnboardingInitial());
   }
 
   static Future<void> clearSensitiveDeviceState({String? userId}) async {

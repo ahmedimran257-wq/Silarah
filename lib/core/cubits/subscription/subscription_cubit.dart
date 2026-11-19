@@ -85,6 +85,13 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
       await SubscriptionService.instance.initialize(userId: userId);
     } catch (e) {
       debugPrint('[SubscriptionCubit] RevenueCat login error: $e');
+      // Store sign-in failed, but prices do not depend on the identity. Load
+      // them anyway (or mark them unavailable with a retry) so the Premium
+      // screen never waits on a spinner forever. No subscriber attributes
+      // are written: the store identity is not this member's yet.
+      if (_isCurrentSession(generation)) {
+        unawaited(SubscriptionService.instance.retryPricing());
+      }
     }
 
     // Supabase is authoritative for promotional grants. This runs even when

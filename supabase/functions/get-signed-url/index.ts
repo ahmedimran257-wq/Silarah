@@ -571,6 +571,17 @@ async function flagSuspiciousUser(
     const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
+    // One alert per member per hour: a looping client used to add a staff
+    // notification on every rejected request.
+    const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { data: recent } = await adminClient
+      .from("admin_notifications")
+      .select("id")
+      .eq("type", "suspicious_activity")
+      .eq("related_user_id", userId)
+      .gte("created_at", since)
+      .limit(1);
+    if (recent && recent.length > 0) return;
     await adminClient.from("admin_notifications").insert({
       type: "suspicious_activity",
       message: `User ${userId} flagged: ${reason}`,

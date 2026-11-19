@@ -205,8 +205,14 @@ class _InterestsScreenState extends State<InterestsScreen>
     );
   }
 
+  /// Accept and Decline on the same card share one guard, so a quick
+  /// Accept-then-Decline never sends both and reports a false failure.
+  bool _isResponding(String interestId) =>
+      _acceptingInterestIds.contains(interestId) ||
+      _processingInterestIds.contains(interestId);
+
   Future<void> _acceptInterest(InterestEntry entry) async {
-    if (_acceptingInterestIds.contains(entry.id)) return;
+    if (_isResponding(entry.id)) return;
     setState(() => _acceptingInterestIds.add(entry.id));
     final accepted =
         await context.read<InterestsCubit>().acceptInterest(entry.id);
@@ -226,7 +232,7 @@ class _InterestsScreenState extends State<InterestsScreen>
   }
 
   Future<void> _declineInterest(InterestEntry entry) async {
-    if (_processingInterestIds.contains(entry.id)) return;
+    if (_isResponding(entry.id)) return;
     setState(() => _processingInterestIds.add(entry.id));
     final declined =
         await context.read<InterestsCubit>().declineInterest(entry.id);

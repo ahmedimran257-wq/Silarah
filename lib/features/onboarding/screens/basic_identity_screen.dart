@@ -470,7 +470,10 @@ class _BasicIdentityScreenState extends State<BasicIdentityScreen> {
   }
 
   int _calcAge(DateTime dob) {
-    final now = DateTime.now();
+    // The server checks age against today's date in UTC. Using the same date
+    // here keeps an 18th birthday from passing on the phone and then failing
+    // to save with a generic error near midnight.
+    final now = DateTime.now().toUtc();
     int years = now.year - dob.year;
     if (now.month < dob.month ||
         (now.month == dob.month && now.day < dob.day)) {
@@ -681,6 +684,7 @@ class _BasicIdentityScreenState extends State<BasicIdentityScreen> {
                   Expanded(
                     child: SilarahTextField(
                       controller: _firstNameCtrl,
+                      maxLength: 40,
                       label: _isGuardianMode
                           ? l10n.onboarding_label_firstName_guardian
                           : l10n.onboarding_label_firstName_self,
@@ -693,6 +697,7 @@ class _BasicIdentityScreenState extends State<BasicIdentityScreen> {
                   Expanded(
                     child: SilarahTextField(
                       controller: _lastNameCtrl,
+                      maxLength: 40,
                       label: l10n.onboarding_label_lastName,
                       textCapitalization: TextCapitalization.words,
                       textInputAction: TextInputAction.next,

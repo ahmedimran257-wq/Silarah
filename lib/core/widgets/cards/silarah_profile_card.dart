@@ -885,7 +885,10 @@ class _LastActivePill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isOnline = label == 'Online now';
+    // The label arrives translated, so compare with the translated text too;
+    // otherwise the green dot only ever showed in English.
+    final isOnline =
+        label == 'Online now' || label == context.uiCopy('Online now');
     final activeColor = isOnline
         ? AppColors.onlineGreen
         : AppColors.onMedia.withValues(alpha: 0.58);

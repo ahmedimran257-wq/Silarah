@@ -776,7 +776,9 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
       // FCM was suspended in the background. A full interests reload still
       // happens only when the server token changed.
       unawaited(_interestsCubit.refreshIfChanged(forceCheck: true));
-      unawaited(_onboardingCubit.refreshProfileFromDb());
+      unawaited(_onboardingCubit.refreshProfileFromDb().catchError((Object error) {
+        debugPrint('Resume profile refresh failed: $error');
+      }));
       unawaited(_chatCubit.refreshIfChanged());
     }
   }
@@ -807,6 +809,19 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
       '${value.status.name}|${value.source.name}|'
       '${value.expiresAt?.toUtc().millisecondsSinceEpoch ?? 0}';
 
+  /// Device-wide keys that belong to whoever was signed in. The next account
+  /// on this phone takes its country from the server and must not inherit a
+  /// pending guardian invitation.
+  Future<void> _clearDeviceAccountKeys() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_country_code');
+      await prefs.remove(WaliModeService.pendingInvitationKey);
+    } catch (error) {
+      debugPrint('Device account keys not cleared: $error');
+    }
+  }
+
   Future<void> _reconcileEntitlementDependents() async {
     await Future.wait<void>([
       _interestsCubit.refreshQuota(),
@@ -825,6 +840,10 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
     IncognitoService.instance.clearCache();
     ShortlistService.instance.clearCache();
     ReferralService.instance.clearCache();
+    // The previous account's profile must never reach the next account on
+    // this phone (it could be shown, or saved over the new profile).
+    _onboardingCubit.reset();
+    unawaited(_clearDeviceAccountKeys());
     _chatCubit.clear();
     _notificationsCubit.clear();
     _notificationPrefsCubit.clear();
@@ -882,7 +901,13 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
     if (_opensChat(path)) {
       _chatCubit.scheduleInboxReconciliation();
     }
-    _router.push(path);
+    // Home links switch tabs on the existing Home instead of stacking a
+    // second Home on top of it.
+    if (Uri.parse(path).path == '/home') {
+      _router.go(path);
+    } else {
+      _router.push(path);
+    }
   }
 
   @override
@@ -947,6 +972,10 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
                 _activeSessionUserId = null;
                 _onboardingPublicationSyncedUserId = null;
                 PresenceService.instance.stop();
+                // Every sign-out reaches here, including remote ones (session
+                // revoked, ban, deletion on another device), so this phone's
+                // push token is always retired for the departing account.
+                unawaited(FcmService.instance.onUserLogout());
                 _clearUserScopedState(
                   departingUserId: departingUserId,
                   logoutStoreIdentity: true,

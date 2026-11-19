@@ -82,8 +82,38 @@ Deno.serve(async (req) => {
     const userId = authData.user?.id;
     if (authError || !userId) return json(401, { error: "unauthorized" });
 
+    // Banned or deleted accounts cannot use the shared location service.
+    const { data: account } = await admin
+      .from("users")
+      .select("is_banned, deleted_at")
+      .eq("id", userId)
+      .maybeSingle();
+    if (account && (account.is_banned === true || account.deleted_at != null)) {
+      return json(403, { error: "account_unavailable" });
+    }
+
     const payload = await req.json() as SearchPayload;
     if (payload.mode === "resolve") {
+      // Each resolve may create a catalogue city; keep it to human pace.
+      const resolveLimit = await consumeDistributedRateLimit(admin, {
+        scope: "location_resolve",
+        subject: userId,
+        maxRequests: 30,
+        windowSeconds: 60,
+      });
+      if (!resolveLimit.allowed) {
+        return new Response(
+          JSON.stringify({ error: "location_search_limited" }),
+          {
+            status: 429,
+            headers: {
+              ...corsHeaders,
+              ...rateLimitHeaders(resolveLimit),
+              "Content-Type": "application/json",
+            },
+          },
+        );
+      }
       if (!LOCATION_RESULT_SIGNING_SECRET) {
         return json(503, { error: "location_resolution_unavailable" });
       }
@@ -128,12 +158,23 @@ Deno.serve(async (req) => {
       return json(400, { error: "invalid_location_query" });
     }
 
-    const rateLimit = await consumeDistributedRateLimit(admin, {
+    // Typing a city sends a few searches a minute; these limits keep one
+    // account from hammering the free public Photon service (which could
+    // block Supabase's shared addresses for every member).
+    let rateLimit = await consumeDistributedRateLimit(admin, {
       scope: "location_search",
       subject: userId,
-      maxRequests: 60,
+      maxRequests: 30,
       windowSeconds: 60,
     });
+    if (rateLimit.allowed) {
+      rateLimit = await consumeDistributedRateLimit(admin, {
+        scope: "location_search_daily",
+        subject: userId,
+        maxRequests: 600,
+        windowSeconds: 86400,
+      });
+    }
     if (!rateLimit.allowed) {
       return new Response(
         JSON.stringify({ error: "location_search_limited" }),

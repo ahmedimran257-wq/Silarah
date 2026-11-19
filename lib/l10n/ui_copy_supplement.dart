@@ -275,6 +275,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'رفض هذا العضو اهتمامك. يمكنك إرسال اهتمام آخر بعد 30 يومًا.',
     'Please remove phone numbers, emails and social media handles from your note.':
         'يرجى إزالة أرقام الهواتف وعناوين البريد الإلكتروني وحسابات التواصل الاجتماعي من ملاحظتك.',
+    'We could not open this chat':
+        'تعذّر فتح هذه المحادثة',
+    'We could not send this report. Please try again.':
+        'تعذّر إرسال هذا البلاغ. حاول مرة أخرى.',
+    'Your profile has not finished loading. Check your connection and try again.':
+        'لم يكتمل تحميل ملفك الشخصي. تحقق من اتصالك وحاول مرة أخرى.',
     'No previous purchases found for this account.':
         'لم يتم العثور على عمليات شراء سابقة لهذا الحساب.',
     'Not Sure': 'غير متأكد',
@@ -1232,6 +1238,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'এই সদস্য আপনার আগ্রহ প্রত্যাখ্যান করেছেন। 30 দিন পরে আবার পাঠাতে পারবেন।',
     'Please remove phone numbers, emails and social media handles from your note.':
         'আপনার নোট থেকে ফোন নম্বর, ইমেল ও সোশ্যাল মিডিয়া হ্যান্ডেল সরিয়ে দিন।',
+    'We could not open this chat':
+        'এই চ্যাটটি খোলা যায়নি',
+    'We could not send this report. Please try again.':
+        'এই রিপোর্ট পাঠানো যায়নি। আবার চেষ্টা করুন।',
+    'Your profile has not finished loading. Check your connection and try again.':
+        'আপনার প্রোফাইল এখনও লোড হয়নি। আপনার সংযোগ দেখে আবার চেষ্টা করুন।',
     'No previous purchases found for this account.':
         'এই অ্যাকাউন্টের জন্য কোনো পূর্ববর্তী কেনাকাটা পাওয়া যায়নি।',
     'Not Sure': 'নিশ্চিত নই',
@@ -2206,6 +2218,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Dieses Mitglied hat Ihr Interesse abgelehnt. Sie können nach 30 Tagen erneut eines senden.',
     'Please remove phone numbers, emails and social media handles from your note.':
         'Bitte entfernen Sie Telefonnummern, E-Mail-Adressen und Social-Media-Namen aus Ihrer Nachricht.',
+    'We could not open this chat':
+        'Dieser Chat konnte nicht geöffnet werden',
+    'We could not send this report. Please try again.':
+        'Diese Meldung konnte nicht gesendet werden. Bitte versuchen Sie es erneut.',
+    'Your profile has not finished loading. Check your connection and try again.':
+        'Ihr Profil ist noch nicht geladen. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
     'No previous purchases found for this account.':
         'Für dieses Konto wurden keine früheren Käufe gefunden.',
     'Not Sure': 'Nicht sicher',
@@ -3201,6 +3219,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Ce membre a décliné votre intérêt. Vous pourrez en envoyer un autre dans 30 jours.',
     'Please remove phone numbers, emails and social media handles from your note.':
         'Veuillez retirer les numéros de téléphone, adresses e-mail et pseudos de réseaux sociaux de votre note.',
+    'We could not open this chat':
+        'Impossible d\'ouvrir cette conversation',
+    'We could not send this report. Please try again.':
+        'Impossible d\'envoyer ce signalement. Veuillez réessayer.',
+    'Your profile has not finished loading. Check your connection and try again.':
+        'Votre profil n\'est pas encore chargé. Vérifiez votre connexion et réessayez.',
     'No previous purchases found for this account.':
         'Aucun achat précédent trouvé pour ce compte.',
     'Not Sure': 'Pas sûr(e)',
@@ -4189,6 +4213,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'इस सदस्य ने आपकी रुचि अस्वीकार कर दी। आप 30 दिन बाद फिर भेज सकते हैं।',
     'Please remove phone numbers, emails and social media handles from your note.':
         'कृपया अपने नोट से फ़ोन नंबर, ईमेल और सोशल मीडिया हैंडल हटा दें।',
+    'We could not open this chat':
+        'यह चैट नहीं खुल सकी',
+    'We could not send this report. Please try again.':
+        'यह रिपोर्ट नहीं भेजी जा सकी। कृपया फिर कोशिश करें।',
+    'Your profile has not finished loading. Check your connection and try again.':
+        'आपकी प्रोफ़ाइल अभी लोड नहीं हुई है। अपना कनेक्शन जाँचें और फिर कोशिश करें।',
     'No previous purchases found for this account.':
         'इस खाते के लिए कोई पिछली खरीदारी नहीं मिली।',
     'Not Sure': 'पक्का नहीं',
@@ -5160,6 +5190,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Anggota ini menolak minat Anda. Anda dapat mengirim lagi setelah 30 hari.',
     'Please remove phone numbers, emails and social media handles from your note.':
         'Hapus nomor telepon, email, dan akun media sosial dari catatan Anda.',
+    'We could not open this chat':
+        'Obrolan ini tidak dapat dibuka',
+    'We could not send this report. Please try again.':
+        'Laporan ini tidak dapat dikirim. Silakan coba lagi.',
+    'Your profile has not finished loading. Check your connection and try again.':
+        'Profil Anda belum selesai dimuat. Periksa koneksi Anda dan coba lagi.',
     'No previous purchases found for this account.':
         'Tidak ditemukan pembelian sebelumnya untuk akun ini.',
     'Not Sure': 'Belum Yakin',
@@ -6135,6 +6171,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Ahli ini menolak minat anda. Anda boleh menghantar lagi selepas 30 hari.',
     'Please remove phone numbers, emails and social media handles from your note.':
         'Sila buang nombor telefon, e-mel dan akaun media sosial daripada nota anda.',
+    'We could not open this chat':
+        'Sembang ini tidak dapat dibuka',
+    'We could not send this report. Please try again.':
+        'Laporan ini tidak dapat dihantar. Sila cuba lagi.',
+    'Your profile has not finished loading. Check your connection and try again.':
+        'Profil anda belum selesai dimuatkan. Semak sambungan anda dan cuba lagi.',
     'No previous purchases found for this account.':
         'Tiada pembelian terdahulu ditemui untuk akaun ini.',
     'Not Sure': 'Tidak Pasti',
@@ -7112,6 +7154,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Bu üye ilgini reddetti. 30 gün sonra yeniden gönderebilirsin.',
     'Please remove phone numbers, emails and social media handles from your note.':
         'Lütfen notundan telefon numaralarını, e-postaları ve sosyal medya hesaplarını kaldır.',
+    'We could not open this chat':
+        'Bu sohbet açılamadı',
+    'We could not send this report. Please try again.':
+        'Bu bildirim gönderilemedi. Lütfen tekrar dene.',
+    'Your profile has not finished loading. Check your connection and try again.':
+        'Profilin henüz yüklenmedi. Bağlantını kontrol edip tekrar dene.',
     'No previous purchases found for this account.':
         'Bu hesap için önceki satın alma bulunamadı.',
     'Not Sure': 'Emin Değilim',
@@ -8085,6 +8133,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'اس رکن نے آپ کی دلچسپی رد کر دی۔ آپ 30 دن بعد دوبارہ بھیج سکتے ہیں۔',
     'Please remove phone numbers, emails and social media handles from your note.':
         'براہ کرم اپنے نوٹ سے فون نمبر، ای میل اور سوشل میڈیا ہینڈل ہٹا دیں۔',
+    'We could not open this chat':
+        'یہ چیٹ نہیں کھل سکی',
+    'We could not send this report. Please try again.':
+        'یہ رپورٹ نہیں بھیجی جا سکی۔ براہ کرم دوبارہ کوشش کریں۔',
+    'Your profile has not finished loading. Check your connection and try again.':
+        'آپ کی پروفائل ابھی لوڈ نہیں ہوئی۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔',
     'No previous purchases found for this account.':
         'اس اکاؤنٹ کے لیے کوئی پچھلی خریداری نہیں ملی۔',
     'Not Sure': 'یقین نہیں',

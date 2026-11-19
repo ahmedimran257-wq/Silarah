@@ -19,8 +19,10 @@ class PolicyReminderService {
 
   static final instance = PolicyReminderService._();
 
+  // Per account: after one member acknowledges, the next account on this
+  // phone must still be reminded.
   static String get _nextCheckKey =>
-      'policy_reminder_next_check_${LegalDocuments.version}';
+      'policy_reminder_next_check_${LegalDocuments.version}_${SupabaseService.currentUserId ?? 'signed_out'}';
 
   Future<PolicyReminderState> getState() async {
     if (!SupabaseService.isInitialized ||

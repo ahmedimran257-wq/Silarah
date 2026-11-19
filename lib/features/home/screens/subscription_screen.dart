@@ -82,6 +82,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
 
     if (pricing != null && mounted) {
       setState(() => _pricing = pricing);
+    } else if (pricing == null) {
+      // Nothing loaded yet (the store sign-in may have failed): ask now
+      // instead of showing the loading card until the app is reopened.
+      unawaited(service.retryPricing());
     }
 
     // Listen for pricing updates (e.g., retry succeeds)

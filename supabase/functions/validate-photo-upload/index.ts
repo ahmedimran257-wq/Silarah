@@ -50,6 +50,16 @@ Deno.serve(async (req: Request) => {
     const userId = authData.user?.id;
     if (authError || !userId) return json(401, { error: "unauthorized" });
 
+    // Banned or deleted accounts cannot publish photos.
+    const { data: account } = await admin
+      .from("users")
+      .select("is_banned, deleted_at")
+      .eq("id", userId)
+      .maybeSingle();
+    if (account && (account.is_banned === true || account.deleted_at != null)) {
+      return json(403, { error: "account_unavailable" });
+    }
+
     const payload = await req.json() as ValidationPayload;
     const storagePath = String(payload.storage_path ?? "");
     if (

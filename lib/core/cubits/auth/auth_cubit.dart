@@ -198,9 +198,8 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> _emitAuthenticatedFromSession(Session session) async {
     final userId = session.user.id;
 
-    final prefs = await SharedPreferences.getInstance();
-    final countryCode = prefs.getString('user_country_code');
     final authData = await _loadUserProfile(userId);
+    final countryCode = await _syncDeviceCountry(authData);
     final guardianInvitationPending =
         await WaliModeService.instance.pendingInvitation() != null;
     final onboardingStep = _returningUserStep(authData);
@@ -385,9 +384,8 @@ class AuthCubit extends Cubit<AuthState> {
         }
         await _applyPendingReferral();
 
-        final prefs = await SharedPreferences.getInstance();
-        final countryCode = prefs.getString('user_country_code');
         final authData = await _loadUserProfile(user.id);
+        final countryCode = await _syncDeviceCountry(authData);
         final guardianInvitationPending =
             await WaliModeService.instance.pendingInvitation() != null;
         if (requestId != _verifyOtpRequestId) return;
@@ -789,6 +787,19 @@ class AuthCubit extends Cubit<AuthState> {
     return 'Authentication failed. Please try again.';
   }
 
+  /// The signed-in account's country: the server's value wins, and the
+  /// device copy is updated to it, so a country picked or used by someone
+  /// else on this phone never follows the next account.
+  Future<String?> _syncDeviceCountry(_UserProfileData authData) async {
+    final prefs = await SharedPreferences.getInstance();
+    final serverCountry = authData.countryCode;
+    if (serverCountry != null) {
+      await prefs.setString('user_country_code', serverCountry);
+      return serverCountry;
+    }
+    return prefs.getString('user_country_code');
+  }
+
   Future<_UserProfileData> _loadUserProfile(String userId) async {
     String? gender;
     int onboardingStep = 0;
@@ -797,6 +808,7 @@ class AuthCubit extends Cubit<AuthState> {
     bool hasUserRow = false;
     bool hasProfileRow = false;
     String accountRole = 'member';
+    String? countryCode;
 
     try {
       // The two rows are independent, so they load together. Billing, chat
@@ -841,6 +853,10 @@ class AuthCubit extends Cubit<AuthState> {
             (userRow['profile_owner_type'] as String?) == 'guardian';
         onboardingCompleted = userRow['onboarding_completed'] as bool? ?? false;
         accountRole = userRow['account_role'] as String? ?? 'member';
+        final serverCountry =
+            (userRow['country_code'] as String?)?.trim().toUpperCase();
+        countryCode =
+            serverCountry == null || serverCountry.isEmpty ? null : serverCountry;
       }
 
       final profileRow = await profileLoad;
@@ -866,6 +882,7 @@ class AuthCubit extends Cubit<AuthState> {
     }
 
     return _UserProfileData(
+      countryCode: countryCode,
       gender: gender,
       onboardingStep: onboardingStep,
       isGuardianPath: isGuardianPath,
@@ -968,9 +985,13 @@ class _UserProfileData {
     required this.hasProfileRow,
     required this.onboardingCompleted,
     required this.accountRole,
+    this.countryCode,
   });
 
   final String? gender;
+  /// The account's own country from the server. The device copy in
+  /// SharedPreferences may belong to whoever used this phone before.
+  final String? countryCode;
   final int onboardingStep;
   final bool isGuardianPath;
   final bool hasUserRow;

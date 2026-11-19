@@ -1283,7 +1283,7 @@ class _PhotoSlot extends StatelessWidget {
                         moderation?.decision == PhotoModerationDecision.flagged
                             ? Icons.policy_outlined
                             : Icons.shield_outlined,
-                        color: Colors.white,
+                        color: _badgeForeground(moderation),
                         size: 12,
                       ),
                       const SizedBox(width: 4),
@@ -1292,7 +1292,7 @@ class _PhotoSlot extends StatelessWidget {
                             ? 'Review required'
                             : 'Content checked',
                         style: AppTypography.caption.copyWith(
-                          color: Colors.white,
+                          color: _badgeForeground(moderation),
                           fontSize: 10,
                         ),
                       ),
@@ -1338,6 +1338,15 @@ class _PhotoSlot extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Text on the moderation badge: picked for contrast with its background in
+/// every theme (white on the light OLED accent was unreadable).
+Color _badgeForeground(PhotoModerationResult? moderation) {
+  final background = moderation?.decision == PhotoModerationDecision.flagged
+      ? AppColors.champagneGold
+      : AppColors.verifiedTeal;
+  return AppColors.readableOn(background);
 }
 
 class _EmptySlot extends StatelessWidget {

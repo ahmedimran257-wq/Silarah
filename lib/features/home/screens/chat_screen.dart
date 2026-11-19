@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/cubits/chat/chat_cubit.dart';
 import '../../../core/cubits/chat/chat_state.dart';
 import '../../../core/cubits/discovery/discovery_feed_cubit.dart';
+import '../../../core/cubits/block_report/block_report_cubit.dart';
 import '../../../core/cubits/interests/interests_cubit.dart';
 import '../../../core/cubits/notifications/notifications_cubit.dart';
 import '../../../core/cubits/subscription/subscription_cubit.dart';
@@ -29,6 +30,7 @@ import '../../../core/widgets/loaders/silarah_blur_image.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
 import '../../../core/widgets/overlays/silarah_dialog.dart';
+import '../../../core/widgets/silarah_empty_state.dart';
 import 'paywall_gate_screen.dart';
 import 'profile_route_screen.dart';
 
@@ -77,6 +79,11 @@ class _ChatScreenState extends State<ChatScreen>
   ChatAccessDecision? _accessDecision;
   bool _profileOpening = false;
   int _openGeneration = 0;
+
+  /// Access was allowed but the conversation could not be loaded (network,
+  /// or it is outside the loaded inbox). Shown with Retry instead of an
+  /// endless "Opening chat" loader.
+  bool _conversationMissing = false;
   StreamSubscription<NotificationsState>? _notificationsSubscription;
 
   // A store purchase reaches the server through the RevenueCat webhook a few
@@ -161,6 +168,15 @@ class _ChatScreenState extends State<ChatScreen>
     }
     _activationAttempts = 0;
     if (!decision.allowed) return;
+    if (!_hasConversation(conversationId)) {
+      await _chatCubit.loadConversations(showLoading: false, force: true);
+      if (!mounted || generation != _openGeneration) return;
+    }
+    if (!_hasConversation(conversationId)) {
+      setState(() => _conversationMissing = true);
+      return;
+    }
+    if (_conversationMissing) setState(() => _conversationMissing = false);
     await _chatCubit.loadMessages(conversationId, activate: true);
     if (!mounted || generation != _openGeneration) return;
     await _chatCubit.markRead(conversationId);
@@ -184,6 +200,9 @@ class _ChatScreenState extends State<ChatScreen>
     _scrollToBottom();
     await _loadOpenersDismissed();
   }
+
+  bool _hasConversation(String conversationId) => _chatCubit.state.conversations
+      .any((conversation) => conversation.id == conversationId);
 
   void _scheduleActivationRetry() {
     if (_activationSlow) return;
@@ -423,12 +442,27 @@ class _ChatScreenState extends State<ChatScreen>
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await context.read<ChatCubit>().blockUser(
+              final blockReport = context.read<BlockReportCubit>();
+              final interests = context.read<InterestsCubit>();
+              final blocked = await context.read<ChatCubit>().blockUser(
                     widget.conversationId,
                     reason: 'blocked_from_chat',
                   );
               if (!context.mounted) return;
-              Navigator.maybePop(context);
+              if (!blocked) {
+                ScaffoldMessenger.of(context)
+                  ..clearSnackBars()
+                  ..showSnackBar(SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    content: UiText(context.uiCopy(
+                        'We could not block this member. Please try again.')),
+                  ));
+                return;
+              }
+              // Hide the member everywhere else straight away.
+              unawaited(blockReport.loadData(force: true));
+              unawaited(interests.refreshIfChanged(forceCheck: true));
+              _close();
             },
             child: UiText(
               context.uiCopy('Block'),
@@ -494,7 +528,7 @@ class _ChatScreenState extends State<ChatScreen>
       builder: (_) => _ReportMessageSheet(
         onReport: (reason) async {
           Navigator.pop(context);
-          await context.read<ChatCubit>().reportMessage(
+          final reported = await context.read<ChatCubit>().reportMessage(
                 widget.conversationId,
                 message.id,
                 reason,
@@ -502,8 +536,9 @@ class _ChatScreenState extends State<ChatScreen>
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content:
-                    UiText(context.uiCopy('Message reported for review.'))),
+                content: UiText(context.uiCopy(reported
+                    ? 'Message reported for review.'
+                    : 'We could not send this report. Please try again.'))),
           );
         },
       ),
@@ -568,6 +603,32 @@ class _ChatScreenState extends State<ChatScreen>
             .where((c) => c.id == widget.conversationId)
             .firstOrNull;
 
+        if (conv == null && _conversationMissing) {
+          return Scaffold(
+            backgroundColor: AppColors.obsidianNight,
+            appBar: AppBar(
+              backgroundColor: AppColors.obsidianNight,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                tooltip: context.uiCopy('Back'),
+                icon: const BackButtonIcon(),
+                color: AppColors.pearlWhite,
+                onPressed: _close,
+              ),
+            ),
+            body: SilarahEmptyState(
+              visual: SilarahEmptyVisual.connection,
+              title: 'We could not open this chat',
+              subtitle: 'Check your connection and try again.',
+              ctaLabel: 'Try again',
+              onCta: () {
+                setState(() => _conversationMissing = false);
+                unawaited(_authorizeAndOpen());
+              },
+            ),
+          );
+        }
         if (conv == null) {
           return Scaffold(
             backgroundColor: AppColors.obsidianNight,
@@ -1959,8 +2020,22 @@ class _InputBarState extends State<_InputBar> {
             child: TextField(
               controller: widget.controller,
               focusNode: _focusNode,
-              maxLines: null,
+              // The server accepts 2000 characters; longer text used to fail
+              // on every retry. The box stops growing after six lines.
+              maxLines: 6,
               minLines: 1,
+              maxLength: 2000,
+              maxLengthEnforcement: MaxLengthEnforcement.enforced,
+              buildCounter: (context,
+                      {required currentLength,
+                      required isFocused,
+                      maxLength}) =>
+                  currentLength > 1800
+                      ? UiText.verbatim(
+                          '$currentLength / ${maxLength ?? 2000}',
+                          style: AppTypography.caption,
+                        )
+                      : null,
               cursorColor: AppColors.champagneGold,
               keyboardAppearance: Brightness.dark,
               textCapitalization: TextCapitalization.sentences,

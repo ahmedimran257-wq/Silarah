@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/cubits/auth/auth_cubit.dart';
+import '../../../core/utils/content_filter.dart';
 import '../../../core/cubits/discovery/discovery_feed_cubit.dart';
 import '../../../core/cubits/onboarding/onboarding_cubit.dart';
 import '../../../core/cubits/onboarding/onboarding_state.dart';
@@ -308,6 +309,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _showSaveError('First and last name are required.');
       return;
     }
+    // Contact details belong in chat after a match, never on the profile
+    // (they would get around the messaging rules). The server checks too.
+    for (final text in [
+      firstName,
+      lastName,
+      _professionCtrl.text.trim(),
+      _bioCtrl.text.trim(),
+    ]) {
+      final problem = ContentFilter.validate(text);
+      if (problem != null) {
+        _showSaveError(problem);
+        return;
+      }
+    }
     if (_locationChanged && _selectedCity == null) {
       _showSaveError('Select a city from the verified search results.');
       return;
@@ -524,8 +539,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       );
                       if (saved == true && mounted) {
-                        await onboardingCubit.refreshProfileFromDb(force: true);
-                        setState(() {});
+                        try {
+                          await onboardingCubit.refreshProfileFromDb(
+                              force: true);
+                        } catch (_) {
+                          // The photos were saved; the next refresh shows them.
+                        }
+                        if (mounted) setState(() {});
                       }
                     },
                   ),
@@ -537,12 +557,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   _SilarahTextField(
                     label: 'First name',
                     controller: _firstNameCtrl,
+                    maxLength: 40,
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: AppDimensions.space12),
                   _SilarahTextField(
                     label: 'Last name',
                     controller: _lastNameCtrl,
+                    maxLength: 40,
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: AppDimensions.space24),
@@ -678,6 +700,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     label: 'Profession',
                     hint: 'e.g. Software Engineer',
                     controller: _professionCtrl,
+                    maxLength: 80,
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: AppDimensions.space28),
