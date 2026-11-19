@@ -611,9 +611,17 @@ class ProfileMembershipStrip extends StatelessWidget {
 
 /// The invitation to Premium shown to members who have not subscribed.
 class ProfilePremiumInvite extends StatelessWidget {
-  const ProfilePremiumInvite({super.key, required this.onTap});
+  const ProfilePremiumInvite({
+    super.key,
+    required this.onTap,
+    this.freeMessaging = false,
+  });
 
   final VoidCallback onTap;
+
+  /// Women message free, so their invitation names what Premium adds for
+  /// them instead of messaging.
+  final bool freeMessaging;
 
   @override
   Widget build(BuildContext context) {
@@ -695,8 +703,9 @@ class ProfilePremiumInvite extends StatelessWidget {
                           ),
                           const SizedBox(height: AppDimensions.space4),
                           UiText(
-                            context
-                                .uiCopy('Unlock messaging and profile boosts'),
+                            freeMessaging
+                                ? 'Unlimited browsing, private shortlist and profile boosts'
+                                : 'Unlock messaging and profile boosts',
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: AppTypography.userName.copyWith(

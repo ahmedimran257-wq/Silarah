@@ -97,6 +97,41 @@ class AuthorizedProfileService {
         }
       }
     }
+    await _addRelationshipContext(mappedRows);
     return mappedRows.map(mapDbRowToDiscoveryProfile).toList(growable: false);
+  }
+
+  /// Past-match history and rematch cooldown, the same enrichment Discover
+  /// cards get. Without it a profile opened from Saved or Viewed profiles
+  /// offered "Send interest" during a rematch cooldown that the server then
+  /// refused. Optional: a failure leaves the profiles as they are.
+  static Future<void> _addRelationshipContext(
+    List<Map<String, dynamic>> rows,
+  ) async {
+    final userIds = rows
+        .map((row) => row['user_id']?.toString())
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+    if (userIds.isEmpty) return;
+    try {
+      final response = await SupabaseService.client.rpc(
+        'get_prior_match_context',
+        params: {'p_candidate_user_ids': userIds},
+      );
+      if (response is! List) return;
+      final byUser = <String, Map<String, dynamic>>{
+        for (final raw in response.whereType<Map>())
+          if (raw['candidate_user_id'] != null)
+            raw['candidate_user_id'].toString(): Map<String, dynamic>.from(raw),
+      };
+      for (final row in rows) {
+        final prior = byUser[row['user_id']?.toString()];
+        if (prior != null) row.addAll(prior);
+      }
+    } catch (error) {
+      debugPrint('[AuthorizedProfileService] relationship context skipped: $error');
+    }
   }
 }

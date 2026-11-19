@@ -95,10 +95,11 @@ void main() {
     expect(statusAt, lessThan(qualityAt));
     expect(upgradeAt, greaterThan(qualityAt));
     expect(source, contains('membership: const _PremiumMembership()'));
-    // Only the upgrade prompt is hidden for women; paid status is not gendered.
+    // Free women see the invitation too, worded without messaging.
+    expect(source, contains('if (state.status != SubscriptionStatus.none) {'));
     expect(
       source,
-      contains("state.status != SubscriptionStatus.none || gender == 'female'"),
+      contains('freeMessaging: MessagingAccessPolicy.hasFreeMessaging(gender)'),
     );
     expect(source, isNot(contains('!state.includesReferral &&')));
   });

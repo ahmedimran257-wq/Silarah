@@ -85,8 +85,15 @@ class _ChatScreenState extends State<ChatScreen>
   Timer? _activationRetry;
   int _activationAttempts = 0;
 
-  bool get _storePurchaseActive =>
-      context.read<SubscriptionCubit>().state.isSubscribed;
+  // Only a fresh, unexpired paid purchase can be "activating". Premium that
+  // expired during the session (paid, referral or test) must show the
+  // Premium notice, not "Google Play confirmed your purchase".
+  bool get _storePurchaseActive {
+    final subscription = context.read<SubscriptionCubit>().state;
+    final expiry = subscription.expiresAt;
+    return subscription.hasPaidPremium &&
+        (expiry == null || expiry.isAfter(DateTime.now()));
+  }
 
   bool get _activationSlow => _activationAttempts >= _maxActivationAttempts;
 
@@ -141,6 +148,12 @@ class _ChatScreenState extends State<ChatScreen>
     final decision = await _chatCubit.checkChatAccess(conversationId);
     if (!mounted || generation != _openGeneration) return;
     setState(() => _accessDecision = decision);
+    if (decision.reason == ChatAccessReason.subscriptionRequired &&
+        _activationAttempts == 0) {
+      // The server says Premium is needed: bring the local copy up to date
+      // so an expiry is not mistaken for a purchase still activating.
+      unawaited(context.read<SubscriptionCubit>().refreshEntitlement());
+    }
     if (decision.reason == ChatAccessReason.subscriptionRequired &&
         _storePurchaseActive) {
       _scheduleActivationRetry();
@@ -564,11 +577,16 @@ class _ChatScreenState extends State<ChatScreen>
         }
 
         if (conv.contentLocked) {
+          // A suspension locks content too; it is a restriction, not a
+          // Premium question, for women and Premium men alike.
+          final suspended = state.isSuspended;
           return _ChatAccessGate(
-            decision: const ChatAccessDecision(
-              ChatAccessReason.subscriptionRequired,
+            decision: ChatAccessDecision(
+              suspended
+                  ? ChatAccessReason.suspended
+                  : ChatAccessReason.subscriptionRequired,
             ),
-            activating: _storePurchaseActive,
+            activating: !suspended && _storePurchaseActive,
             activationSlow: _activationSlow,
             onRetry: _authorizeAndOpen,
             onViewPlans: () => PaywallGateSheet.show(context),

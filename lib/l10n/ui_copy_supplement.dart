@@ -265,6 +265,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'يظهر اسم العائلة كاملًا بعد التوافق.',
     'Only you can see this list. Full surnames are shared once you match.':
         'أنت وحدك ترى هذه القائمة. تظهر أسماء العائلة كاملة بعد التوافق.',
+    'We could not open this profile. Check your connection and try again.':
+        'تعذّر فتح هذا الملف. تحقق من اتصالك وحاول مرة أخرى.',
+    'Messages show here once this member can read them. Men need Silarah Premium for chats.':
+        'تظهر الرسائل هنا عندما يستطيع هذا العضو قراءتها. يحتاج الرجال إلى سيلارا بريميوم للمحادثات.',
+    'Unlimited browsing, private shortlist and profile boosts':
+        'تصفّح غير محدود وقائمة مختصرة خاصة وتعزيز للملف',
     'No previous purchases found for this account.':
         'لم يتم العثور على عمليات شراء سابقة لهذا الحساب.',
     'Not Sure': 'غير متأكد',
@@ -1212,6 +1218,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'ম্যাচ হলে পুরো পদবি দেখানো হয়।',
     'Only you can see this list. Full surnames are shared once you match.':
         'এই তালিকা শুধু আপনিই দেখতে পান। ম্যাচ হলে পুরো পদবি দেখানো হয়।',
+    'We could not open this profile. Check your connection and try again.':
+        'এই প্রোফাইলটি খোলা যায়নি। আপনার সংযোগ দেখে আবার চেষ্টা করুন।',
+    'Messages show here once this member can read them. Men need Silarah Premium for chats.':
+        'এই সদস্য বার্তা পড়তে পারলে সেগুলো এখানে দেখাবে। চ্যাটের জন্য পুরুষদের Silarah প্রিমিয়াম লাগে।',
+    'Unlimited browsing, private shortlist and profile boosts':
+        'সীমাহীন ব্রাউজিং, ব্যক্তিগত শর্টলিস্ট ও প্রোফাইল বুস্ট',
     'No previous purchases found for this account.':
         'এই অ্যাকাউন্টের জন্য কোনো পূর্ববর্তী কেনাকাটা পাওয়া যায়নি।',
     'Not Sure': 'নিশ্চিত নই',
@@ -2176,6 +2188,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Der vollständige Nachname wird nach einem Match geteilt.',
     'Only you can see this list. Full surnames are shared once you match.':
         'Nur Sie sehen diese Liste. Vollständige Nachnamen werden nach einem Match geteilt.',
+    'We could not open this profile. Check your connection and try again.':
+        'Dieses Profil konnte nicht geöffnet werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+    'Messages show here once this member can read them. Men need Silarah Premium for chats.':
+        'Nachrichten erscheinen hier, sobald dieses Mitglied sie lesen kann. Männer brauchen Silarah Premium für Chats.',
+    'Unlimited browsing, private shortlist and profile boosts':
+        'Unbegrenztes Stöbern, private Merkliste und Profil-Boosts',
     'No previous purchases found for this account.':
         'Für dieses Konto wurden keine früheren Käufe gefunden.',
     'Not Sure': 'Nicht sicher',
@@ -3161,6 +3179,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Le nom de famille complet est partagé une fois que vous êtes en relation.',
     'Only you can see this list. Full surnames are shared once you match.':
         'Vous seul voyez cette liste. Les noms de famille complets sont partagés une fois que vous êtes en relation.',
+    'We could not open this profile. Check your connection and try again.':
+        'Impossible d\'ouvrir ce profil. Vérifiez votre connexion et réessayez.',
+    'Messages show here once this member can read them. Men need Silarah Premium for chats.':
+        'Les messages s\'affichent ici dès que ce membre peut les lire. Les hommes ont besoin de Silarah Premium pour discuter.',
+    'Unlimited browsing, private shortlist and profile boosts':
+        'Navigation illimitée, liste privée et mises en avant du profil',
     'No previous purchases found for this account.':
         'Aucun achat précédent trouvé pour ce compte.',
     'Not Sure': 'Pas sûr(e)',
@@ -4139,6 +4163,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'मैच होने पर पूरा उपनाम दिखाया जाता है।',
     'Only you can see this list. Full surnames are shared once you match.':
         'यह सूची सिर्फ़ आप देख सकते हैं। मैच होने पर पूरे उपनाम दिखाए जाते हैं।',
+    'We could not open this profile. Check your connection and try again.':
+        'यह प्रोफ़ाइल नहीं खुल सकी। अपना कनेक्शन जाँचें और फिर कोशिश करें।',
+    'Messages show here once this member can read them. Men need Silarah Premium for chats.':
+        'जब यह सदस्य संदेश पढ़ सकेगा, तब वे यहाँ दिखेंगे। चैट के लिए पुरुषों को Silarah प्रीमियम चाहिए।',
+    'Unlimited browsing, private shortlist and profile boosts':
+        'असीमित ब्राउज़िंग, निजी शॉर्टलिस्ट और प्रोफ़ाइल बूस्ट',
     'No previous purchases found for this account.':
         'इस खाते के लिए कोई पिछली खरीदारी नहीं मिली।',
     'Not Sure': 'पक्का नहीं',
@@ -5100,6 +5130,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Nama belakang lengkap dibagikan setelah Anda cocok.',
     'Only you can see this list. Full surnames are shared once you match.':
         'Hanya Anda yang dapat melihat daftar ini. Nama belakang lengkap dibagikan setelah Anda cocok.',
+    'We could not open this profile. Check your connection and try again.':
+        'Profil ini tidak dapat dibuka. Periksa koneksi Anda dan coba lagi.',
+    'Messages show here once this member can read them. Men need Silarah Premium for chats.':
+        'Pesan muncul di sini setelah anggota ini dapat membacanya. Pria memerlukan Silarah Premium untuk mengobrol.',
+    'Unlimited browsing, private shortlist and profile boosts':
+        'Jelajah tanpa batas, daftar pilihan pribadi, dan boost profil',
     'No previous purchases found for this account.':
         'Tidak ditemukan pembelian sebelumnya untuk akun ini.',
     'Not Sure': 'Belum Yakin',
@@ -6065,6 +6101,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Nama keluarga penuh dikongsi selepas anda sepadan.',
     'Only you can see this list. Full surnames are shared once you match.':
         'Hanya anda boleh melihat senarai ini. Nama keluarga penuh dikongsi selepas anda sepadan.',
+    'We could not open this profile. Check your connection and try again.':
+        'Profil ini tidak dapat dibuka. Semak sambungan anda dan cuba lagi.',
+    'Messages show here once this member can read them. Men need Silarah Premium for chats.':
+        'Mesej dipaparkan di sini apabila ahli ini boleh membacanya. Lelaki memerlukan Silarah Premium untuk berbual.',
+    'Unlimited browsing, private shortlist and profile boosts':
+        'Layari tanpa had, senarai pendek peribadi dan boost profil',
     'No previous purchases found for this account.':
         'Tiada pembelian terdahulu ditemui untuk akaun ini.',
     'Not Sure': 'Tidak Pasti',
@@ -7032,6 +7074,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Soyadın tamamı eşleştiğinizde paylaşılır.',
     'Only you can see this list. Full surnames are shared once you match.':
         'Bu listeyi yalnızca sen görebilirsin. Soyadların tamamı eşleştiğinizde paylaşılır.',
+    'We could not open this profile. Check your connection and try again.':
+        'Bu profil açılamadı. Bağlantını kontrol edip tekrar dene.',
+    'Messages show here once this member can read them. Men need Silarah Premium for chats.':
+        'Bu üye mesajları okuyabildiğinde burada görünür. Erkeklerin sohbet için Silarah Premium\'a ihtiyacı var.',
+    'Unlimited browsing, private shortlist and profile boosts':
+        'Sınırsız göz atma, özel kısa liste ve profil öne çıkarma',
     'No previous purchases found for this account.':
         'Bu hesap için önceki satın alma bulunamadı.',
     'Not Sure': 'Emin Değilim',
@@ -7995,6 +8043,12 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'میچ ہونے پر پورا خاندانی نام دکھایا جاتا ہے۔',
     'Only you can see this list. Full surnames are shared once you match.':
         'یہ فہرست صرف آپ دیکھ سکتے ہیں۔ میچ ہونے پر پورے خاندانی نام دکھائے جاتے ہیں۔',
+    'We could not open this profile. Check your connection and try again.':
+        'یہ پروفائل نہیں کھل سکی۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔',
+    'Messages show here once this member can read them. Men need Silarah Premium for chats.':
+        'جب یہ رکن پیغامات پڑھ سکے گا تو وہ یہاں نظر آئیں گے۔ چیٹ کے لیے مردوں کو Silarah پریمیم چاہیے۔',
+    'Unlimited browsing, private shortlist and profile boosts':
+        'لامحدود براؤزنگ، نجی شارٹ لسٹ اور پروفائل بوسٹ',
     'No previous purchases found for this account.':
         'اس اکاؤنٹ کے لیے کوئی پچھلی خریداری نہیں ملی۔',
     'Not Sure': 'یقین نہیں',

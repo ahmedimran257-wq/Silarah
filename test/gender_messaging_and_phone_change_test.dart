@@ -54,7 +54,7 @@ void main() {
     final context = tester.element(find.byType(SizedBox).first);
     await PaywallGateSheet.show(context);
     await tester.pump();
-    expect(find.text('Subscribe to Unlock Messaging'), findsNothing);
+    expect(find.text('Continue your conversation'), findsNothing);
   });
 
   test('server applies separate female and male messaging rules', () {

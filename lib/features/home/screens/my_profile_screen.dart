@@ -44,6 +44,7 @@ import '../../../core/services/supabase_service.dart';
 import '../../../core/services/profile_photo_service.dart';
 import '../../../core/services/profile_view_service.dart';
 import '../../../core/services/wali_mode_service.dart';
+import '../../../core/utils/messaging_access_policy.dart';
 import '../../onboarding/screens/photo_upload_screen.dart';
 import '../widgets/profile_header_action_rail.dart';
 import '../widgets/profile_quality_card.dart';
@@ -1935,11 +1936,15 @@ class _SubscriptionCard extends StatelessWidget {
       builder: (context, state) {
         final Widget card;
         if (placement == _SubscriptionCardPlacement.upgrade) {
-          // Women message free, so they are not shown the upgrade prompt.
-          if (state.status != SubscriptionStatus.none || gender == 'female') {
+          // Everything except messaging is Premium for women too, so free
+          // women get the invitation as well, worded for them.
+          if (state.status != SubscriptionStatus.none) {
             return const SizedBox.shrink();
           }
-          card = _buildUpgrade(context);
+          card = _buildUpgrade(
+            context,
+            freeMessaging: MessagingAccessPolicy.hasFreeMessaging(gender),
+          );
         } else {
           // Healthy paid Premium lives inside the profile card; referral and
           // test Premium have their own banner.
@@ -1978,8 +1983,9 @@ class _SubscriptionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildUpgrade(BuildContext context) {
+  Widget _buildUpgrade(BuildContext context, {required bool freeMessaging}) {
     return ProfilePremiumInvite(
+      freeMessaging: freeMessaging,
       onTap: () => Navigator.of(context).push(
           MaterialPageRoute<void>(builder: (_) => const SubscriptionScreen())),
     );

@@ -516,7 +516,13 @@ class ChatCubit extends Cubit<ChatState> {
       }
       debugPrint('ChatCubit: Error sending message: $e');
       _updateMessageStatus(conversationId, localId, MessageStatus.failed);
-      if (_isSafetyBlock(e)) {
+      // Premium ended (or messaging was suspended) while the chat was open.
+      // Reloading marks the conversation content-locked, so the screen shows
+      // the Premium or restriction notice instead of retrying forever.
+      final error = e.toString();
+      if (_isSafetyBlock(e) ||
+          error.contains('subscription_required') ||
+          error.contains('messaging_suspended')) {
         unawaited(loadConversations(force: true));
       }
       return false;

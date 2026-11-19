@@ -107,12 +107,18 @@ class _ViewedProfilesScreenState extends State<ViewedProfilesScreen> {
     try {
       // The same daily check as Discover: a profile already opened today is
       // free, anything else counts as one of today's views.
-      final allowed = await context
+      final result = await context
           .read<DiscoveryFeedCubit>()
           .recordProfileView(entry.userId);
       if (!mounted) return;
-      if (!allowed) {
+      if (result == ProfileViewResult.limitReached) {
         await PaywallGateSheet.show(context, gate: PremiumGate.feature);
+        return;
+      }
+      if (result == ProfileViewResult.unavailable) {
+        // Blocked, deleted or hidden since it was viewed, or offline.
+        _showUnavailable();
+        unawaited(_load(quiet: true));
         return;
       }
       final profiles =

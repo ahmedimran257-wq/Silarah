@@ -58,6 +58,11 @@ class WaliModeService {
           error.code == '42501' ||
           error.code == 'PGRST301');
 
+  /// The member this guardian oversees cannot read or send chats yet (men
+  /// need Silarah Premium). Guardians see exactly what their member can.
+  static bool needsWardPremium(Object error) =>
+      error.toString().contains('subscription_required');
+
   /// Whether the Realtime channel is currently connected.
   bool get isRealtimeConnected => _isRealtimeConnected;
 

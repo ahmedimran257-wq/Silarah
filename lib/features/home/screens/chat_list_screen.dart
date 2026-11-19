@@ -275,6 +275,7 @@ class _ChatListScreenState extends State<ChatListScreen>
                           delay: Duration(milliseconds: (i.clamp(0, 5)) * 45),
                           child: _ConversationTile(
                             conversation: conv,
+                            messagingSuspended: state.isSuspended,
                             onDelete: conv.isMatchClosed
                                 ? () => _confirmDeleteConversation(conv)
                                 : null,
@@ -298,6 +299,8 @@ class _ChatListScreenState extends State<ChatListScreen>
                                       'Messaging is temporarily restricted on this account.',
                                     ChatAccessReason.closed =>
                                       'This conversation has ended.',
+                                    ChatAccessReason.guardianApprovalRequired =>
+                                      'An active Guardian must approve this match before messaging opens. Your match remains safely saved.',
                                     _ =>
                                       'We could not open this conversation. Please try again.',
                                   };
@@ -387,8 +390,14 @@ class _ConversationTile extends StatelessWidget {
     required this.conversation,
     required this.onTap,
     this.onDelete,
+    this.messagingSuspended = false,
   });
   final Conversation conversation;
+
+  /// A suspension also locks message content. It must read as a
+  /// restriction, never as "buy Premium" (women message free, and paying
+  /// men already have Premium).
+  final bool messagingSuspended;
   final VoidCallback onTap;
   final VoidCallback? onDelete;
 
@@ -499,7 +508,9 @@ class _ConversationTile extends StatelessWidget {
                           ),
                           const SizedBox(height: AppDimensions.space4),
                           UiText(
-                            conversation.lastMessagePreview,
+                            messagingSuspended && conversation.contentLocked
+                                ? 'Messaging is temporarily restricted on this account.'
+                                : conversation.lastMessagePreview,
                             style: AppTypography.caption.copyWith(
                               fontWeight:
                                   hasUnread ? FontWeight.w500 : FontWeight.w400,

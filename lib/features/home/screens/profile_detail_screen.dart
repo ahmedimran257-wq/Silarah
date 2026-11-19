@@ -488,10 +488,16 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       return;
     }
     if (!access.allowed) {
+      final message = switch (access.reason) {
+        ChatAccessReason.suspended =>
+          'Messaging is temporarily restricted on this account.',
+        ChatAccessReason.guardianApprovalRequired =>
+          'An active Guardian must approve this match before messaging opens. Your match remains safely saved.',
+        _ => 'This conversation is not available right now.',
+      };
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         behavior: SnackBarBehavior.floating,
-        content: UiText(
-            context.uiCopy('This conversation is not available right now.')),
+        content: UiText(context.uiCopy(message)),
       ));
       return;
     }

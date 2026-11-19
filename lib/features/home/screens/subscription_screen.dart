@@ -983,9 +983,13 @@ class _IncludedFeatures extends StatelessWidget {
     (Icons.bookmarks_outlined, 'Private shortlists, notes & reminders'),
     (Icons.visibility_off_outlined, 'Incognito discovery'),
     (Icons.rocket_launch_outlined, 'One profile boost per week'),
+    (Icons.bookmark_border_rounded, 'Save multiple filter presets'),
   ];
 
+  // The 15-profiles-a-day limit applies to women too, and the daily-limit
+  // sheet sends them here, so unlimited browsing leads their list as well.
   static const _femaleFeatures = [
+    (Icons.all_inclusive_rounded, 'Unlimited profile browsing'),
     (Icons.favorite_rounded, '25 interests per day'),
     (Icons.travel_explore_rounded, 'All India, state, city & trust filters'),
     (Icons.hub_outlined, 'Mutual compatibility insights'),

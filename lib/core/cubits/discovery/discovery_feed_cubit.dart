@@ -36,6 +36,19 @@ class _ProfileViewQuota {
   final int dailyLimit;
 }
 
+/// What happened when a profile view was recorded.
+enum ProfileViewResult {
+  /// Counted (or already counted today); the profile may open.
+  allowed,
+
+  /// Today's free limit is used up; this is the only Premium upsell case.
+  limitReached,
+
+  /// Offline, no session, or the profile is no longer available to this
+  /// member (blocked, deleted, hidden). Not a Premium question.
+  unavailable,
+}
+
 class DiscoveryFeedCubit extends Cubit<DiscoveryFeedState> {
   DiscoveryFeedCubit() : super(const DiscoveryFeedState());
 
@@ -368,12 +381,18 @@ class DiscoveryFeedCubit extends Cubit<DiscoveryFeedState> {
   /// Clear all filters and reload.
   Future<void> clearFilters() => applyFilter(DiscoveryFilter.empty);
 
-  Future<bool> recordProfileView(String viewedUserId) async {
+  /// Records a profile view against the daily limit.
+  ///
+  /// Only [ProfileViewResult.limitReached] means the member needs Premium.
+  /// A network error, a missing session, or a profile that blocked the
+  /// member or was deleted is [ProfileViewResult.unavailable]: showing the
+  /// Premium sheet for those told paying members to buy Premium again.
+  Future<ProfileViewResult> recordProfileView(String viewedUserId) async {
     if (!SupabaseService.isInitialized || viewedUserId.isEmpty) {
-      return false;
+      return ProfileViewResult.unavailable;
     }
     final currentUserId = await SupabaseService.currentUserIdOrRefresh();
-    if (currentUserId == null) return false;
+    if (currentUserId == null) return ProfileViewResult.unavailable;
 
     try {
       final response = await SupabaseService.client.rpc(
@@ -387,6 +406,7 @@ class DiscoveryFeedCubit extends Cubit<DiscoveryFeedState> {
       final row = rows.isNotEmpty
           ? Map<String, dynamic>.from(rows.first as Map)
           : <String, dynamic>{};
+      if (row.isEmpty) return ProfileViewResult.unavailable;
       final allowed = row['allowed'] == true;
       if (!isClosed) {
         emit(state.copyWith(
@@ -395,10 +415,12 @@ class DiscoveryFeedCubit extends Cubit<DiscoveryFeedState> {
           dailyLimit: (row['daily_limit'] as num?)?.toInt() ?? state.dailyLimit,
         ));
       }
-      return allowed;
+      return allowed
+          ? ProfileViewResult.allowed
+          : ProfileViewResult.limitReached;
     } catch (e) {
       debugPrint('DiscoveryFeedCubit: failed to record profile view: $e');
-      return false;
+      return ProfileViewResult.unavailable;
     }
   }
 

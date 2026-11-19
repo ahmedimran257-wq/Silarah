@@ -351,6 +351,10 @@ class _GuardianTranscriptScreen extends StatefulWidget {
 
 class _GuardianTranscriptScreenState extends State<_GuardianTranscriptScreen>
     with WidgetsBindingObserver {
+  // Never a purchase prompt: the guardian is not the one who subscribes.
+  static const _wardPremiumNotice =
+      'Messages show here once this member can read them. Men need Silarah Premium for chats.';
+
   final _service = WaliModeService.instance;
   final _composer = TextEditingController();
   final _scrollController = ScrollController();
@@ -501,7 +505,9 @@ class _GuardianTranscriptScreenState extends State<_GuardianTranscriptScreen>
       _invalidateAccess(revoked: WaliModeService.isAccessDenied(error));
       setState(() {
         _loading = false;
-        if (!WaliModeService.isAccessDenied(error)) {
+        if (WaliModeService.needsWardPremium(error)) {
+          _error = _wardPremiumNotice;
+        } else if (!WaliModeService.isAccessDenied(error)) {
           _error = 'Conversation could not be loaded. Please try again.';
         }
       });
@@ -608,8 +614,9 @@ class _GuardianTranscriptScreenState extends State<_GuardianTranscriptScreen>
         return;
       }
       if (mounted) {
-        setState(() =>
-            _error = 'Message could not be sent. Review it and try again.');
+        setState(() => _error = WaliModeService.needsWardPremium(error)
+            ? _wardPremiumNotice
+            : 'Message could not be sent. Review it and try again.');
       }
     } finally {
       if (mounted) setState(() => _sending = false);

@@ -27,7 +27,10 @@ import '../../../l10n/generated/app_localizations.dart';
 import 'chat_screen.dart';
 import 'paywall_gate_screen.dart';
 
-Future<void> _openChatForProfile(
+/// Opens the chat with a matched member after the server confirms access:
+/// the messaging paywall only for a real `subscription_required`, so a
+/// paying man is never shown it from stale local state.
+Future<void> openChatForProfile(
   BuildContext context,
   DiscoveryProfile profile,
 ) async {
@@ -59,6 +62,8 @@ Future<void> _openChatForProfile(
       ChatAccessReason.suspended =>
         'Messaging is temporarily restricted on this account.',
       ChatAccessReason.closed => 'This conversation has ended.',
+      ChatAccessReason.guardianApprovalRequired =>
+        'An active Guardian must approve this match before messaging opens. Your match remains safely saved.',
       _ => 'We could not open this conversation. Please try again.',
     };
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -174,7 +179,7 @@ class _InterestsScreenState extends State<InterestsScreen>
                       onPressed: () async {
                         HapticFeedback.mediumImpact();
                         Navigator.of(context).pop();
-                        await _openChatForProfile(this.context, profile);
+                        await openChatForProfile(this.context, profile);
                       },
                       child: UiText(context.uiCopy('Message Now'),
                           style: AppTypography.button),
@@ -821,7 +826,7 @@ class _ReceivedTile extends StatelessWidget {
                     style: AppTypography.buttonSecondary),
                 onPressed: () async {
                   HapticFeedback.selectionClick();
-                  await _openChatForProfile(context, p);
+                  await openChatForProfile(context, p);
                 },
               ),
             ),

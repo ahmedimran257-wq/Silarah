@@ -44,6 +44,7 @@ import 'paywall_gate_screen.dart';
 import '../widgets/viewed_profiles_button.dart';
 import 'profile_detail_screen.dart';
 import 'notifications_screen.dart';
+import 'interests_screen.dart' show openChatForProfile;
 import 'viewed_profiles_screen.dart';
 
 class DiscoveryFeedScreen extends StatefulWidget {
@@ -187,6 +188,23 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
   Future<void> _handleBookmark(int index, FeedProfile fp) async {
     final id = fp.profile.id;
     if (_bookmarkWritesInFlight.contains(id)) return;
+    // Saving lets the member read the full profile later, so it counts as a
+    // view, exactly like opening the card (the server requires it). Removing
+    // a saved profile never counts.
+    if (!_bookmarked.contains(id)) {
+      _bookmarkWritesInFlight.add(id);
+      final result = await _recordVisibleProfileView(id);
+      _bookmarkWritesInFlight.remove(id);
+      if (!mounted) return;
+      if (result == ProfileViewResult.limitReached) {
+        PaywallGateSheet.show(context, gate: PremiumGate.feature);
+        return;
+      }
+      if (result == ProfileViewResult.unavailable) {
+        _showProfileUnavailable();
+        return;
+      }
+    }
     _bookmarkWritesInFlight.add(id);
     HapticFeedback.selectionClick();
     final previous = Set<String>.from(_bookmarked);
@@ -235,11 +253,26 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
       );
   }
 
+  void _showProfileUnavailable() {
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(const SnackBar(
+        behavior: SnackBarBehavior.floating,
+        content: UiText(
+          'We could not open this profile. Check your connection and try again.',
+        ),
+      ));
+  }
+
   Future<void> _openProfile(FeedProfile fp) async {
-    final allowed = await _recordVisibleProfileView(fp.profile.id);
+    final result = await _recordVisibleProfileView(fp.profile.id);
     if (!mounted) return;
-    if (!allowed) {
+    if (result == ProfileViewResult.limitReached) {
       PaywallGateSheet.show(context, gate: PremiumGate.feature);
+      return;
+    }
+    if (result == ProfileViewResult.unavailable) {
+      _showProfileUnavailable();
       return;
     }
 
@@ -253,15 +286,18 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
     );
   }
 
-  Future<bool> _recordVisibleProfileView(String profileUserId) async {
-    if (_recordedViewIds.contains(profileUserId)) return true;
-    final allowed = await context
+  Future<ProfileViewResult> _recordVisibleProfileView(
+      String profileUserId) async {
+    if (_recordedViewIds.contains(profileUserId)) {
+      return ProfileViewResult.allowed;
+    }
+    final result = await context
         .read<DiscoveryFeedCubit>()
         .recordProfileView(profileUserId);
-    if (allowed && mounted) {
+    if (result == ProfileViewResult.allowed && mounted) {
       _recordedViewIds.add(profileUserId);
     }
-    return allowed;
+    return result;
   }
 
   // Build
@@ -624,13 +660,12 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
               widget.onOpenTab == null ? null : () => widget.onOpenTab?.call(1),
         );
       case ProfileInteractionState.matched:
+        // The server decides access: a paying man whose entitlement has
+        // not loaded yet opens the chat, and only a real
+        // subscription_required shows the messaging paywall.
         return _DiscoveryProfileAction(
           label: canMessage ? 'Open Chat' : 'Unlock Chat',
-          onTap: canMessage
-              ? (widget.onOpenTab == null
-                  ? null
-                  : () => widget.onOpenTab?.call(2))
-              : () => PaywallGateSheet.show(context),
+          onTap: () => openChatForProfile(context, profile.profile),
         );
       case ProfileInteractionState.none:
         final cooldownDays = profile.profile.rematchCooldownDaysRemaining;

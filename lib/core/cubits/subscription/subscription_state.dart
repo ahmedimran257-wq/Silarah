@@ -2,6 +2,8 @@
 // merged into one canonical runtime state.
 import 'package:equatable/equatable.dart';
 
+import '../../utils/messaging_access_policy.dart';
+
 enum SubscriptionStatus { none, active, grace }
 
 enum PremiumEntitlementSource {
@@ -49,8 +51,10 @@ class SubscriptionState extends Equatable {
 
   // Women always message free.
   // Men need active or grace (within 24h) to message.
-  bool canMessage(String gender) {
-    if (gender == 'female') return true;
+  bool canMessage(String? gender) {
+    // Same normalisation as the paywall sheet, so the label and the sheet
+    // never disagree about who messages free.
+    if (MessagingAccessPolicy.hasFreeMessaging(gender)) return true;
     return status == SubscriptionStatus.active ||
         status == SubscriptionStatus.grace;
   }
