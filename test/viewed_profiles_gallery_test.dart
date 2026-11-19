@@ -74,7 +74,10 @@ void main() {
       final load = screen.indexOf('AuthorizedProfileService.loadDiscoveryProfiles');
       expect(check, greaterThan(0));
       expect(load, greaterThan(check));
-      expect(screen, contains('PaywallGateSheet.show(context)'));
+      expect(
+        screen,
+        contains('PaywallGateSheet.show(context, gate: PremiumGate.feature)'),
+      );
     });
 
     test('the server list hides blocked, hidden, banned and incognito members',

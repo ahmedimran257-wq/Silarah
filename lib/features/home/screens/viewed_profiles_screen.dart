@@ -112,7 +112,7 @@ class _ViewedProfilesScreenState extends State<ViewedProfilesScreen> {
           .recordProfileView(entry.userId);
       if (!mounted) return;
       if (!allowed) {
-        await PaywallGateSheet.show(context);
+        await PaywallGateSheet.show(context, gate: PremiumGate.feature);
         return;
       }
       final profiles =

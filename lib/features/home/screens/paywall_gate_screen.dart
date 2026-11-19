@@ -21,19 +21,36 @@ import '../../../core/widgets/buttons/silarah_pressable.dart';
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
 import 'subscription_screen.dart';
 
+/// Why the Premium sheet is being shown.
+enum PremiumGate {
+  /// Opening or continuing a conversation. Women message free, so this gate
+  /// never shows to them.
+  messaging,
+
+  /// A Premium feature that is the same for everyone: the daily profile
+  /// limit, the private shortlist, compatibility insights. It shows to
+  /// every free member, women included.
+  feature,
+}
+
 class PaywallGateSheet {
   static Future<void>? _activeSheet;
 
   /// Shows the paywall as a modal bottom sheet.
   ///
-  /// This method is a no-op if the current user is female —
-  /// defence-in-depth on top of the call-site check in
-  /// chat_list_screen.dart and chat_screen.dart.
-  static Future<void> show(BuildContext context) {
-    // Runtime guard: never show paywall to women.
+  /// For [PremiumGate.messaging] this is a no-op for women, who message
+  /// free (defence-in-depth on top of the call-site checks in
+  /// chat_list_screen.dart and chat_screen.dart). [PremiumGate.feature]
+  /// gates apply to everyone; before it existed a woman tapping "Upgrade
+  /// Now" or a Premium card got no response at all.
+  static Future<void> show(
+    BuildContext context, {
+    PremiumGate gate = PremiumGate.messaging,
+  }) {
     final authState = context.read<AuthCubit>().state;
     final gender = authState is AuthAuthenticated ? authState.gender : null;
-    if (MessagingAccessPolicy.hasFreeMessaging(gender)) {
+    if (gate == PremiumGate.messaging &&
+        MessagingAccessPolicy.hasFreeMessaging(gender)) {
       return Future.value();
     }
 
@@ -46,7 +63,7 @@ class PaywallGateSheet {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _PaywallGateContent(),
+      builder: (_) => _PaywallGateContent(gate: gate),
     );
     _activeSheet = sheet;
     return sheet.whenComplete(() {
@@ -56,10 +73,13 @@ class PaywallGateSheet {
 }
 
 class _PaywallGateContent extends StatelessWidget {
-  const _PaywallGateContent();
+  const _PaywallGateContent({required this.gate});
+
+  final PremiumGate gate;
 
   @override
   Widget build(BuildContext context) {
+    final forFeature = gate == PremiumGate.feature;
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceMid,
@@ -106,28 +126,49 @@ class _PaywallGateContent extends StatelessWidget {
           const SizedBox(height: 16),
 
           UiText(
-            context.uiCopy('Continue your conversation'),
+            forFeature
+                ? 'Unlock Silarah Premium'
+                : 'Continue your conversation',
             style: AppTypography.screenTitle.copyWith(fontSize: 22),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
 
           UiText(
-            'Women can message their matches at no cost.\nMen unlock conversations with Silarah Premium.',
+            forFeature
+                ? 'Browse without a daily limit and get the tools that help you decide with care.'
+                : 'Women can message their matches at no cost.\nMen unlock conversations with Silarah Premium.',
             style: AppTypography.bodyMuted.copyWith(height: 1.45),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 14),
 
-          const _PremiumProofRow(
-            icon: Icons.forum_outlined,
-            label: 'Full match messaging',
-          ),
-          const SizedBox(height: 7),
-          const _PremiumProofRow(
-            icon: Icons.travel_explore_rounded,
-            label: 'All India discovery and advanced filters',
-          ),
+          if (forFeature) ...[
+            const _PremiumProofRow(
+              icon: Icons.all_inclusive_rounded,
+              label: 'Unlimited profile browsing',
+            ),
+            const SizedBox(height: 7),
+            const _PremiumProofRow(
+              icon: Icons.bookmark_added_outlined,
+              label: 'Private shortlist',
+            ),
+            const SizedBox(height: 7),
+            const _PremiumProofRow(
+              icon: Icons.hub_outlined,
+              label: 'Mutual compatibility insights',
+            ),
+          ] else ...[
+            const _PremiumProofRow(
+              icon: Icons.forum_outlined,
+              label: 'Full match messaging',
+            ),
+            const SizedBox(height: 7),
+            const _PremiumProofRow(
+              icon: Icons.travel_explore_rounded,
+              label: 'All India discovery and advanced filters',
+            ),
+          ],
           const SizedBox(height: 7),
           const _PremiumProofRow(
             icon: Icons.visibility_outlined,

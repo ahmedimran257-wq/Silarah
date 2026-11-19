@@ -239,7 +239,7 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
     final allowed = await _recordVisibleProfileView(fp.profile.id);
     if (!mounted) return;
     if (!allowed) {
-      PaywallGateSheet.show(context);
+      PaywallGateSheet.show(context, gate: PremiumGate.feature);
       return;
     }
 
@@ -434,7 +434,8 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
 
     if (isLimited) {
       return _FreeTierLimitReached(
-        onUpgrade: () => PaywallGateSheet.show(context),
+        onUpgrade: () =>
+            PaywallGateSheet.show(context, gate: PremiumGate.feature),
       );
     }
 

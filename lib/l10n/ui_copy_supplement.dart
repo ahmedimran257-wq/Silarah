@@ -257,6 +257,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'هذا الملف غير متاح الآن.',
     '{count} left':
         '{count} متبقية',
+    'Unlock Silarah Premium':
+        'افتح سيلارا بريميوم',
+    'Browse without a daily limit and get the tools that help you decide with care.':
+        'تصفّح دون حد يومي واحصل على أدوات تساعدك على اتخاذ قرارك بعناية.',
     'No previous purchases found for this account.':
         'لم يتم العثور على عمليات شراء سابقة لهذا الحساب.',
     'Not Sure': 'غير متأكد',
@@ -1196,6 +1200,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'এই প্রোফাইলটি এখন পাওয়া যাচ্ছে না।',
     '{count} left':
         '{count}টি বাকি',
+    'Unlock Silarah Premium':
+        'Silarah প্রিমিয়াম আনলক করুন',
+    'Browse without a daily limit and get the tools that help you decide with care.':
+        'দৈনিক সীমা ছাড়াই ব্রাউজ করুন এবং যত্ন নিয়ে সিদ্ধান্ত নিতে সাহায্যকারী টুল পান।',
     'No previous purchases found for this account.':
         'এই অ্যাকাউন্টের জন্য কোনো পূর্ববর্তী কেনাকাটা পাওয়া যায়নি।',
     'Not Sure': 'নিশ্চিত নই',
@@ -2152,6 +2160,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Dieses Profil ist gerade nicht verfügbar.',
     '{count} left':
         '{count} übrig',
+    'Unlock Silarah Premium':
+        'Silarah Premium freischalten',
+    'Browse without a daily limit and get the tools that help you decide with care.':
+        'Ohne Tageslimit stöbern und Werkzeuge nutzen, die Ihnen helfen, mit Bedacht zu entscheiden.',
     'No previous purchases found for this account.':
         'Für dieses Konto wurden keine früheren Käufe gefunden.',
     'Not Sure': 'Nicht sicher',
@@ -3129,6 +3141,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Ce profil n\'est pas disponible pour le moment.',
     '{count} left':
         '{count} restants',
+    'Unlock Silarah Premium':
+        'Débloquer Silarah Premium',
+    'Browse without a daily limit and get the tools that help you decide with care.':
+        'Parcourez sans limite quotidienne et profitez d\'outils pour décider avec soin.',
     'No previous purchases found for this account.':
         'Aucun achat précédent trouvé pour ce compte.',
     'Not Sure': 'Pas sûr(e)',
@@ -4099,6 +4115,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'यह प्रोफ़ाइल अभी उपलब्ध नहीं है।',
     '{count} left':
         '{count} बाकी',
+    'Unlock Silarah Premium':
+        'Silarah प्रीमियम अनलॉक करें',
+    'Browse without a daily limit and get the tools that help you decide with care.':
+        'रोज़ की सीमा के बिना प्रोफ़ाइलें देखें और सोच-समझकर फ़ैसला लेने में मदद करने वाले टूल पाएँ।',
     'No previous purchases found for this account.':
         'इस खाते के लिए कोई पिछली खरीदारी नहीं मिली।',
     'Not Sure': 'पक्का नहीं',
@@ -5052,6 +5072,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Profil ini sedang tidak tersedia.',
     '{count} left':
         'Sisa {count}',
+    'Unlock Silarah Premium':
+        'Buka Silarah Premium',
+    'Browse without a daily limit and get the tools that help you decide with care.':
+        'Jelajahi tanpa batas harian dan dapatkan alat yang membantu Anda memutuskan dengan cermat.',
     'No previous purchases found for this account.':
         'Tidak ditemukan pembelian sebelumnya untuk akun ini.',
     'Not Sure': 'Belum Yakin',
@@ -6009,6 +6033,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Profil ini tidak tersedia sekarang.',
     '{count} left':
         'Baki {count}',
+    'Unlock Silarah Premium':
+        'Buka Silarah Premium',
+    'Browse without a daily limit and get the tools that help you decide with care.':
+        'Layari tanpa had harian dan dapatkan alat yang membantu anda membuat keputusan dengan teliti.',
     'No previous purchases found for this account.':
         'Tiada pembelian terdahulu ditemui untuk akaun ini.',
     'Not Sure': 'Tidak Pasti',
@@ -6968,6 +6996,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Bu profil şu anda kullanılamıyor.',
     '{count} left':
         '{count} kaldı',
+    'Unlock Silarah Premium':
+        'Silarah Premium\'un kilidini aç',
+    'Browse without a daily limit and get the tools that help you decide with care.':
+        'Günlük sınır olmadan göz at ve özenle karar vermene yardımcı olan araçları kullan.',
     'No previous purchases found for this account.':
         'Bu hesap için önceki satın alma bulunamadı.',
     'Not Sure': 'Emin Değilim',
@@ -7923,6 +7955,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'یہ پروفائل ابھی دستیاب نہیں ہے۔',
     '{count} left':
         '{count} باقی',
+    'Unlock Silarah Premium':
+        'Silarah پریمیم ان لاک کریں',
+    'Browse without a daily limit and get the tools that help you decide with care.':
+        'روزانہ کی حد کے بغیر پروفائلز دیکھیں اور سوچ سمجھ کر فیصلہ کرنے میں مدد دینے والے ٹولز پائیں۔',
     'No previous purchases found for this account.':
         'اس اکاؤنٹ کے لیے کوئی پچھلی خریداری نہیں ملی۔',
     'Not Sure': 'یقین نہیں',

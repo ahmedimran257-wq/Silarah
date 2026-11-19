@@ -422,7 +422,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   Future<void> _openShortlistEditor() async {
     final subscription = context.read<SubscriptionCubit?>()?.state;
     if (subscription?.canOrganizeShortlists != true) {
-      await PaywallGateSheet.show(context);
+      await PaywallGateSheet.show(context, gate: PremiumGate.feature);
       return;
     }
     if (_shortlistLoading || _bookmarkUpdating) return;
@@ -2337,7 +2337,8 @@ class _CompatibilityIndicatorState extends State<_CompatibilityIndicator> {
         label: context.uiCopy('Unlock mutual compatibility insights'),
         child: InkWell(
           borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
-          onTap: () => PaywallGateSheet.show(context),
+          onTap: () =>
+              PaywallGateSheet.show(context, gate: PremiumGate.feature),
           child: _shell(
             context,
             child: Row(
