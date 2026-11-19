@@ -261,6 +261,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'افتح سيلارا بريميوم',
     'Browse without a daily limit and get the tools that help you decide with care.':
         'تصفّح دون حد يومي واحصل على أدوات تساعدك على اتخاذ قرارك بعناية.',
+    'Full surname is shared once you match.':
+        'يظهر اسم العائلة كاملًا بعد التوافق.',
+    'Only you can see this list. Full surnames are shared once you match.':
+        'أنت وحدك ترى هذه القائمة. تظهر أسماء العائلة كاملة بعد التوافق.',
     'No previous purchases found for this account.':
         'لم يتم العثور على عمليات شراء سابقة لهذا الحساب.',
     'Not Sure': 'غير متأكد',
@@ -1204,6 +1208,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah প্রিমিয়াম আনলক করুন',
     'Browse without a daily limit and get the tools that help you decide with care.':
         'দৈনিক সীমা ছাড়াই ব্রাউজ করুন এবং যত্ন নিয়ে সিদ্ধান্ত নিতে সাহায্যকারী টুল পান।',
+    'Full surname is shared once you match.':
+        'ম্যাচ হলে পুরো পদবি দেখানো হয়।',
+    'Only you can see this list. Full surnames are shared once you match.':
+        'এই তালিকা শুধু আপনিই দেখতে পান। ম্যাচ হলে পুরো পদবি দেখানো হয়।',
     'No previous purchases found for this account.':
         'এই অ্যাকাউন্টের জন্য কোনো পূর্ববর্তী কেনাকাটা পাওয়া যায়নি।',
     'Not Sure': 'নিশ্চিত নই',
@@ -2164,6 +2172,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah Premium freischalten',
     'Browse without a daily limit and get the tools that help you decide with care.':
         'Ohne Tageslimit stöbern und Werkzeuge nutzen, die Ihnen helfen, mit Bedacht zu entscheiden.',
+    'Full surname is shared once you match.':
+        'Der vollständige Nachname wird nach einem Match geteilt.',
+    'Only you can see this list. Full surnames are shared once you match.':
+        'Nur Sie sehen diese Liste. Vollständige Nachnamen werden nach einem Match geteilt.',
     'No previous purchases found for this account.':
         'Für dieses Konto wurden keine früheren Käufe gefunden.',
     'Not Sure': 'Nicht sicher',
@@ -3145,6 +3157,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Débloquer Silarah Premium',
     'Browse without a daily limit and get the tools that help you decide with care.':
         'Parcourez sans limite quotidienne et profitez d\'outils pour décider avec soin.',
+    'Full surname is shared once you match.':
+        'Le nom de famille complet est partagé une fois que vous êtes en relation.',
+    'Only you can see this list. Full surnames are shared once you match.':
+        'Vous seul voyez cette liste. Les noms de famille complets sont partagés une fois que vous êtes en relation.',
     'No previous purchases found for this account.':
         'Aucun achat précédent trouvé pour ce compte.',
     'Not Sure': 'Pas sûr(e)',
@@ -4119,6 +4135,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah प्रीमियम अनलॉक करें',
     'Browse without a daily limit and get the tools that help you decide with care.':
         'रोज़ की सीमा के बिना प्रोफ़ाइलें देखें और सोच-समझकर फ़ैसला लेने में मदद करने वाले टूल पाएँ।',
+    'Full surname is shared once you match.':
+        'मैच होने पर पूरा उपनाम दिखाया जाता है।',
+    'Only you can see this list. Full surnames are shared once you match.':
+        'यह सूची सिर्फ़ आप देख सकते हैं। मैच होने पर पूरे उपनाम दिखाए जाते हैं।',
     'No previous purchases found for this account.':
         'इस खाते के लिए कोई पिछली खरीदारी नहीं मिली।',
     'Not Sure': 'पक्का नहीं',
@@ -5076,6 +5096,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Buka Silarah Premium',
     'Browse without a daily limit and get the tools that help you decide with care.':
         'Jelajahi tanpa batas harian dan dapatkan alat yang membantu Anda memutuskan dengan cermat.',
+    'Full surname is shared once you match.':
+        'Nama belakang lengkap dibagikan setelah Anda cocok.',
+    'Only you can see this list. Full surnames are shared once you match.':
+        'Hanya Anda yang dapat melihat daftar ini. Nama belakang lengkap dibagikan setelah Anda cocok.',
     'No previous purchases found for this account.':
         'Tidak ditemukan pembelian sebelumnya untuk akun ini.',
     'Not Sure': 'Belum Yakin',
@@ -6037,6 +6061,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Buka Silarah Premium',
     'Browse without a daily limit and get the tools that help you decide with care.':
         'Layari tanpa had harian dan dapatkan alat yang membantu anda membuat keputusan dengan teliti.',
+    'Full surname is shared once you match.':
+        'Nama keluarga penuh dikongsi selepas anda sepadan.',
+    'Only you can see this list. Full surnames are shared once you match.':
+        'Hanya anda boleh melihat senarai ini. Nama keluarga penuh dikongsi selepas anda sepadan.',
     'No previous purchases found for this account.':
         'Tiada pembelian terdahulu ditemui untuk akaun ini.',
     'Not Sure': 'Tidak Pasti',
@@ -7000,6 +7028,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah Premium\'un kilidini aç',
     'Browse without a daily limit and get the tools that help you decide with care.':
         'Günlük sınır olmadan göz at ve özenle karar vermene yardımcı olan araçları kullan.',
+    'Full surname is shared once you match.':
+        'Soyadın tamamı eşleştiğinizde paylaşılır.',
+    'Only you can see this list. Full surnames are shared once you match.':
+        'Bu listeyi yalnızca sen görebilirsin. Soyadların tamamı eşleştiğinizde paylaşılır.',
     'No previous purchases found for this account.':
         'Bu hesap için önceki satın alma bulunamadı.',
     'Not Sure': 'Emin Değilim',
@@ -7959,6 +7991,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Silarah پریمیم ان لاک کریں',
     'Browse without a daily limit and get the tools that help you decide with care.':
         'روزانہ کی حد کے بغیر پروفائلز دیکھیں اور سوچ سمجھ کر فیصلہ کرنے میں مدد دینے والے ٹولز پائیں۔',
+    'Full surname is shared once you match.':
+        'میچ ہونے پر پورا خاندانی نام دکھایا جاتا ہے۔',
+    'Only you can see this list. Full surnames are shared once you match.':
+        'یہ فہرست صرف آپ دیکھ سکتے ہیں۔ میچ ہونے پر پورے خاندانی نام دکھائے جاتے ہیں۔',
     'No previous purchases found for this account.':
         'اس اکاؤنٹ کے لیے کوئی پچھلی خریداری نہیں ملی۔',
     'Not Sure': 'یقین نہیں',

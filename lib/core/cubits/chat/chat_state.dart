@@ -8,6 +8,8 @@
 //   • Respectful closure: isMatchClosed + closureMessage per conversation
 import 'package:equatable/equatable.dart';
 
+import '../../utils/member_name.dart';
+
 // Message status
 enum MessageStatus { queued, sent, delivered, read, failed }
 
@@ -94,10 +96,7 @@ class Conversation extends Equatable {
   final bool contentLocked; // authoritative server-side Premium read gate
   final bool memberUnavailable; // neutral read-only moderation/deletion state
 
-  String get displayName {
-    final surname = matchLastInitial.trim();
-    return surname.isEmpty ? matchName.trim() : '${matchName.trim()} $surname';
-  }
+  String get displayName => memberDisplayName(matchName, matchLastInitial);
 
   ChatMessage? get lastMessage => messages.isEmpty ? null : messages.last;
 

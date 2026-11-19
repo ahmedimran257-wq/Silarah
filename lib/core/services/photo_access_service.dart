@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'supabase_service.dart';
+import '../utils/member_name.dart';
 
 enum ProfilePhotoPrivacy {
   public,
@@ -70,8 +71,7 @@ class IncomingPhotoAccessRequest {
   final DateTime createdAt;
   final DateTime? respondedAt;
 
-  String get displayName =>
-      lastNameInitial.isEmpty ? firstName : '$firstName $lastNameInitial';
+  String get displayName => memberDisplayName(firstName, lastNameInitial);
 
   IncomingPhotoAccessRequest copyWith({String? status}) {
     return IncomingPhotoAccessRequest(

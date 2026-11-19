@@ -40,6 +40,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/buttons/silarah_pressable.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
+import '../../../core/utils/member_name.dart';
 import '../../../core/widgets/overlays/silarah_dialog.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../widgets/interest_ceremony_overlay.dart';
@@ -702,7 +703,10 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     // Name + age + location
-                    _NameBlock(profile: p),
+                    _NameBlock(
+                      profile: p,
+                      showSurnameNote: !widget.isOwnProfile,
+                    ),
                     const SizedBox(height: AppDimensions.space20),
 
                     // Compatibility indicator
@@ -1822,8 +1826,12 @@ class _HeaderButton extends StatelessWidget {
 
 // Name Block
 class _NameBlock extends StatelessWidget {
-  const _NameBlock({required this.profile});
+  const _NameBlock({required this.profile, this.showSurnameNote = false});
   final DiscoveryProfile profile;
+
+  /// Explains "Abdul A." on other members' profiles: the full surname is
+  /// shared only with an active match, which members otherwise read as a bug.
+  final bool showSurnameNote;
 
   @override
   Widget build(BuildContext context) {
@@ -1853,6 +1861,28 @@ class _NameBlock extends StatelessWidget {
             if (profile.isVerified) _VerifiedPill(),
           ],
         ),
+        if (showSurnameNote &&
+            isSurnameInitialOnly(profile.visibleSurname)) ...[
+          const SizedBox(height: AppDimensions.space4),
+          Row(
+            children: [
+              Icon(
+                Icons.lock_outline_rounded,
+                size: 13,
+                color: AppColors.slateMist,
+              ),
+              const SizedBox(width: AppDimensions.space6),
+              Flexible(
+                child: UiText(
+                  'Full surname is shared once you match.',
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.slateMist,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
         const SizedBox(height: AppDimensions.space8),
         UiText(
           [

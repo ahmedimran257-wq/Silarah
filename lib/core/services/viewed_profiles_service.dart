@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../utils/member_name.dart';
 import 'profile_photo_service.dart';
 import 'supabase_service.dart';
 
@@ -49,9 +50,7 @@ class ViewedProfileEntry {
   final DateTime lastViewedAt;
   final String? photoUrl;
 
-  String get displayName => lastNameInitial.isEmpty
-      ? firstName
-      : '$firstName ${lastNameInitial.toUpperCase()}.';
+  String get displayName => memberDisplayName(firstName, lastNameInitial);
 
   bool get hasPhotos => photoCount > 0;
 

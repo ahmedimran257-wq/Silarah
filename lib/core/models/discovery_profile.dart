@@ -1,6 +1,8 @@
 // SILARAH — Profile Transport Model
 // Legacy profile transport model used for real Supabase rows.
 // Each entry maps to the SilarahProfileCard constructor params.
+import '../utils/member_name.dart';
+
 class DiscoveryProfile {
   const DiscoveryProfile({
     String? id,
@@ -158,12 +160,12 @@ class DiscoveryProfile {
   /// legacy surname transport field can contain either an initial (older
   /// backend) or the full surname (current backend), so rendering never adds
   /// punctuation that could corrupt a complete name.
-  String get displayName {
-    final surname = (lastName?.trim().isNotEmpty ?? false)
-        ? lastName!.trim()
-        : lastNameInitial.trim();
-    return surname.isEmpty ? firstName.trim() : '${firstName.trim()} $surname';
-  }
+  String get displayName => memberDisplayName(firstName, visibleSurname);
+
+  /// The full surname for an active match, otherwise its initial.
+  String get visibleSurname => (lastName?.trim().isNotEmpty ?? false)
+      ? lastName!.trim()
+      : lastNameInitial.trim();
 
   /// Real Supabase user/profile identifier.
   ///

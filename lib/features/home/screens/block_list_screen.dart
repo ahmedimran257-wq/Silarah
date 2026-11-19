@@ -13,6 +13,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/silarah_empty_state.dart';
+import '../../../core/utils/member_name.dart';
 import '../../../core/widgets/overlays/silarah_dialog.dart';
 
 class BlockListScreen extends StatefulWidget {
@@ -82,7 +83,7 @@ class _BlockListScreenState extends State<BlockListScreen> {
                 .copyWith(color: AppColors.pearlWhite, fontSize: 17)),
         content: UiText(
           context.uiCopyWith('{name} will be able to find your profile again.',
-              {'name': '${user.name} ${user.lastInitial}.'}),
+              {'name': memberDisplayName(user.name, user.lastInitial)}),
           style: AppTypography.bodyMuted,
         ),
         actions: [
@@ -176,7 +177,8 @@ class _BlockedTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = '${blockedUser.name} ${blockedUser.lastInitial}.';
+    final name =
+        memberDisplayName(blockedUser.name, blockedUser.lastInitial);
     return Container(
       padding: const EdgeInsets.all(AppDimensions.space16),
       decoration: BoxDecoration(

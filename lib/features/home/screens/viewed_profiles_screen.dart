@@ -355,7 +355,7 @@ class _GalleryIntro extends StatelessWidget {
                     ),
                     const SizedBox(height: AppDimensions.space4),
                     UiText(
-                      'Only you can see this list.',
+                      'Only you can see this list. Full surnames are shared once you match.',
                       style: AppTypography.caption,
                     ),
                   ],
