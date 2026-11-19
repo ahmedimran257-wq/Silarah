@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../models/discovery_profile.dart';
 import '../utils/silarah_compute.dart';
 import 'profile_photo_service.dart';
@@ -70,10 +72,17 @@ class AuthorizedProfileService {
         .map((row) => row['user_id']?.toString())
         .whereType<String>()
         .toList(growable: false);
-    final signedUrls =
-        await ProfilePhotoService.instance.getAuthorizedPhotoUrls(
-      ownerUserIds: ownersWithPhotos,
-    );
+    // A photo-signing failure (offline, an expired session, a rate limit)
+    // must not hide the profiles themselves: they open with their photo
+    // placeholder instead of failing as "not available".
+    var signedUrls = const <String, String>{};
+    try {
+      signedUrls = await ProfilePhotoService.instance.getAuthorizedPhotoUrls(
+        ownerUserIds: ownersWithPhotos,
+      );
+    } catch (error) {
+      debugPrint('[AuthorizedProfileService] photo links skipped: $error');
+    }
 
     for (final row in mappedRows) {
       final profileId = row['id']?.toString();

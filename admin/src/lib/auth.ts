@@ -55,7 +55,10 @@ export async function requireStaffSession(): Promise<CurrentAdmin> {
   if (!signedIn) redirect("/login");
 
   if (!context?.allowed) {
-    await supabase.auth.signOut();
+    // Local scope: end only this browser's admin session. The default
+    // (global) also revoked the same account's sessions in the Silarah app,
+    // which left the owner's phone with a dead session and no photos.
+    await supabase.auth.signOut({ scope: "local" });
     if (context?.reason === "not_staff") redirect("/unauthorized");
     redirect("/login?error=Session+expired.+Please+sign+in+again.");
   }

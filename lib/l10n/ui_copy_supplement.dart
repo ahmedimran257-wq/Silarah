@@ -225,6 +225,38 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'متابعة التعديل',
     'Discard':
         'تجاهل',
+    'Viewed profiles':
+        'الملفات التي شاهدتها',
+    'See profiles you viewed':
+        'عرض الملفات التي شاهدتها',
+    'Today':
+        'اليوم',
+    'Earlier this week':
+        'في وقت سابق من هذا الأسبوع',
+    'Earlier':
+        'في وقت سابق',
+    'Only you can see this list.':
+        'أنت وحدك ترى هذه القائمة.',
+    '{count} profile in the last 30 days':
+        '{count} ملف خلال آخر 30 يومًا',
+    '{count} profiles in the last 30 days':
+        '{count} ملفات خلال آخر 30 يومًا',
+    'Private photos':
+        'صور خاصة',
+    'No viewed profiles yet':
+        'لا توجد ملفات شاهدتها بعد',
+    'Profiles you open in Discover stay here for 30 days, so you can find them again.':
+        'الملفات التي تفتحها في اكتشف تبقى هنا 30 يومًا لتجدها مرة أخرى.',
+    'Back to Discover':
+        'العودة إلى اكتشف',
+    'Could not load your viewed profiles':
+        'تعذّر تحميل الملفات التي شاهدتها',
+    'Check your connection and try again.':
+        'تحقق من اتصالك وحاول مرة أخرى.',
+    'This profile is not available right now.':
+        'هذا الملف غير متاح الآن.',
+    '{count} left':
+        '{count} متبقية',
     'No previous purchases found for this account.':
         'لم يتم العثور على عمليات شراء سابقة لهذا الحساب.',
     'Not Sure': 'غير متأكد',
@@ -1132,6 +1164,38 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'সম্পাদনা চালিয়ে যান',
     'Discard':
         'বাতিল করুন',
+    'Viewed profiles':
+        'দেখা প্রোফাইল',
+    'See profiles you viewed':
+        'আপনার দেখা প্রোফাইলগুলো দেখুন',
+    'Today':
+        'আজ',
+    'Earlier this week':
+        'এই সপ্তাহের শুরুতে',
+    'Earlier':
+        'আগে',
+    'Only you can see this list.':
+        'এই তালিকা শুধু আপনিই দেখতে পান।',
+    '{count} profile in the last 30 days':
+        'গত 30 দিনে {count}টি প্রোফাইল',
+    '{count} profiles in the last 30 days':
+        'গত 30 দিনে {count}টি প্রোফাইল',
+    'Private photos':
+        'ব্যক্তিগত ছবি',
+    'No viewed profiles yet':
+        'এখনও কোনো প্রোফাইল দেখা হয়নি',
+    'Profiles you open in Discover stay here for 30 days, so you can find them again.':
+        'আবিষ্কার করুন-এ খোলা প্রোফাইল এখানে 30 দিন থাকে, যাতে আবার খুঁজে পান।',
+    'Back to Discover':
+        'আবিষ্কার করুন-এ ফিরে যান',
+    'Could not load your viewed profiles':
+        'আপনার দেখা প্রোফাইল লোড করা যায়নি',
+    'Check your connection and try again.':
+        'আপনার সংযোগ দেখে আবার চেষ্টা করুন।',
+    'This profile is not available right now.':
+        'এই প্রোফাইলটি এখন পাওয়া যাচ্ছে না।',
+    '{count} left':
+        '{count}টি বাকি',
     'No previous purchases found for this account.':
         'এই অ্যাকাউন্টের জন্য কোনো পূর্ববর্তী কেনাকাটা পাওয়া যায়নি।',
     'Not Sure': 'নিশ্চিত নই',
@@ -2056,6 +2120,38 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Weiter bearbeiten',
     'Discard':
         'Verwerfen',
+    'Viewed profiles':
+        'Angesehene Profile',
+    'See profiles you viewed':
+        'Angesehene Profile anzeigen',
+    'Today':
+        'Heute',
+    'Earlier this week':
+        'Früher in dieser Woche',
+    'Earlier':
+        'Früher',
+    'Only you can see this list.':
+        'Nur Sie sehen diese Liste.',
+    '{count} profile in the last 30 days':
+        '{count} Profil in den letzten 30 Tagen',
+    '{count} profiles in the last 30 days':
+        '{count} Profile in den letzten 30 Tagen',
+    'Private photos':
+        'Private Fotos',
+    'No viewed profiles yet':
+        'Noch keine angesehenen Profile',
+    'Profiles you open in Discover stay here for 30 days, so you can find them again.':
+        'Profile, die Sie unter Entdecken öffnen, bleiben 30 Tage hier, damit Sie sie wiederfinden.',
+    'Back to Discover':
+        'Zurück zu Entdecken',
+    'Could not load your viewed profiles':
+        'Ihre angesehenen Profile konnten nicht geladen werden',
+    'Check your connection and try again.':
+        'Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+    'This profile is not available right now.':
+        'Dieses Profil ist gerade nicht verfügbar.',
+    '{count} left':
+        '{count} übrig',
     'No previous purchases found for this account.':
         'Für dieses Konto wurden keine früheren Käufe gefunden.',
     'Not Sure': 'Nicht sicher',
@@ -3001,6 +3097,38 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Continuer à modifier',
     'Discard':
         'Abandonner',
+    'Viewed profiles':
+        'Profils consultés',
+    'See profiles you viewed':
+        'Voir les profils consultés',
+    'Today':
+        'Aujourd\'hui',
+    'Earlier this week':
+        'Plus tôt cette semaine',
+    'Earlier':
+        'Plus tôt',
+    'Only you can see this list.':
+        'Vous seul voyez cette liste.',
+    '{count} profile in the last 30 days':
+        '{count} profil ces 30 derniers jours',
+    '{count} profiles in the last 30 days':
+        '{count} profils ces 30 derniers jours',
+    'Private photos':
+        'Photos privées',
+    'No viewed profiles yet':
+        'Aucun profil consulté pour le moment',
+    'Profiles you open in Discover stay here for 30 days, so you can find them again.':
+        'Les profils ouverts dans Découvrez restent ici 30 jours pour que vous puissiez les retrouver.',
+    'Back to Discover':
+        'Retour à Découvrez',
+    'Could not load your viewed profiles':
+        'Impossible de charger vos profils consultés',
+    'Check your connection and try again.':
+        'Vérifiez votre connexion et réessayez.',
+    'This profile is not available right now.':
+        'Ce profil n\'est pas disponible pour le moment.',
+    '{count} left':
+        '{count} restants',
     'No previous purchases found for this account.':
         'Aucun achat précédent trouvé pour ce compte.',
     'Not Sure': 'Pas sûr(e)',
@@ -3939,6 +4067,38 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'बदलाव जारी रखें',
     'Discard':
         'छोड़ दें',
+    'Viewed profiles':
+        'देखी गई प्रोफ़ाइलें',
+    'See profiles you viewed':
+        'देखी गई प्रोफ़ाइलें देखें',
+    'Today':
+        'आज',
+    'Earlier this week':
+        'इस हफ़्ते पहले',
+    'Earlier':
+        'पहले',
+    'Only you can see this list.':
+        'यह सूची सिर्फ़ आप देख सकते हैं।',
+    '{count} profile in the last 30 days':
+        'पिछले 30 दिनों में {count} प्रोफ़ाइल',
+    '{count} profiles in the last 30 days':
+        'पिछले 30 दिनों में {count} प्रोफ़ाइलें',
+    'Private photos':
+        'निजी फ़ोटो',
+    'No viewed profiles yet':
+        'अभी तक कोई प्रोफ़ाइल नहीं देखी',
+    'Profiles you open in Discover stay here for 30 days, so you can find them again.':
+        'खोजें में खोली गई प्रोफ़ाइलें 30 दिनों तक यहाँ रहती हैं, ताकि आप उन्हें फिर ढूँढ सकें।',
+    'Back to Discover':
+        'खोजें पर वापस जाएँ',
+    'Could not load your viewed profiles':
+        'देखी गई प्रोफ़ाइलें लोड नहीं हो सकीं',
+    'Check your connection and try again.':
+        'अपना कनेक्शन जाँचें और फिर कोशिश करें।',
+    'This profile is not available right now.':
+        'यह प्रोफ़ाइल अभी उपलब्ध नहीं है।',
+    '{count} left':
+        '{count} बाकी',
     'No previous purchases found for this account.':
         'इस खाते के लिए कोई पिछली खरीदारी नहीं मिली।',
     'Not Sure': 'पक्का नहीं',
@@ -4860,6 +5020,38 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Lanjutkan mengedit',
     'Discard':
         'Buang',
+    'Viewed profiles':
+        'Profil yang dilihat',
+    'See profiles you viewed':
+        'Lihat profil yang sudah dilihat',
+    'Today':
+        'Hari ini',
+    'Earlier this week':
+        'Awal minggu ini',
+    'Earlier':
+        'Sebelumnya',
+    'Only you can see this list.':
+        'Hanya Anda yang dapat melihat daftar ini.',
+    '{count} profile in the last 30 days':
+        '{count} profil dalam 30 hari terakhir',
+    '{count} profiles in the last 30 days':
+        '{count} profil dalam 30 hari terakhir',
+    'Private photos':
+        'Foto pribadi',
+    'No viewed profiles yet':
+        'Belum ada profil yang dilihat',
+    'Profiles you open in Discover stay here for 30 days, so you can find them again.':
+        'Profil yang Anda buka di Temukan tersimpan di sini selama 30 hari agar mudah ditemukan lagi.',
+    'Back to Discover':
+        'Kembali ke Temukan',
+    'Could not load your viewed profiles':
+        'Profil yang dilihat tidak dapat dimuat',
+    'Check your connection and try again.':
+        'Periksa koneksi Anda dan coba lagi.',
+    'This profile is not available right now.':
+        'Profil ini sedang tidak tersedia.',
+    '{count} left':
+        'Sisa {count}',
     'No previous purchases found for this account.':
         'Tidak ditemukan pembelian sebelumnya untuk akun ini.',
     'Not Sure': 'Belum Yakin',
@@ -5785,6 +5977,38 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Teruskan mengedit',
     'Discard':
         'Buang',
+    'Viewed profiles':
+        'Profil yang dilihat',
+    'See profiles you viewed':
+        'Lihat profil yang telah dilihat',
+    'Today':
+        'Hari ini',
+    'Earlier this week':
+        'Awal minggu ini',
+    'Earlier':
+        'Sebelum ini',
+    'Only you can see this list.':
+        'Hanya anda boleh melihat senarai ini.',
+    '{count} profile in the last 30 days':
+        '{count} profil dalam 30 hari lalu',
+    '{count} profiles in the last 30 days':
+        '{count} profil dalam 30 hari lalu',
+    'Private photos':
+        'Foto peribadi',
+    'No viewed profiles yet':
+        'Belum ada profil yang dilihat',
+    'Profiles you open in Discover stay here for 30 days, so you can find them again.':
+        'Profil yang anda buka di Temui kekal di sini selama 30 hari supaya anda boleh menemuinya semula.',
+    'Back to Discover':
+        'Kembali ke Temui',
+    'Could not load your viewed profiles':
+        'Profil yang dilihat tidak dapat dimuatkan',
+    'Check your connection and try again.':
+        'Semak sambungan anda dan cuba lagi.',
+    'This profile is not available right now.':
+        'Profil ini tidak tersedia sekarang.',
+    '{count} left':
+        'Baki {count}',
     'No previous purchases found for this account.':
         'Tiada pembelian terdahulu ditemui untuk akaun ini.',
     'Not Sure': 'Tidak Pasti',
@@ -6712,6 +6936,38 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Düzenlemeye devam et',
     'Discard':
         'Sil',
+    'Viewed profiles':
+        'Görüntülenen profiller',
+    'See profiles you viewed':
+        'Görüntülediğin profilleri gör',
+    'Today':
+        'Bugün',
+    'Earlier this week':
+        'Bu hafta daha önce',
+    'Earlier':
+        'Daha önce',
+    'Only you can see this list.':
+        'Bu listeyi yalnızca sen görebilirsin.',
+    '{count} profile in the last 30 days':
+        'Son 30 günde {count} profil',
+    '{count} profiles in the last 30 days':
+        'Son 30 günde {count} profil',
+    'Private photos':
+        'Gizli fotoğraflar',
+    'No viewed profiles yet':
+        'Henüz görüntülenen profil yok',
+    'Profiles you open in Discover stay here for 30 days, so you can find them again.':
+        'Keşfet bölümünde açtığın profiller 30 gün burada kalır, böylece onları yeniden bulabilirsin.',
+    'Back to Discover':
+        'Keşfet\'e dön',
+    'Could not load your viewed profiles':
+        'Görüntülenen profiller yüklenemedi',
+    'Check your connection and try again.':
+        'Bağlantını kontrol edip tekrar dene.',
+    'This profile is not available right now.':
+        'Bu profil şu anda kullanılamıyor.',
+    '{count} left':
+        '{count} kaldı',
     'No previous purchases found for this account.':
         'Bu hesap için önceki satın alma bulunamadı.',
     'Not Sure': 'Emin Değilim',
@@ -7635,6 +7891,38 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'ترمیم جاری رکھیں',
     'Discard':
         'ختم کریں',
+    'Viewed profiles':
+        'دیکھی گئی پروفائلز',
+    'See profiles you viewed':
+        'دیکھی گئی پروفائلز دیکھیں',
+    'Today':
+        'آج',
+    'Earlier this week':
+        'اس ہفتے پہلے',
+    'Earlier':
+        'پہلے',
+    'Only you can see this list.':
+        'یہ فہرست صرف آپ دیکھ سکتے ہیں۔',
+    '{count} profile in the last 30 days':
+        'پچھلے 30 دنوں میں {count} پروفائل',
+    '{count} profiles in the last 30 days':
+        'پچھلے 30 دنوں میں {count} پروفائلز',
+    'Private photos':
+        'نجی تصاویر',
+    'No viewed profiles yet':
+        'ابھی تک کوئی پروفائل نہیں دیکھی گئی',
+    'Profiles you open in Discover stay here for 30 days, so you can find them again.':
+        'دریافت کریں میں کھولی گئی پروفائلز 30 دن تک یہاں رہتی ہیں، تاکہ آپ انہیں دوبارہ ڈھونڈ سکیں۔',
+    'Back to Discover':
+        'دریافت کریں پر واپس جائیں',
+    'Could not load your viewed profiles':
+        'دیکھی گئی پروفائلز لوڈ نہیں ہو سکیں',
+    'Check your connection and try again.':
+        'اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔',
+    'This profile is not available right now.':
+        'یہ پروفائل ابھی دستیاب نہیں ہے۔',
+    '{count} left':
+        '{count} باقی',
     'No previous purchases found for this account.':
         'اس اکاؤنٹ کے لیے کوئی پچھلی خریداری نہیں ملی۔',
     'Not Sure': 'یقین نہیں',

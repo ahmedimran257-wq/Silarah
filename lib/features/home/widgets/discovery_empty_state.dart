@@ -73,11 +73,16 @@ class DiscoveryEmptyState extends StatefulWidget {
     required this.onClearFilters,
     required this.onRefresh,
     required this.onAdjustFilters,
+    this.onViewHistory,
   });
 
   final DiscoveryFilter filter;
   final VoidCallback onClearFilters;
   final VoidCallback onRefresh;
+
+  /// Opens the "Viewed profiles" gallery, so running out of new profiles
+  /// still leaves a way back to someone already seen.
+  final VoidCallback? onViewHistory;
 
   /// Opens the filter sheet, scrolled to [section] when one is given.
   final ValueChanged<String?> onAdjustFilters;
@@ -259,6 +264,16 @@ class _DiscoveryEmptyStateState extends State<DiscoveryEmptyState>
                       onTap: () => widget.onAdjustFilters(null),
                     ),
                   ),
+                  if (widget.onViewHistory != null)
+                    SilarahEntrance(
+                      delay: const Duration(milliseconds: 1000),
+                      duration: const Duration(milliseconds: 640),
+                      child: _QuietAction(
+                        label: context.uiCopy('See profiles you viewed'),
+                        icon: Icons.history_rounded,
+                        onTap: widget.onViewHistory!,
+                      ),
+                    ),
                 ],
               ),
             ),

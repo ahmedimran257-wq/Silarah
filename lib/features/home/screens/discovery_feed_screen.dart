@@ -41,8 +41,10 @@ import '../widgets/discovery_filter_sheet.dart';
 import '../widgets/interest_note_sheet.dart';
 import '../widgets/notification_bell_button.dart';
 import 'paywall_gate_screen.dart';
+import '../widgets/viewed_profiles_button.dart';
 import 'profile_detail_screen.dart';
 import 'notifications_screen.dart';
+import 'viewed_profiles_screen.dart';
 
 class DiscoveryFeedScreen extends StatefulWidget {
   const DiscoveryFeedScreen({super.key, this.onOpenTab});
@@ -351,15 +353,33 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
                                 AppTypography.wordmark.copyWith(fontSize: 26)),
                         const SizedBox(width: AppDimensions.space8),
                         UiText('SILARAH', style: AppTypography.wordmark),
-                        const Spacer(),
-                        // Free-tier counter badge
-                        if (!restricted &&
-                            (feedState.status == FeedStatus.loaded ||
-                                feedState.status == FeedStatus.refreshing ||
-                                feedState.status == FeedStatus.loadingMore) &&
-                            feedState.dailyLimit < 1000000)
-                          _FreeTierCounter(remaining: feedState.remainingToday),
-                        const SizedBox(width: AppDimensions.space12),
+                        const SizedBox(width: AppDimensions.space8),
+                        // Free-tier counter badge. It takes the leftover
+                        // width so long translations shrink instead of
+                        // pushing the header buttons off narrow screens.
+                        Expanded(
+                          child: Align(
+                            alignment: AlignmentDirectional.centerEnd,
+                            child: !restricted &&
+                                    (feedState.status == FeedStatus.loaded ||
+                                        feedState.status ==
+                                            FeedStatus.refreshing ||
+                                        feedState.status ==
+                                            FeedStatus.loadingMore) &&
+                                    feedState.dailyLimit < 1000000
+                                ? _FreeTierCounter(
+                                    remaining: feedState.remainingToday)
+                                : const SizedBox.shrink(),
+                          ),
+                        ),
+                        const SizedBox(width: AppDimensions.space8),
+                        if (!restricted) ...[
+                          ViewedProfilesButton(
+                            highlighted: feedState.profilesViewedToday > 0 ||
+                                _recordedViewIds.isNotEmpty,
+                          ),
+                          const SizedBox(width: AppDimensions.space8),
+                        ],
                         _NotificationButton(),
                       ],
                     ),
@@ -808,8 +828,14 @@ class _FreeTierCounter extends StatelessWidget {
           color: remaining <= 3 ? AppColors.errorRed : AppColors.cardBorder,
         ),
       ),
-      child: UiText(
-        l10n.discovery_remaining_profiles(remaining.toString()),
+      // Short on screen ("15 left") so it fits beside the header buttons in
+      // every language; screen readers still hear the full sentence.
+      child: UiText.verbatim(
+        context.uiCopyWith('{count} left', {'count': remaining}),
+        semanticsLabel: l10n.discovery_remaining_profiles(remaining.toString()),
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
         style: AppTypography.caption.copyWith(
           color: remaining <= 3 ? AppColors.errorRed : AppColors.slateMist,
           fontSize: 11,
@@ -868,6 +894,7 @@ class _EmptyFeed extends StatelessWidget {
         initial: filter,
         scrollToSection: section,
       ),
+      onViewHistory: () => ViewedProfilesScreen.open(context),
     );
   }
 }
@@ -935,6 +962,8 @@ class _FreeTierLimitReached extends StatelessWidget {
                     style: AppTypography.button),
               ),
             ),
+            const SizedBox(height: AppDimensions.space8),
+            const SeeViewedProfilesAction(),
           ],
         ),
       ),
