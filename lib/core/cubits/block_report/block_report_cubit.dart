@@ -30,26 +30,38 @@ class BlockReportCubit extends Cubit<BlockReportState> {
 
   Future<void> loadData({bool force = false}) async {
     if (!_isRealMode || _loadInFlight) return;
+    final userId = SupabaseService.currentUserId;
     final lastLoadedAt = _lastLoadedAt;
+    // Freshness only applies to the account that was loaded. After a sign-out
+    // and a sign-in (the same or another member) the lists must be read again,
+    // or Blocked Profiles and Report History show "None" and blocked members
+    // are no longer hidden.
     if (!force &&
+        userId != null &&
+        userId == _loadedUserId &&
         lastLoadedAt != null &&
         DateTime.now().difference(lastLoadedAt) < _freshness) {
       return;
     }
     _loadInFlight = true;
     try {
-      await _loadFromDb();
-      _lastLoadedAt = DateTime.now();
+      final loaded = await _loadFromDb();
+      if (loaded) {
+        _lastLoadedAt = DateTime.now();
+        _loadedUserId = userId;
+      }
     } finally {
       _loadInFlight = false;
     }
   }
 
-  /// Load blocks from Supabase
-  Future<void> _loadFromDb() async {
+  String? _loadedUserId;
+
+  /// Load blocks from Supabase. True when the lists were read.
+  Future<bool> _loadFromDb() async {
     final userId = SupabaseService.currentUserId;
     if (userId == null) {
-      return;
+      return false;
     }
 
     try {
@@ -165,8 +177,10 @@ class BlockReportCubit extends Cubit<BlockReportState> {
           hiddenProfileIds: hiddenIds,
         ));
       }
+      return SupabaseService.currentUserId == userId;
     } catch (e) {
       debugPrint('[BlockReportCubit] Error loading from DB: $e');
+      return false;
     }
   }
 
@@ -337,6 +351,8 @@ class BlockReportCubit extends Cubit<BlockReportState> {
   }
 
   void clear() {
+    _lastLoadedAt = null;
+    _loadedUserId = null;
     if (!isClosed) emit(const BlockReportState());
   }
 }

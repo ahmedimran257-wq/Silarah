@@ -20,14 +20,14 @@ Qatest Man (`c4f0c148…`) — all `ahmedimran257+qa1120…@gmail.com` fixtures 
 |---|---|---|---|
 | A1 | Release APK builds and installs over 42053 without wiping data; no `[perf]` | PASS | build log "Silarah installed successfully", versionCode 44053, session kept; config has no PERF key |
 | A2 | Cold launch → boot routes to the right screen | PASS | a2_launch.png (signed-in Discover after cold start; force-stop relaunch → Home) |
-| A3 | Language selection (first run) | PENDING | new-account run |
-| A4 | Legal gate consent | PENDING | new-account run |
-| A5 | Email screen validation, consent-bound code request | PENDING | new-account run |
-| A6 | Email code (OTP) | PENDING | owner types the code |
-| A7–A11 | Onboarding steps (for whom, identity, Islamic identity, location, photo) | PENDING | new-account run |
-| A12 | Progress bar, back between steps, resume after kill | PENDING | new-account run |
-| A13 | Sign out | PENDING | new-account run |
-| A14 | Sign back in | PENDING | owner types the code |
+| A3 | Language selection | PASS | a3_language.png (10 languages, Continue) |
+| A4 | Legal gate consent | PASS | Continue does nothing until all three are ticked; a4_consents_checked.png |
+| A5 | Email validation, consent-bound code | FIXED | invalid and disposable addresses refused; a repeated identical error showed nothing (bug #15) → fixed, 3/3 attempts now show it; code sent a6_code_screen.png |
+| A6 | Email code | PASS | wrong code: "This verification code is invalid or has expired" (a6_wrong_code_rejected.png); owner typed the real code |
+| A7–A11 | Onboarding (for whom, location, identity, Islamic identity, photo) | PASS | a7_after_myself.png → a11_after_onboarding.png; email in first name refused by the server with the new message (a8_email_name_result.png); photo published |
+| A12 | Steps, back, resume after kill | PASS | "Step n of 5"; Back returns a step; force-stop on step 5 resumed on step 5 |
+| A13 | Sign out | PASS | a13_signed_out.png |
+| A14 | Sign back in | PASS | a14_signed_in.png (new account), Abdul restored |
 
 ## B. Discover
 | # | Item | Status | Evidence |
@@ -53,7 +53,7 @@ Qatest Man (`c4f0c148…`) — all `ahmedimran257+qa1120…@gmail.com` fixtures 
 | C4 | Private shortlist editor | PASS | c4_shortlist_editor.png, c4_shortlist_saved.png |
 | C5 | Share profile | PASS | c5_share.png (no private data in text) |
 | C6 | Report / Block menu | PASS | c6_menu.png, c6_report_sheet.png (cancelled — reviewer account); block tested from chat (E4) |
-| C7 | Open chat from a matched profile | PENDING | re-test on new build |
+
 
 ## D. Interests and matches
 | # | Item | Status | Evidence |
@@ -73,10 +73,10 @@ Qatest Man (`c4f0c148…`) — all `ahmedimran257+qa1120…@gmail.com` fixtures 
 | E3 | Contact details blocked | FIXED | digits/email blocked (e3_phone_blocked.png); spelled-out numbers were delivered (e2_chat_open.png) → migration 318 |
 | E4 | Report message, block from chat | FIXED | report closed the match but chat stayed open (e4_msg_reported.png) → reload + closed banner; block e4_blocked.png |
 | E5 | Delete chat | PASS | e5_deleted.png |
-| E6 | Conversation openers | PENDING | needs an empty new match |
+| E6 | Conversation openers | PASS | e6_openers_woman.png; opener sent, openers hidden |
 | E7 | Free man locked → paywall; women message free | PASS | e7_locked_chat_man.png; woman sends via API without Premium |
 | E8 | Premium expiring mid-chat | PASS | e8_expiry_midchat.png (send → Premium notice, history hidden) |
-| E9 | Failed message retry | PENDING | |
+| E9 | Failed message retry (network) | NOT RUN | the PC is USB-tethered through the phone, so cutting the network cuts the test link; needs a second network path |
 | E10 | Blocked message retry would re-strike | FIXED | e3_phone_blocked.png "Tap to retry" on a refused message → text returns to the composer |
 | E11 | Premium granted while app open | FIXED | e2_chat_premium.png / e2_chat_refresh.png wall stayed → inbox re-read on open |
 
@@ -87,14 +87,14 @@ Qatest Man (`c4f0c148…`) — all `ahmedimran257+qa1120…@gmail.com` fixtures 
 | F2 | Saved profiles on My Profile | PASS | b10_boost.png |
 | F3 | Who viewed me (Premium list / free gate) | FIXED | f3_views_premium2.png; free gate promised a count but showed none (f3_views_free.png) → count shown |
 | F4 | Notifications screen, tap-through | FIXED | f4_notifications.png; guardian message notification opened "Conversation no longer available" (f4_tap_message.png) → migration 319 + routing |
-| F5 | Push delivery | PASS | interest push held for quiet hours (`scheduled_at` 08:00 IST), later `delivery_status=sent` |
+| F5 | Push delivery and tap | PASS | quiet hours respected (08:00 IST), system-tray push opened the Guardian dashboard (f5_push_opens_guardian_dashboard.png) |
 | F6 | Photo access requests screen | PASS | f6_photo_requests.png, f6_shared.png |
 
 ## G. Premium / paywall
 | # | Item | Status | Evidence |
 |---|---|---|---|
 | G1 | Man's plans screen | PASS | g1_sub_man.png, g1_sub_man_bottom.png |
-| G2 | Woman's plans screen | PENDING | new woman account |
+| G2 | Woman's plans screen | PASS | g2_sub_woman.png "Unlock Premium · You already message free", no messaging line |
 | G3 | Play purchase sheet, backed out | PASS | Play sheet "Silarah Premium Monthly ₹299" (test card) dismissed, g3_after_cancel.png |
 | G4 | Test Premium card | PASS | h1_profile_top.png "Test Premium is active · 23h 57m" |
 | G5 | Premium gates (compatibility, shortlist) | PASS | g5_compat_gate.png |
@@ -117,13 +117,13 @@ Qatest Man (`c4f0c148…`) — all `ahmedimran257+qa1120…@gmail.com` fixtures 
 | I2 | Themes: Rose, Ivory, OLED, Automatic | PASS | i2_rose_montage.png, i2_ivory_montage.png, i2_automatic_nightphone.png |
 | I3 | 10 languages, RTL ar/ur | FIXED | i3_*_montage.png; wrong words fixed (see report); RTL name punctuation fixed |
 | I4 | Photo privacy | PASS | i4_photo_request.png; `photo_privacy` request_only → public |
-| I5 | Blocked list / unblock; report history | FIXED | i5_blocked.png, i5_unblocked.png; message reports missing from history → added |
+| I5 | Blocked list / unblock; report history | FIXED | i5_blocked.png, i5_unblocked.png; message reports missing and status always "Pending" → fixed (fix6_report_status.png: Pending / Reviewed) |
 | I6 | Download my data | PASS | i6_export.png → ZIP `silarah-data-export-2026-11-20.zip`; second request `export_rate_limited_24_hours` |
 | I7 | Privacy requests | PASS | i7_submitted.png (reference + response date) |
 | I8 | Help Center, guide, grievance | PASS | i8_help.png, k7_guide.png, i8_grievance.png |
 | I9 | Legal documents (10) | PASS | all 10 opened with titles |
 | I10 | Version | PASS | 1.0.0 (44053) |
-| I11 | Delete account | PENDING | new test account |
+| I11 | Delete account | PASS | i11_delete_screen.png → reason → DELETE; server `pending_deletion`, profile paused |
 
 ## J. Guardian / Wali
 | # | Item | Status | Evidence |
@@ -140,6 +140,32 @@ Qatest Man (`c4f0c148…`) — all `ahmedimran257+qa1120…@gmail.com` fixtures 
 | K3 | Poor network | NOT RUN | the PC is USB-tethered through the phone; throttling the phone cuts the test link |
 | K4 | Back navigation | PASS | every screen above returned with Back; guardian dashboard fixed (J2) |
 | K5 | Rotation | PASS | app is portrait-locked (`SCREEN_ORIENTATION_PORTRAIT`) with auto-rotate on |
-| K6 | Shared phone (B after A) | PENDING | new-account run |
+| K6 | Shared phone (B after A) | FIXED | new account saw none of Abdul's chats, interests, presets (k6_*.png); but Blocked/Report History stayed empty for 5 min after any sign-in (bug #16) → fixed |
 | K7 | Product guide, coach marks | PASS | k7_guide.png |
 | K8 | App links (silarah.com/auth) | PASS | `pm get-app-links` verified; link opened app without losing session |
+
+## Findings and fixes
+
+| # | Finding | Fix | Verified on phone |
+|---|---|---|---|
+| 1 | Spelled-out phone numbers (words, romanised Hindi/Urdu, Arabic/Urdu/Hindi/Bengali script, "double 7") passed chat and interest-note checks | migration 318 `text_has_spelled_phone_number` in `chat_safety_check`; app `ContentFilter` mirrors it | fix1_fix3_refused_draft.png; live API: chat `blocked`, note `interest_note_blocked` |
+| 1b | Profile names/profession/bio were checked for contact details only in the app | migration 318 trigger `trg_enforce_profile_public_text`; app maps the refusal to a clear message | a8_email_name_result.png |
+| 2 | Server-side Premium grant while the app is open left the chat wall up; "Refresh access" could not clear it | chat re-reads the inbox and entitlement when the server allows a cached-locked chat; no read receipts while locked | fix2_unlocked_without_restart.png, fix2_refresh_access.png |
+| 3 | A refused message stayed as "Tap to retry" (retry = another strike) | refused text goes back to the composer; never a retry bubble | fix1_fix3_refused_draft.png |
+| 4 | Reporting a message closed the match but the open chat did not change | inbox reload after report; report-specific banner; reported member gets a neutral label | fix4_report_closed_state.png |
+| 5 | Filter chip showed "shia" | shared `discoveryFacetLabel` | fix5_chip_label.png |
+| 6 | Report History missed message reports and always said "Pending" | message reports listed with reason and real status | fix6_report_status.png |
+| 8 | Latin names showed ".Khatun K" in Arabic/Urdu | `UiText` lays out Latin-only text LTR with mirrored alignment | fix8_ar_montage.png |
+| 9 | Copy promised photo reordering that does not exist | copy corrected in 10 languages | fix9_photo_copy.png |
+| 10 | Wrong translations ("Practicing" ×8, Report History ×4, Malay "jantan"/"sendi"/"wad"/lower case, Turkish "İlgi alanları", Hindi "संदेशों") | ARB + catalog corrections | fix10_ms_settings.png |
+| 11 | A member who accepted a Guardian invitation could not get back to their Home (Back closed the app) | dashboard back route for members | fix11_dashboard_after_accept.png, fix11_back_to_member_home.png |
+| 13 | Guardian message notifications opened "Conversation no longer available" | migration 319 link → Guardian dashboard; app routes the type | f5_push_opens_guardian_dashboard.png |
+| 14 | Free Profile Views promised a weekly count but showed none | count shown (0 / 1 / n wording) | fix14_free_views_count.png |
+| 15 | Repeating the same sign-in error showed nothing the second time | every error attempt is a new state | 3/3 attempts showed the disposable-address error |
+| 16 | Blocked Profiles and Report History stayed empty for 5 minutes after any sign-in | freshness tied to the loaded account; cleared on sign-out | fix16_reload_after_signin.png (fast path by unit test) |
+
+Not fixed, needs the owner:
+- Photo reorder / choose main photo does not exist; building it needs a decision on the "Photo verified" badge when the main photo changes.
+- H4 selfie verification needs camera permission and a live face.
+- E9 and K3 need a network that is not the phone's own tether.
+- All nine translations are machine-made; Malay, Turkish and Hindi need a native review first.

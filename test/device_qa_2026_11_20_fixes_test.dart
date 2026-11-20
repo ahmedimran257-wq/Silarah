@@ -183,4 +183,24 @@ void main() {
       );
     }
   });
+
+  test('a repeated sign-in error is shown every time', () {
+    final cubit = read('lib/core/cubits/auth/auth_cubit.dart');
+    expect(cubit, isNot(contains('emit(AuthError(')));
+    expect(cubit, isNot(contains('emit(const AuthError(')));
+    final helper = cubit.substring(cubit.indexOf('void _emitError('));
+    expect(helper.substring(0, 200),
+        contains('if (state == error) emit(const AuthLoading());'));
+  });
+
+  test('blocked and reported lists reload after signing in again', () {
+    final cubit = read('lib/core/cubits/block_report/block_report_cubit.dart');
+    final clear = cubit.substring(cubit.indexOf('void clear() {'));
+    expect(clear.substring(0, 120), contains('_lastLoadedAt = null;'));
+    final load = cubit.substring(
+      cubit.indexOf('Future<void> loadData('),
+      cubit.indexOf('String? _loadedUserId;'),
+    );
+    expect(load, contains('userId == _loadedUserId'));
+  });
 }

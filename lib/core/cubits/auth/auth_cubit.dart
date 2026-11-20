@@ -248,7 +248,7 @@ class AuthCubit extends Cubit<AuthState> {
     final normalizedEmail = EmailAddressValidation.normalize(email);
     final emailError = EmailAddressValidation.validate(normalizedEmail);
     if (emailError != null) {
-      emit(AuthError(
+      _emitError(AuthError(
         message: _emailValidationMessage(emailError),
         kind: AuthErrorKind.invalidEmail,
       ));
@@ -268,7 +268,7 @@ class AuthCubit extends Cubit<AuthState> {
               await LegalConsentService.instance
                   .bindPendingTransactionToEmail(normalizedEmail);
           if (!isBound) {
-            emit(const AuthError(
+            _emitError(const AuthError(
               message:
                   'Your legal acceptance has expired. Please review and accept it again.',
               kind: AuthErrorKind.legalConsentRequired,
@@ -290,7 +290,7 @@ class AuthCubit extends Cubit<AuthState> {
         debugPrint('AuthCubit: send email OTP error: $e');
         // OTP request failures intentionally do not reveal whether the email
         // already exists. The verification step remains the identity proof.
-        emit(const AuthError(
+        _emitError(const AuthError(
           message:
               'We could not send a verification code. Check the address or try again shortly.',
         ));
@@ -298,7 +298,7 @@ class AuthCubit extends Cubit<AuthState> {
       return;
     }
 
-    emit(const AuthError(
+    _emitError(const AuthError(
       message: 'Authentication is not configured. Please try again later.',
     ));
   }
@@ -306,7 +306,7 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> resendOtp() async {
     final email = await _pendingOtpEmail();
     if (email == null || email.isEmpty) {
-      emit(const AuthError(
+      _emitError(const AuthError(
         message:
             'Your verification code has expired. Please enter your email again.',
       ));
@@ -319,7 +319,7 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> verifyOtp(String code, {String? deviceId}) async {
     final requestId = ++_verifyOtpRequestId;
     if (!RegExp(r'^\d{6}$').hasMatch(code)) {
-      emit(const AuthError(
+      _emitError(const AuthError(
         message: 'Please enter the complete 6-digit verification code.',
       ));
       return;
@@ -330,7 +330,7 @@ class AuthCubit extends Cubit<AuthState> {
     if (_isRealMode) {
       final email = await _pendingOtpEmail();
       if (email == null) {
-        emit(const AuthError(
+        _emitError(const AuthError(
           message:
               'Your verification code has expired. Please request a new code.',
         ));
@@ -361,11 +361,11 @@ class AuthCubit extends Cubit<AuthState> {
           user = refreshed.user ?? SupabaseService.client.auth.currentUser;
         }
         if (user == null) {
-          emit(const AuthError(message: 'Authentication failed. No user ID.'));
+          _emitError(const AuthError(message: 'Authentication failed. No user ID.'));
           return;
         }
         if (SupabaseService.client.auth.currentSession == null) {
-          emit(const AuthError(
+          _emitError(const AuthError(
             message: 'Authentication failed. Please sign in again.',
           ));
           return;
@@ -411,7 +411,7 @@ class AuthCubit extends Cubit<AuthState> {
       } catch (e) {
         if (requestId != _verifyOtpRequestId) return;
         debugPrint('AuthCubit: verify email OTP error: $e');
-        emit(AuthError(message: _friendlyAuthError(e)));
+        _emitError(AuthError(message: _friendlyAuthError(e)));
       } finally {
         if (identical(_signupProvisioning, provisioning)) {
           _signupProvisioning = null;
@@ -421,7 +421,7 @@ class AuthCubit extends Cubit<AuthState> {
       return;
     }
 
-    emit(const AuthError(
+    _emitError(const AuthError(
       message: 'Authentication is not configured. Please try again later.',
     ));
   }
@@ -720,6 +720,17 @@ class AuthCubit extends Cubit<AuthState> {
     } catch (e) {
       debugPrint('Failed to apply pending referral code: $e');
     }
+  }
+
+  /// Every failed attempt must be visible. Bloc drops a state equal to the
+  /// current one, so tapping "Send" twice with the same bad address showed
+  /// nothing the second time. A brief loading state in between makes the
+  /// repeated error a new state; the router keeps pre-auth screens in place
+  /// while loading.
+  void _emitError(AuthError error) {
+    if (isClosed) return;
+    if (state == error) emit(const AuthLoading());
+    emit(error);
   }
 
   String _emailValidationMessage(EmailAddressError error) {
