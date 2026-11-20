@@ -281,6 +281,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'تعذّر إرسال هذا البلاغ. حاول مرة أخرى.',
     'Your profile has not finished loading. Check your connection and try again.':
         'لم يكتمل تحميل ملفك الشخصي. تحقق من اتصالك وحاول مرة أخرى.',
+    'A fresh export was created recently. You can create another in 24 hours.':
+        'تم إنشاء نسخة حديثة مؤخرًا. يمكنك إنشاء نسخة أخرى بعد 24 ساعة.',
+    'Phone numbers, emails, links and social media handles cannot be shared in chat. Repeated attempts pause messaging for 24 hours.':
+        'لا يمكن مشاركة أرقام الهواتف أو البريد الإلكتروني أو الروابط أو حسابات التواصل الاجتماعي في المحادثة. تؤدي المحاولات المتكررة إلى إيقاف المراسلة 24 ساعة.',
     'No previous purchases found for this account.':
         'لم يتم العثور على عمليات شراء سابقة لهذا الحساب.',
     'Not Sure': 'غير متأكد',
@@ -1244,6 +1248,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'এই রিপোর্ট পাঠানো যায়নি। আবার চেষ্টা করুন।',
     'Your profile has not finished loading. Check your connection and try again.':
         'আপনার প্রোফাইল এখনও লোড হয়নি। আপনার সংযোগ দেখে আবার চেষ্টা করুন।',
+    'A fresh export was created recently. You can create another in 24 hours.':
+        'সম্প্রতি একটি নতুন এক্সপোর্ট তৈরি হয়েছে। 24 ঘণ্টা পরে আরেকটি তৈরি করতে পারবেন।',
+    'Phone numbers, emails, links and social media handles cannot be shared in chat. Repeated attempts pause messaging for 24 hours.':
+        'চ্যাটে ফোন নম্বর, ইমেল, লিংক ও সোশ্যাল মিডিয়া হ্যান্ডেল শেয়ার করা যায় না। বারবার চেষ্টা করলে 24 ঘণ্টা মেসেজ পাঠানো বন্ধ থাকবে।',
     'No previous purchases found for this account.':
         'এই অ্যাকাউন্টের জন্য কোনো পূর্ববর্তী কেনাকাটা পাওয়া যায়নি।',
     'Not Sure': 'নিশ্চিত নই',
@@ -2224,6 +2232,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Diese Meldung konnte nicht gesendet werden. Bitte versuchen Sie es erneut.',
     'Your profile has not finished loading. Check your connection and try again.':
         'Ihr Profil ist noch nicht geladen. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+    'A fresh export was created recently. You can create another in 24 hours.':
+        'Kürzlich wurde ein neuer Export erstellt. Einen weiteren können Sie in 24 Stunden erstellen.',
+    'Phone numbers, emails, links and social media handles cannot be shared in chat. Repeated attempts pause messaging for 24 hours.':
+        'Telefonnummern, E-Mail-Adressen, Links und Social-Media-Namen können im Chat nicht geteilt werden. Wiederholte Versuche pausieren das Schreiben für 24 Stunden.',
     'No previous purchases found for this account.':
         'Für dieses Konto wurden keine früheren Käufe gefunden.',
     'Not Sure': 'Nicht sicher',
@@ -3225,6 +3237,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Impossible d\'envoyer ce signalement. Veuillez réessayer.',
     'Your profile has not finished loading. Check your connection and try again.':
         'Votre profil n\'est pas encore chargé. Vérifiez votre connexion et réessayez.',
+    'A fresh export was created recently. You can create another in 24 hours.':
+        'Un export récent a déjà été créé. Vous pourrez en créer un autre dans 24 heures.',
+    'Phone numbers, emails, links and social media handles cannot be shared in chat. Repeated attempts pause messaging for 24 hours.':
+        'Les numéros de téléphone, e-mails, liens et pseudos de réseaux sociaux ne peuvent pas être partagés dans le chat. Des tentatives répétées suspendent la messagerie pendant 24 heures.',
     'No previous purchases found for this account.':
         'Aucun achat précédent trouvé pour ce compte.',
     'Not Sure': 'Pas sûr(e)',
@@ -4219,6 +4235,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'यह रिपोर्ट नहीं भेजी जा सकी। कृपया फिर कोशिश करें।',
     'Your profile has not finished loading. Check your connection and try again.':
         'आपकी प्रोफ़ाइल अभी लोड नहीं हुई है। अपना कनेक्शन जाँचें और फिर कोशिश करें।',
+    'A fresh export was created recently. You can create another in 24 hours.':
+        'हाल ही में एक नया एक्सपोर्ट बनाया गया है। आप 24 घंटे बाद दूसरा बना सकते हैं।',
+    'Phone numbers, emails, links and social media handles cannot be shared in chat. Repeated attempts pause messaging for 24 hours.':
+        'चैट में फ़ोन नंबर, ईमेल, लिंक और सोशल मीडिया हैंडल साझा नहीं किए जा सकते। बार-बार कोशिश करने पर 24 घंटे के लिए मैसेज भेजना रुक जाएगा।',
     'No previous purchases found for this account.':
         'इस खाते के लिए कोई पिछली खरीदारी नहीं मिली।',
     'Not Sure': 'पक्का नहीं',
@@ -5196,6 +5216,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Laporan ini tidak dapat dikirim. Silakan coba lagi.',
     'Your profile has not finished loading. Check your connection and try again.':
         'Profil Anda belum selesai dimuat. Periksa koneksi Anda dan coba lagi.',
+    'A fresh export was created recently. You can create another in 24 hours.':
+        'Ekspor baru baru saja dibuat. Anda dapat membuat yang lain dalam 24 jam.',
+    'Phone numbers, emails, links and social media handles cannot be shared in chat. Repeated attempts pause messaging for 24 hours.':
+        'Nomor telepon, email, tautan, dan akun media sosial tidak dapat dibagikan di obrolan. Percobaan berulang akan menjeda pengiriman pesan selama 24 jam.',
     'No previous purchases found for this account.':
         'Tidak ditemukan pembelian sebelumnya untuk akun ini.',
     'Not Sure': 'Belum Yakin',
@@ -6177,6 +6201,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Laporan ini tidak dapat dihantar. Sila cuba lagi.',
     'Your profile has not finished loading. Check your connection and try again.':
         'Profil anda belum selesai dimuatkan. Semak sambungan anda dan cuba lagi.',
+    'A fresh export was created recently. You can create another in 24 hours.':
+        'Eksport baharu telah dibuat baru-baru ini. Anda boleh membuat yang lain dalam 24 jam.',
+    'Phone numbers, emails, links and social media handles cannot be shared in chat. Repeated attempts pause messaging for 24 hours.':
+        'Nombor telefon, e-mel, pautan dan akaun media sosial tidak boleh dikongsi dalam sembang. Percubaan berulang akan menjeda penghantaran mesej selama 24 jam.',
     'No previous purchases found for this account.':
         'Tiada pembelian terdahulu ditemui untuk akaun ini.',
     'Not Sure': 'Tidak Pasti',
@@ -7160,6 +7188,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Bu bildirim gönderilemedi. Lütfen tekrar dene.',
     'Your profile has not finished loading. Check your connection and try again.':
         'Profilin henüz yüklenmedi. Bağlantını kontrol edip tekrar dene.',
+    'A fresh export was created recently. You can create another in 24 hours.':
+        'Yakın zamanda yeni bir dışa aktarım oluşturuldu. 24 saat sonra yenisini oluşturabilirsin.',
+    'Phone numbers, emails, links and social media handles cannot be shared in chat. Repeated attempts pause messaging for 24 hours.':
+        'Sohbette telefon numarası, e-posta, bağlantı ve sosyal medya hesabı paylaşılamaz. Tekrarlanan denemeler mesajlaşmayı 24 saat durdurur.',
     'No previous purchases found for this account.':
         'Bu hesap için önceki satın alma bulunamadı.',
     'Not Sure': 'Emin Değilim',
@@ -8139,6 +8171,10 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'یہ رپورٹ نہیں بھیجی جا سکی۔ براہ کرم دوبارہ کوشش کریں۔',
     'Your profile has not finished loading. Check your connection and try again.':
         'آپ کی پروفائل ابھی لوڈ نہیں ہوئی۔ اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔',
+    'A fresh export was created recently. You can create another in 24 hours.':
+        'حال ہی میں ایک نیا ایکسپورٹ بنایا گیا ہے۔ آپ 24 گھنٹے بعد دوسرا بنا سکتے ہیں۔',
+    'Phone numbers, emails, links and social media handles cannot be shared in chat. Repeated attempts pause messaging for 24 hours.':
+        'چیٹ میں فون نمبر، ای میل، لنکس اور سوشل میڈیا ہینڈل شیئر نہیں کیے جا سکتے۔ بار بار کوشش کرنے پر 24 گھنٹے کے لیے پیغام رسانی رک جائے گی۔',
     'No previous purchases found for this account.':
         'اس اکاؤنٹ کے لیے کوئی پچھلی خریداری نہیں ملی۔',
     'Not Sure': 'یقین نہیں',

@@ -490,6 +490,12 @@ class ChatCubit extends Cubit<ChatState> {
       final createdAt = _parseDate(row['created_at']) ?? DateTime.now();
       if (realId == null) {
         _updateMessageStatus(conversationId, localId, MessageStatus.failed);
+        if (row['safety_status']?.toString() == 'blocked') {
+          // Contact details were refused and counted as a strike. Tell the
+          // member why, and reload so a resulting suspension shows at once.
+          _lastSendBlockedBySafety = true;
+          unawaited(loadConversations(showLoading: false, force: true));
+        }
         return false;
       }
 
@@ -1155,6 +1161,16 @@ class ChatCubit extends Cubit<ChatState> {
     if (value == null) return null;
     if (value is DateTime) return value.toLocal();
     return DateTime.tryParse(value.toString())?.toLocal();
+  }
+
+  bool _lastSendBlockedBySafety = false;
+
+  /// True once after a send was refused for contact details (phone, email,
+  /// link, handle), so the screen can explain instead of offering a retry.
+  bool takeSafetyBlock() {
+    final blocked = _lastSendBlockedBySafety;
+    _lastSendBlockedBySafety = false;
+    return blocked;
   }
 
   bool _isSafetyBlock(Object error) =>

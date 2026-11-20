@@ -68,4 +68,30 @@ void main() {
     expect(read('supabase/functions/get-signed-url/index.ts'),
         contains('.gte("created_at", since)'));
   });
+
+  test('database fixes 312 and 313 keep their key rules', () {
+    final m312 =
+        read('supabase/migrations/312_account_export_storage_payment_fixes.sql');
+    expect(m312, contains('content_withheld'));
+    expect(m312, contains('date_of_birth_locked'));
+    expect(m312, contains('city_country_mismatch'));
+    expect(m312, contains('enforcement_tombstones'));
+    expect(m312, contains("interval '2 hours 5 minutes'"));
+    final m313 =
+        read('supabase/migrations/313_chat_moderation_integrity_fixes.sql');
+    // Phones are 10-13 digit runs; commas never join a run, so salaries in
+    // the Indian format and date ranges are not struck.
+    expect(m313, contains('v_digit_count BETWEEN 10 AND 13'));
+    expect(m313, isNot(contains('[[:space:]/_,.')));
+    expect(m313, contains('REVOKE'));
+  });
+
+  test('a blocked chat message explains itself', () {
+    expect(read('lib/core/cubits/chat/chat_cubit.dart'),
+        contains('bool takeSafetyBlock()'));
+    expect(read('lib/features/home/screens/chat_screen.dart'),
+        contains('_showContactDetailsRefused'));
+    expect(read('lib/features/home/screens/settings_screen.dart'),
+        contains('You can create another in 24 hours.'));
+  });
 }

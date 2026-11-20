@@ -300,7 +300,11 @@ class _ChatScreenState extends State<ChatScreen>
         .read<ChatCubit>()
         .sendMessage(widget.conversationId, text);
     if (!mounted) return;
-    if (!sent) _showMessageSendFailure();
+    if (!sent) {
+      _chatCubit.takeSafetyBlock()
+          ? _showContactDetailsRefused()
+          : _showMessageSendFailure();
+    }
     _scrollToBottom(animated: true);
   }
 
@@ -346,7 +350,24 @@ class _ChatScreenState extends State<ChatScreen>
       message.id,
     );
     if (!mounted) return;
-    if (!sent) _showMessageSendFailure();
+    if (!sent) {
+      _chatCubit.takeSafetyBlock()
+          ? _showContactDetailsRefused()
+          : _showMessageSendFailure();
+    }
+  }
+
+  void _showContactDetailsRefused() {
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 6),
+          content: UiText(context.uiCopy(
+              'Phone numbers, emails, links and social media handles cannot be shared in chat. Repeated attempts pause messaging for 24 hours.')),
+        ),
+      );
   }
 
   void _showMessageSendFailure() {

@@ -1583,7 +1583,7 @@ class _PrivacySectionState extends State<_PrivacySection> {
       final rateLimited = error.message.contains('export_rate_limited');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: UiText(rateLimited
-            ? 'A fresh export was created recently. You can create another in 10 minutes.'
+            ? 'A fresh export was created recently. You can create another in 24 hours.'
             : _settingsErrorMessage(error.message)),
       ));
     } catch (error) {
