@@ -455,6 +455,11 @@ export async function inviteStaffMember(formData: FormData) {
       role: formData.get("role"),
     });
 
+    // Sign-up is closed to addresses that did not go through the app's
+    // consent step (migration 315); a super admin authorises this one
+    // address for the next hour so the invitation can create the account.
+    await run("admin_prepare_staff_invite", { p_email: parsed.email });
+
     const adminClient = createAdminClient();
     const redirectBase = adminSiteUrl();
 

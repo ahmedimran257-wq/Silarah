@@ -199,10 +199,19 @@ Deno.serve(async (req: Request) => {
       p_event_timestamp_ms: eventTimestampMs,
       p_subscription_status: newStatus,
       p_subscription_expires_at: newExpiresAt,
-      p_product_id: event.product_id ?? null,
+      // A plan change is recorded under the NEW plan, and the old plan is
+      // marked replaced so it can no longer keep Premium alive on its own
+      // (for example after the new plan is refunded).
+      p_product_id: eventType === "PRODUCT_CHANGE" && event.new_product_id
+        ? event.new_product_id
+        : event.product_id ?? null,
       p_currency: event.currency ?? null,
       p_price: chargedAmount(event),
       p_event_expires_at: expiresAt,
+      p_replaced_product_id: eventType === "PRODUCT_CHANGE" &&
+          event.new_product_id
+        ? event.product_id ?? null
+        : null,
     },
   );
 
@@ -275,6 +284,7 @@ interface RevenueCatEvent {
   expiration_at_ms?: number;
   grace_period_expiration_at_ms?: number;
   product_id?: string;
+  new_product_id?: string | null;
   period_type?: string;
   currency?: string;
   price?: number;
@@ -335,6 +345,11 @@ function validateProductionRevenueCatEvent(
   if (
     typeof event.product_id !== "string" ||
     !isAllowedProduct(event.product_id)
+  ) return "product";
+  if (
+    event.new_product_id != null &&
+    (typeof event.new_product_id !== "string" ||
+      !isAllowedProduct(event.new_product_id))
   ) return "product";
   if (
     typeof event.store !== "string" ||

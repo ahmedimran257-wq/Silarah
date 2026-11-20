@@ -86,6 +86,51 @@ void main() {
     expect(m313, contains('REVOKE'));
   });
 
+  test('a plan change retires the old plan so refunds end Premium', () {
+    final m314 =
+        read('supabase/migrations/314_plan_change_replaces_old_plan.sql');
+    expect(m314, contains('p_replaced_product_id text DEFAULT NULL'));
+    expect(m314, contains("'PRODUCT_REPLACED'"));
+    expect(m314,
+        contains("NOT IN ('EXPIRATION', 'REVOCATION', 'PRODUCT_REPLACED')"));
+    expect(m314, contains('FROM PUBLIC, anon, authenticated;'));
+    final webhook = read('supabase/functions/revenuecat-webhook/index.ts');
+    expect(webhook, contains('p_replaced_product_id'));
+    expect(webhook, contains('new_product_id'));
+  });
+
+  test('sign-up codes go only to addresses that accepted the terms', () {
+    final m315 = read(
+        'supabase/migrations/315_signup_requires_consent_or_staff_invite.sql');
+    expect(m315, contains('private.staff_invite_allowlist'));
+    expect(m315, contains('admin_prepare_staff_invite'));
+    final m317 = read(
+        'supabase/migrations/317_prepared_signup_skips_disposable_check.sql');
+    // The live hook: consent bound to this exact address, or a prepared one.
+    expect(m317, contains('c.bound_email_hash = v_hash'));
+    expect(m317, contains('AND c.consumed_at IS NULL'));
+    expect(m317, contains('NOT v_prepared AND public.is_disposable_email_domain'));
+    // Bans apply to every path, prepared or not.
+    expect(m317, contains('private.enforcement_tombstones'));
+    expect(m317, contains("'http_code', 503"));
+    final m316 = read(
+        'supabase/migrations/316_signup_allowlist_for_service_fixtures.sql');
+    expect(m316, contains("auth.role() IS DISTINCT FROM 'service_role'"));
+    expect(m316, contains('FROM PUBLIC, anon;'));
+    // The app binds consent before asking for a sign-up code.
+    final auth = read('lib/core/cubits/auth/auth_cubit.dart');
+    expect(
+      auth.indexOf('bindPendingTransactionToEmail(normalizedEmail)'),
+      lessThan(auth.indexOf('auth.signInWithOtp(')),
+    );
+    // Staff invitations prepare the address first.
+    final staff = read('admin/src/app/(staff)/actions.ts');
+    expect(
+      staff.indexOf('run("admin_prepare_staff_invite"'),
+      lessThan(staff.indexOf('inviteUserByEmail(')),
+    );
+  });
+
   test('a blocked chat message explains itself', () {
     expect(read('lib/core/cubits/chat/chat_cubit.dart'),
         contains('bool takeSafetyBlock()'));
