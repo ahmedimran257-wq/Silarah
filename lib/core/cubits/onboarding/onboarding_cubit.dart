@@ -20,6 +20,13 @@ import '../auth/auth_state.dart';
 import 'onboarding_state.dart';
 
 class OnboardingCubit extends Cubit<OnboardingState> {
+  /// A refusal for contact details in names or bio gets its own reason;
+  /// anything else is a transient failure worth retrying.
+  static String _saveFailureMessage() =>
+      ProfileWriteService.takeContactDetailsRefusal()
+          ? ProfileWriteService.contactDetailsRefusalMessage
+          : 'Could not save. Please try again.';
+
   OnboardingCubit({required AuthCubit authCubit})
       : _authCubit = authCubit,
         super(const OnboardingInitial());
@@ -161,7 +168,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
           emit(OnboardingError(
             step: currentStep,
             data: updatedData,
-            message: 'Could not save. Please try again.',
+            message: _saveFailureMessage(),
           ));
           return false;
         }
@@ -172,7 +179,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
           emit(OnboardingError(
             step: currentStep,
             data: updatedData,
-            message: 'Could not save. Please try again.',
+            message: _saveFailureMessage(),
           ));
           return false;
         }
@@ -187,7 +194,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
           emit(OnboardingError(
             step: currentStep,
             data: updatedData,
-            message: 'Could not save. Please try again.',
+            message: _saveFailureMessage(),
           ));
           return false;
         }
@@ -206,7 +213,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
         emit(OnboardingError(
           step: currentStep,
           data: updatedData,
-          message: 'Could not save. Please try again.',
+          message: _saveFailureMessage(),
         ));
         return false;
       }
@@ -220,7 +227,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
           emit(OnboardingError(
             step: currentStep,
             data: updatedData,
-            message: 'Could not save. Please try again.',
+            message: _saveFailureMessage(),
           ));
           return false;
         }
@@ -310,7 +317,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
       emit(OnboardingError(
         step: _currentStep,
         data: previousData,
-        message: 'Could not save. Please try again.',
+        message: _saveFailureMessage(),
       ));
       return false;
     }

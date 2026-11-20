@@ -78,7 +78,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get auth_button_verifyOtp => 'Sahkan';
 
   @override
-  String get auth_label_changeNumber => 'salah nombor? Tukarlah';
+  String get auth_label_changeNumber => 'Salah nombor? Tukar';
 
   @override
   String get auth_label_enterOtp =>
@@ -145,10 +145,10 @@ class AppLocalizationsMs extends AppLocalizations {
   String get background_edu_title_guardian => 'Latar belakang mereka';
 
   @override
-  String get background_edu_title_self => 'latar belakang anda';
+  String get background_edu_title_self => 'Latar belakang anda';
 
   @override
-  String get background_emp_employed => 'bekerja';
+  String get background_emp_employed => 'Bekerja';
 
   @override
   String get background_emp_not_working => 'Tidak bekerja';
@@ -157,7 +157,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get background_emp_self_employed => 'Bekerja sendiri';
 
   @override
-  String get background_emp_student => 'pelajar';
+  String get background_emp_student => 'Pelajar';
 
   @override
   String get background_income_subtitle =>
@@ -258,7 +258,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get chat_placeholder_typeMessage => 'Taip mesej…';
 
   @override
-  String get common_button_back => 'belakang';
+  String get common_button_back => 'Kembali';
 
   @override
   String get common_button_cancel => 'Batal';
@@ -462,7 +462,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get family_children_no => 'Tidak';
 
   @override
-  String get family_children_yes => 'ya';
+  String get family_children_yes => 'Ya';
 
   @override
   String get family_label_children_guardian => 'ADAKAH MEREKA ADA ANAK?';
@@ -514,7 +514,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get family_parents_separated => 'Berpisah';
 
   @override
-  String get family_parents_together => 'bersama-sama';
+  String get family_parents_together => 'Bersama-sama';
 
   @override
   String get family_polygamy_female_discussion => 'Terbuka kepada perbincangan';
@@ -536,7 +536,7 @@ class AppLocalizationsMs extends AppLocalizations {
       'Adakah anda akan mempertimbangkan untuk menjadi isteri bersama?';
 
   @override
-  String get family_polygamy_female_yes => 'ya';
+  String get family_polygamy_female_yes => 'Ya';
 
   @override
   String family_polygamy_male_sub_guardian(Object relation) {
@@ -583,7 +583,7 @@ class AppLocalizationsMs extends AppLocalizations {
       'Adakah anda akan berpindah untuk berkahwin?';
 
   @override
-  String get family_relocate_yes => 'ya';
+  String get family_relocate_yes => 'Ya';
 
   @override
   String family_subtitle_guardian(Object relation) {
@@ -604,10 +604,10 @@ class AppLocalizationsMs extends AppLocalizations {
   String get family_type_extended => 'Dipanjangkan';
 
   @override
-  String get family_type_joint => 'sendi';
+  String get family_type_joint => 'Keluarga bersama';
 
   @override
-  String get family_type_nuclear => 'nuklear';
+  String get family_type_nuclear => 'Keluarga asas';
 
   @override
   String get filter_label_community => 'Masyarakat / Biradari';
@@ -697,16 +697,16 @@ class AppLocalizationsMs extends AppLocalizations {
   String get interest_cat_lifestyle => 'Gaya hidup';
 
   @override
-  String get interest_cat_social => 'sosial';
+  String get interest_cat_social => 'Sosial';
 
   @override
-  String get interest_cat_sports => 'sukan';
+  String get interest_cat_sports => 'Sukan';
 
   @override
   String get interest_tag_art => 'Seni';
 
   @override
-  String get interest_tag_calligraphy => 'kaligrafi';
+  String get interest_tag_calligraphy => 'Kaligrafi';
 
   @override
   String get interest_tag_community_work => 'Kerja komuniti';
@@ -733,7 +733,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get interest_tag_fitness => 'Kecergasan';
 
   @override
-  String get interest_tag_football => 'bola sepak';
+  String get interest_tag_football => 'Bola sepak';
 
   @override
   String get interest_tag_gardening => 'Berkebun';
@@ -748,7 +748,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get interest_tag_history => 'Sejarah';
 
   @override
-  String get interest_tag_islamic_lectures => 'kuliah Islam';
+  String get interest_tag_islamic_lectures => 'Kuliah Islam';
 
   @override
   String get interest_tag_languages => 'Bahasa';
@@ -760,13 +760,13 @@ class AppLocalizationsMs extends AppLocalizations {
   String get interest_tag_mentoring => 'Mentoring';
 
   @override
-  String get interest_tag_photography => 'fotografi';
+  String get interest_tag_photography => 'Fotografi';
 
   @override
   String get interest_tag_poetry => 'Puisi';
 
   @override
-  String get interest_tag_quran_recitation => 'bacaan al-Quran';
+  String get interest_tag_quran_recitation => 'Bacaan al-Quran';
 
   @override
   String get interest_tag_reading => 'Membaca';
@@ -814,10 +814,10 @@ class AppLocalizationsMs extends AppLocalizations {
   String get interests_tab_sent => 'Dihantar';
 
   @override
-  String get interests_title => 'minat';
+  String get interests_title => 'Minat';
 
   @override
-  String get lang_albanian => 'bahasa Albania';
+  String get lang_albanian => 'Bahasa Albania';
 
   @override
   String get lang_amazigh => 'Amazigh (Berber)';
@@ -826,7 +826,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get lang_amharic => 'Amharic';
 
   @override
-  String get lang_arabic => 'bahasa arab';
+  String get lang_arabic => 'Bahasa Arab';
 
   @override
   String get lang_assamese => 'Assam';
@@ -889,13 +889,13 @@ class AppLocalizationsMs extends AppLocalizations {
   String get lang_japanese => 'Jepun';
 
   @override
-  String get lang_javanese => 'bahasa jawa';
+  String get lang_javanese => 'Bahasa Jawa';
 
   @override
   String get lang_kannada => 'Kannada';
 
   @override
-  String get lang_kazakh => 'bahasa Kazakhstan';
+  String get lang_kazakh => 'Bahasa Kazakh';
 
   @override
   String get lang_korean => 'Korea';
@@ -919,7 +919,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get lang_marathi => 'Marathi';
 
   @override
-  String get lang_norwegian => 'bahasa Norway';
+  String get lang_norwegian => 'Bahasa Norway';
 
   @override
   String get lang_odia => 'Odia';
@@ -943,7 +943,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get lang_rohingya => 'Rohingya';
 
   @override
-  String get lang_russian => 'bahasa Rusia';
+  String get lang_russian => 'Bahasa Rusia';
 
   @override
   String get lang_saraiki => 'Saraiki';
@@ -955,25 +955,25 @@ class AppLocalizationsMs extends AppLocalizations {
   String get lang_somali => 'Somalia';
 
   @override
-  String get lang_spanish => 'bahasa Sepanyol';
+  String get lang_spanish => 'Bahasa Sepanyol';
 
   @override
-  String get lang_sundanese => 'bahasa sunda';
+  String get lang_sundanese => 'Bahasa Sunda';
 
   @override
-  String get lang_swahili => 'bahasa Swahili';
+  String get lang_swahili => 'Bahasa Swahili';
 
   @override
-  String get lang_swedish => 'bahasa Sweden';
+  String get lang_swedish => 'Bahasa Sweden';
 
   @override
   String get lang_tagalog => 'Tagalog';
 
   @override
-  String get lang_tajik => 'bahasa Tajik';
+  String get lang_tajik => 'Bahasa Tajik';
 
   @override
-  String get lang_tamil => 'bahasa Tamil';
+  String get lang_tamil => 'Bahasa Tamil';
 
   @override
   String get lang_tatar => 'Tatar';
@@ -988,10 +988,10 @@ class AppLocalizationsMs extends AppLocalizations {
   String get lang_tigrinya => 'Tigrinya';
 
   @override
-  String get lang_turkish => 'bahasa Turki';
+  String get lang_turkish => 'Bahasa Turki';
 
   @override
-  String get lang_urdu => 'bahasa Urdu';
+  String get lang_urdu => 'Bahasa Urdu';
 
   @override
   String get lang_uzbek => 'Uzbek';
@@ -1130,10 +1130,10 @@ class AppLocalizationsMs extends AppLocalizations {
       'Anda mesti berumur 18 tahun ke atas untuk menggunakan Silarah. Kami tidak sabar-sabar untuk mengalu-alukan anda.';
 
   @override
-  String get onboarding_habit_frequently => 'kerap';
+  String get onboarding_habit_frequently => 'Kerap';
 
   @override
-  String get onboarding_habit_never => 'tidak pernah';
+  String get onboarding_habit_never => 'Tidak pernah';
 
   @override
   String get onboarding_habit_occasionally => 'Sesekali';
@@ -1190,10 +1190,10 @@ class AppLocalizationsMs extends AppLocalizations {
   String get onboarding_label_city => 'Bandar';
 
   @override
-  String get onboarding_label_city_guardian => 'bandar mereka';
+  String get onboarding_label_city_guardian => 'Bandar mereka';
 
   @override
-  String get onboarding_label_city_self => 'bandar anda';
+  String get onboarding_label_city_self => 'Bandar anda';
 
   @override
   String get onboarding_label_community => 'Komuniti / biradari anda';
@@ -1206,10 +1206,10 @@ class AppLocalizationsMs extends AppLocalizations {
   String get onboarding_label_complexion => 'Wajah (Pilihan)';
 
   @override
-  String get onboarding_label_country_guardian => 'negara mereka';
+  String get onboarding_label_country_guardian => 'Negara mereka';
 
   @override
-  String get onboarding_label_country_self => 'negara awak';
+  String get onboarding_label_country_self => 'Negara anda';
 
   @override
   String get onboarding_label_cultural => 'Muslim berbudaya';
@@ -1234,7 +1234,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get onboarding_label_educationLevel => 'Tahap Pendidikan';
 
   @override
-  String get onboarding_label_female => 'perempuan';
+  String get onboarding_label_female => 'Perempuan';
 
   @override
   String get onboarding_label_firstName => 'Nama pertama';
@@ -1243,7 +1243,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get onboarding_label_firstName_guardian => 'Nama pertama calon';
 
   @override
-  String get onboarding_label_firstName_self => 'nama pertama';
+  String get onboarding_label_firstName_self => 'Nama pertama';
 
   @override
   String get onboarding_label_gender => 'Jantina';
@@ -1255,10 +1255,10 @@ class AppLocalizationsMs extends AppLocalizations {
   String get onboarding_label_gender_self => 'Jantina';
 
   @override
-  String get onboarding_label_height_guardian => 'ketinggian mereka';
+  String get onboarding_label_height_guardian => 'Ketinggian mereka';
 
   @override
-  String get onboarding_label_height_self => 'ketinggian awak';
+  String get onboarding_label_height_self => 'Ketinggian anda';
 
   @override
   String get onboarding_label_hookah => 'Hookah / Shisha';
@@ -1313,7 +1313,7 @@ class AppLocalizationsMs extends AppLocalizations {
       'Adakah anda mampu memberi nafkah kepada pasangan dari segi kewangan?';
 
   @override
-  String get onboarding_label_male => 'jantan';
+  String get onboarding_label_male => 'Lelaki';
 
   @override
   String get onboarding_label_marriageTimeline => 'Garis Masa Perkahwinan';
@@ -1325,13 +1325,13 @@ class AppLocalizationsMs extends AppLocalizations {
   String get onboarding_label_moderate => 'Sederhana';
 
   @override
-  String get onboarding_label_motherTongue => 'bahasa ibunda';
+  String get onboarding_label_motherTongue => 'Bahasa ibunda';
 
   @override
   String get onboarding_label_niqab => 'Niqab';
 
   @override
-  String get onboarding_label_practicing => 'berlatih';
+  String get onboarding_label_practicing => 'Taat';
 
   @override
   String get onboarding_label_praysFiveDaily =>
@@ -1367,7 +1367,7 @@ class AppLocalizationsMs extends AppLocalizations {
       'Adakah anda seorang yang kembali kepada Islam?';
 
   @override
-  String get onboarding_label_sect => 'mazhab';
+  String get onboarding_label_sect => 'Mazhab';
 
   @override
   String get onboarding_label_shia => 'Syiah';
@@ -1436,7 +1436,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get onboarding_location_confirmed => 'Lokasi Disahkan';
 
   @override
-  String get onboarding_mahr_generous => 'pemurah';
+  String get onboarding_mahr_generous => 'Pemurah';
 
   @override
   String get onboarding_mahr_moderate => 'Sederhana';
@@ -1507,7 +1507,7 @@ class AppLocalizationsMs extends AppLocalizations {
       'Saya ibu bapa atau penjaga';
 
   @override
-  String get onboarding_profileForWhom_myself => 'saya sendiri';
+  String get onboarding_profileForWhom_myself => 'Saya sendiri';
 
   @override
   String get onboarding_profileForWhom_myselfSub =>
@@ -1517,13 +1517,13 @@ class AppLocalizationsMs extends AppLocalizations {
   String get onboarding_profileForWhom_relation_brother => 'Abang';
 
   @override
-  String get onboarding_profileForWhom_relation_daughter => 'anak perempuan';
+  String get onboarding_profileForWhom_relation_daughter => 'Anak perempuan';
 
   @override
   String get onboarding_profileForWhom_relation_sister => 'Kakak';
 
   @override
-  String get onboarding_profileForWhom_relation_son => 'nak';
+  String get onboarding_profileForWhom_relation_son => 'Anak lelaki';
 
   @override
   String get onboarding_profileForWhom_selectOne =>
@@ -1548,7 +1548,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get onboarding_profileForWhom_title => 'Untuk siapa profil ini?';
 
   @override
-  String get onboarding_profileForWhom_ward => 'wad saya';
+  String get onboarding_profileForWhom_ward => 'Tanggungan saya';
 
   @override
   String get onboarding_profileForWhom_wardSub =>
@@ -1562,7 +1562,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get onboarding_quran_hafiz => 'Hafiz / Hafiza';
 
   @override
-  String get onboarding_quran_none => 'tiada';
+  String get onboarding_quran_none => 'Tiada';
 
   @override
   String get onboarding_quran_partial => 'Hifz separa';
@@ -1592,7 +1592,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get onboarding_timeline_6months => 'Dalam masa 6 bulan';
 
   @override
-  String get onboarding_timeline_asap => 'secepat mungkin';
+  String get onboarding_timeline_asap => 'Secepat mungkin';
 
   @override
   String get onboarding_timeline_notSure => 'Belum pasti lagi';
@@ -1704,7 +1704,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get photo_title_self => 'Tambahkan foto anda';
 
   @override
-  String get preferences_deen_any => 'mana-mana';
+  String get preferences_deen_any => 'Mana-mana';
 
   @override
   String get preferences_deen_cultural => 'Muslim berbudaya';
@@ -1713,10 +1713,10 @@ class AppLocalizationsMs extends AppLocalizations {
   String get preferences_deen_moderate => 'Sederhana';
 
   @override
-  String get preferences_deen_practicing => 'berlatih';
+  String get preferences_deen_practicing => 'Taat';
 
   @override
-  String get preferences_edu_any => 'mana-mana';
+  String get preferences_edu_any => 'Mana-mana';
 
   @override
   String get preferences_edu_bachelors => 'Sarjana Muda +';
@@ -1784,7 +1784,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get preferences_location_same_city => 'Bandar yang sama';
 
   @override
-  String get preferences_location_same_country => 'negara yang sama';
+  String get preferences_location_same_country => 'Negara yang sama';
 
   @override
   String get preferences_open_children =>
@@ -1799,7 +1799,7 @@ class AppLocalizationsMs extends AppLocalizations {
       'Terbuka kepada seseorang yang sebelum ini balu';
 
   @override
-  String get preferences_sect_any => 'mana-mana';
+  String get preferences_sect_any => 'Mana-mana';
 
   @override
   String get preferences_sect_same => 'Sama seperti saya';
@@ -1894,7 +1894,7 @@ class AppLocalizationsMs extends AppLocalizations {
       'Beginilah cara orang lain akan melihat profil anda.';
 
   @override
-  String get preview_polygamy_label => 'poligami';
+  String get preview_polygamy_label => 'Poligami';
 
   @override
   String get preview_post_marriage_living_label =>
@@ -1919,10 +1919,10 @@ class AppLocalizationsMs extends AppLocalizations {
   String get preview_revert_label => 'Kembalikan';
 
   @override
-  String get preview_sect_label => 'mazhab';
+  String get preview_sect_label => 'Mazhab';
 
   @override
-  String get preview_siblings_label => 'adik beradik';
+  String get preview_siblings_label => 'Adik beradik';
 
   @override
   String get preview_smoking_label => 'Merokok';
@@ -1998,7 +1998,7 @@ class AppLocalizationsMs extends AppLocalizations {
   }
 
   @override
-  String get settings_label_blocked_none => 'tiada';
+  String get settings_label_blocked_none => 'Tiada';
 
   @override
   String get settings_label_deleteGrace =>
@@ -2021,7 +2021,7 @@ class AppLocalizationsMs extends AppLocalizations {
       'Rating akan tersedia sebaik sahaja Silarah dilancarkan di gedung aplikasi.';
 
   @override
-  String get settings_label_reports => 'Laporan Sejarah';
+  String get settings_label_reports => 'Sejarah Laporan';
 
   @override
   String settings_label_reports_count(Object count) {
@@ -2162,13 +2162,13 @@ class AppLocalizationsMs extends AppLocalizations {
   String get settings_relation_father => 'Bapa';
 
   @override
-  String get settings_relation_mother => 'ibu';
+  String get settings_relation_mother => 'Ibu';
 
   @override
   String get settings_relation_other => 'Lain-lain';
 
   @override
-  String get settings_relation_uncle => 'pakcik';
+  String get settings_relation_uncle => 'Pakcik';
 
   @override
   String get settings_section_account => 'Akaun';
@@ -2183,7 +2183,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get settings_section_guardian => 'Penjaga';
 
   @override
-  String get settings_section_legal => 'sah';
+  String get settings_section_legal => 'Undang-undang';
 
   @override
   String get settings_section_notifications => 'Pemberitahuan';
@@ -2199,7 +2199,7 @@ class AppLocalizationsMs extends AppLocalizations {
       'Untuk sebarang pertanyaan, kebimbangan atau maklum balas:';
 
   @override
-  String get settings_support_btn_close => 'tutup';
+  String get settings_support_btn_close => 'Tutup';
 
   @override
   String get settings_support_contact => 'Hubungi Sokongan';
@@ -2209,7 +2209,7 @@ class AppLocalizationsMs extends AppLocalizations {
       'Kami menyasarkan untuk bertindak balas dalam masa 48 jam.';
 
   @override
-  String get settings_title => 'tetapan';
+  String get settings_title => 'Tetapan';
 
   @override
   String get splash_button_createProfile => 'Buat Profil';

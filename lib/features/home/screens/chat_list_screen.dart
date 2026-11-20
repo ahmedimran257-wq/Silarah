@@ -405,9 +405,12 @@ class _ConversationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasUnread = conversation.unreadCount > 0;
     final isClosed = conversation.isMatchClosed;
+    // A reported chat never tells the reported member who closed it.
+    final reportedClosure =
+        conversation.closureMessage == 'message_report_submitted';
     final closedLabel = conversation.closedByMe == true
         ? context.uiCopy('Ended by you')
-        : conversation.closedByMe == false
+        : conversation.closedByMe == false && !reportedClosure
             ? context.uiCopy('Ended by them')
             : context.uiCopy('Conversation ended');
 

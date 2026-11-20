@@ -86,6 +86,19 @@ class ReportEntry extends Equatable {
   final String? description;
   final DateTime submittedAt;
 
+  /// A report about one chat message (message_reports), not a profile.
+  final bool isMessageReport;
+
+  /// The chat report reason as the member chose it; profile reports use
+  /// [reason] instead.
+  final String? messageReasonLabel;
+
+  /// Staff status: 'pending' until reviewed, then 'reviewed', 'dismissed'
+  /// or 'actioned'.
+  final String status;
+
+  bool get isPending => status == 'pending';
+
   const ReportEntry({
     required this.reportId,
     required this.reportedUserId,
@@ -93,10 +106,25 @@ class ReportEntry extends Equatable {
     required this.reason,
     this.description,
     required this.submittedAt,
+    this.isMessageReport = false,
+    this.messageReasonLabel,
+    this.status = 'pending',
   });
 
+  String get reasonLabel => messageReasonLabel ?? reason.label;
+
+  /// Reasons offered by the chat "Report message" sheet.
+  static const messageReasonLabels = <String, String>{
+    'harassment': 'Harassment or pressure',
+    'contact_sharing': 'Phone, social, or link sharing',
+    'scam': 'Scam or suspicious request',
+    'inappropriate': 'Inappropriate message',
+    'other': 'Other safety concern',
+  };
+
   @override
-  List<Object?> get props => [reportId, reportedUserId, reason, submittedAt];
+  List<Object?> get props =>
+      [reportId, reportedUserId, reason, submittedAt, isMessageReport, status];
 }
 
 // State

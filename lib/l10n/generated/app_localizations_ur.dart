@@ -1321,7 +1321,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get onboarding_label_niqab => 'نقاب';
 
   @override
-  String get onboarding_label_practicing => 'مشق کرنا';
+  String get onboarding_label_practicing => 'باعمل';
 
   @override
   String get onboarding_label_praysFiveDaily =>
@@ -1700,7 +1700,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get preferences_deen_moderate => 'اعتدال پسند';
 
   @override
-  String get preferences_deen_practicing => 'مشق کرنا';
+  String get preferences_deen_practicing => 'باعمل';
 
   @override
   String get preferences_edu_any => 'کوئی بھی';
@@ -2004,7 +2004,7 @@ class AppLocalizationsUr extends AppLocalizations {
       'ایپ اسٹور پر Silarah کے لانچ ہونے کے بعد درجہ بندی دستیاب ہوگی۔';
 
   @override
-  String get settings_label_reports => 'رپورٹ کی تاریخ';
+  String get settings_label_reports => 'رپورٹس کا ریکارڈ';
 
   @override
   String settings_label_reports_count(Object count) {

@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../core/services/profile_write_service.dart';
 import '../../../core/cubits/auth/auth_cubit.dart';
 import '../../../core/utils/content_filter.dart';
 import '../../../core/cubits/discovery/discovery_feed_cubit.dart';
@@ -310,7 +311,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
     // Contact details belong in chat after a match, never on the profile
-    // (they would get around the messaging rules). The server checks too.
+    // (they would get around the messaging rules). The server refuses them
+    // too (migration 318); this gives the reason before anything is sent.
     for (final text in [
       firstName,
       lastName,
@@ -396,7 +398,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!mounted) return;
     if (!saved) {
       setState(() => _isSaving = false);
-      _showSaveError('Could not save profile. Please try again.');
+      _showSaveError(ProfileWriteService.takeContactDetailsRefusal()
+          ? ProfileWriteService.contactDetailsRefusalMessage
+          : 'Could not save profile. Please try again.');
       return;
     }
 
@@ -942,7 +946,7 @@ class _PhotoGridState extends State<_PhotoGrid> {
                   const SizedBox(height: AppDimensions.space6),
                   UiText(
                     context.uiCopy(
-                        'Reorder, replace or add photos. Every new upload runs through the safety scan.'),
+                        'Replace or add photos. Every new upload runs through the safety scan.'),
                     style: AppTypography.caption,
                   ),
                   const SizedBox(height: AppDimensions.space12),

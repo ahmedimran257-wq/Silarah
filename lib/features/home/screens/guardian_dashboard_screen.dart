@@ -20,6 +20,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/cubits/auth/auth_cubit.dart';
+import '../../../core/cubits/auth/auth_state.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/supabase_service.dart';
 import '../../../core/services/wali_mode_service.dart';
@@ -227,13 +228,50 @@ class _GuardianDashboardScreenState extends State<GuardianDashboardScreen>
     }
   }
 
+  /// A member who is also someone's Guardian reaches this dashboard on top
+  /// of (or, after accepting an invitation, instead of) their own Home. They
+  /// always need a way back to it; a Guardian-only account has no Home.
+  bool get _isMemberGuardian {
+    final auth = context.read<AuthCubit>().state;
+    return auth is AuthAuthenticated && !auth.isGuardianOnly;
+  }
+
+  void _backToMemberHome() {
+    final router = GoRouter.of(context);
+    if (router.canPop()) {
+      router.pop();
+    } else {
+      router.go('${AppRoutes.home}?tab=3');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final memberGuardian = _isMemberGuardian;
+    return PopScope(
+      canPop: !memberGuardian || GoRouter.of(context).canPop(),
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && memberGuardian) _backToMemberHome();
+      },
+      child: _buildScaffold(context, memberGuardian),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, bool memberGuardian) {
     return Scaffold(
       backgroundColor: AppColors.obsidianNight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false,
+        leading: memberGuardian
+            ? IconButton(
+                tooltip: context.uiCopy('Back'),
+                icon: Icon(Icons.arrow_back_rounded,
+                    color: AppColors.pearlWhite),
+                onPressed: _backToMemberHome,
+              )
+            : null,
         title: Row(
           children: [
             UiText('سيلارا',

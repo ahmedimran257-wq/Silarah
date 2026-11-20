@@ -168,6 +168,16 @@ class _ChatScreenState extends State<ChatScreen>
     }
     _activationAttempts = 0;
     if (!decision.allowed) return;
+    if (_cachedConversationLocked(conversationId)) {
+      // The server allows this chat, but the inbox row was read while
+      // Premium was off: a test, referral or admin grant (or a renewal)
+      // arrived while the app stayed open. Re-read the inbox and the
+      // entitlement so the conversation opens instead of a stale Premium
+      // wall that "Refresh access" could never clear.
+      unawaited(context.read<SubscriptionCubit>().refreshEntitlement());
+      await _chatCubit.refreshForEntitlementChange();
+      if (!mounted || generation != _openGeneration) return;
+    }
     if (!_hasConversation(conversationId)) {
       await _chatCubit.loadConversations(showLoading: false, force: true);
       if (!mounted || generation != _openGeneration) return;
@@ -203,6 +213,10 @@ class _ChatScreenState extends State<ChatScreen>
 
   bool _hasConversation(String conversationId) => _chatCubit.state.conversations
       .any((conversation) => conversation.id == conversationId);
+
+  bool _cachedConversationLocked(String conversationId) =>
+      _chatCubit.state.conversations.any((conversation) =>
+          conversation.id == conversationId && conversation.contentLocked);
 
   void _scheduleActivationRetry() {
     if (_activationSlow) return;
@@ -300,12 +314,25 @@ class _ChatScreenState extends State<ChatScreen>
         .read<ChatCubit>()
         .sendMessage(widget.conversationId, text);
     if (!mounted) return;
-    if (!sent) {
-      _chatCubit.takeSafetyBlock()
-          ? _showContactDetailsRefused()
-          : _showMessageSendFailure();
-    }
+    if (!sent) _explainSendFailure();
     _scrollToBottom(animated: true);
+  }
+
+  /// A refused message comes back into the composer to be edited; it is
+  /// never left as a retryable bubble (a retry would be another strike).
+  void _explainSendFailure() {
+    if (!_chatCubit.takeSafetyBlock()) {
+      _showMessageSendFailure();
+      return;
+    }
+    final draft = _chatCubit.takeRefusedDraft();
+    if (draft != null && _inputCtrl.text.trim().isEmpty) {
+      _inputCtrl.value = TextEditingValue(
+        text: draft,
+        selection: TextSelection.collapsed(offset: draft.length),
+      );
+    }
+    _showContactDetailsRefused();
   }
 
   Future<void> _openMatchProfile(Conversation conversation) async {
@@ -350,11 +377,7 @@ class _ChatScreenState extends State<ChatScreen>
       message.id,
     );
     if (!mounted) return;
-    if (!sent) {
-      _chatCubit.takeSafetyBlock()
-          ? _showContactDetailsRefused()
-          : _showMessageSendFailure();
-    }
+    if (!sent) _explainSendFailure();
   }
 
   void _showContactDetailsRefused() {
@@ -712,6 +735,7 @@ class _ChatScreenState extends State<ChatScreen>
                     name: conv.matchName,
                     closedByMe: conv.closedByMe,
                     memberUnavailable: conv.memberUnavailable,
+                    closureReason: conv.closureMessage,
                   ),
 
                 // Suspended banner
@@ -802,10 +826,15 @@ class _ClosedBanner extends StatelessWidget {
     required this.name,
     required this.closedByMe,
     required this.memberUnavailable,
+    this.closureReason,
   });
   final String name;
   final bool? closedByMe;
   final bool memberUnavailable;
+  final String? closureReason;
+
+  /// Reporting a message closes the match until staff review it.
+  static const reportClosure = 'message_report_submitted';
 
   @override
   Widget build(BuildContext context) {
@@ -823,7 +852,13 @@ class _ClosedBanner extends StatelessWidget {
             child: UiText(
           memberUnavailable
               ? context.uiCopy('This profile is unavailable right now.')
-              : context.uiCopyWith(
+              : closureReason == reportClosure
+                  // The reporter learns what happens next; the reported
+                  // member is never told who closed the chat or why.
+                  ? context.uiCopy(closedByMe == true
+                      ? 'You reported a message. This chat is closed while Silarah reviews it.'
+                      : 'This match has ended.')
+                  : context.uiCopyWith(
                   switch (closedByMe) {
                     true => 'You ended this match.',
                     false => '$name ended this match.',

@@ -2698,7 +2698,13 @@ class _ReportHistorySheet extends StatelessWidget {
                         children: [
                           UiText(r.reportedName,
                               style: AppTypography.bodyMedium),
-                          UiText(r.reason.label, style: AppTypography.caption),
+                          UiText(
+                              r.isMessageReport
+                                  ? context.uiCopyWith('Message · {reason}', {
+                                      'reason': context.uiCopy(r.reasonLabel),
+                                    })
+                                  : r.reasonLabel,
+                              style: AppTypography.caption),
                         ],
                       )),
                       Container(
@@ -2708,7 +2714,10 @@ class _ReportHistorySheet extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                           color: AppColors.surfaceGlassHover,
                         ),
-                        child: UiText(l10n.settings_reportPending,
+                        child: UiText(
+                            r.isPending
+                                ? l10n.settings_reportPending
+                                : context.uiCopy('Reviewed'),
                             style:
                                 AppTypography.caption.copyWith(fontSize: 10)),
                       ),

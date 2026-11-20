@@ -489,12 +489,16 @@ class ChatCubit extends Cubit<ChatState> {
       final realId = row['message_id']?.toString();
       final createdAt = _parseDate(row['created_at']) ?? DateTime.now();
       if (realId == null) {
-        _updateMessageStatus(conversationId, localId, MessageStatus.failed);
         if (row['safety_status']?.toString() == 'blocked') {
-          // Contact details were refused and counted as a strike. Tell the
-          // member why, and reload so a resulting suspension shows at once.
-          _lastSendBlockedBySafety = true;
+          // Contact details were refused and counted as a strike. The text
+          // was never delivered, so it must not stay as a "tap to retry"
+          // bubble: retrying the same words would only add another strike.
+          // Hand it back for editing and reload so a resulting suspension
+          // shows at once.
+          _refuseForSafety(conversationId, localMessage);
           unawaited(loadConversations(showLoading: false, force: true));
+        } else {
+          _updateMessageStatus(conversationId, localId, MessageStatus.failed);
         }
         return false;
       }
@@ -521,14 +525,25 @@ class ChatCubit extends Cubit<ChatState> {
         return false;
       }
       debugPrint('ChatCubit: Error sending message: $e');
-      _updateMessageStatus(conversationId, localId, MessageStatus.failed);
+      if (_isSafetyBlock(e)) {
+        _refuseForSafety(conversationId, localMessage);
+      } else {
+        _updateMessageStatus(conversationId, localId, MessageStatus.failed);
+      }
       // Premium ended (or messaging was suspended) while the chat was open.
       // Reloading marks the conversation content-locked, so the screen shows
       // the Premium or restriction notice instead of retrying forever.
       final error = e.toString();
       if (_isSafetyBlock(e) ||
           error.contains('subscription_required') ||
-          error.contains('messaging_suspended')) {
+          error.contains('messaging_suspended') ||
+          error.contains('This chat is closed') ||
+          error.contains('This chat is unavailable') ||
+          error.contains('account_restricted') ||
+          error.contains('member_unavailable')) {
+        // The chat changed on the server (Premium ended, the match was
+        // closed, reported or blocked elsewhere). Reload so the screen shows
+        // why instead of a retry icon that can never succeed.
         unawaited(loadConversations(force: true));
       }
       return false;
@@ -541,6 +556,8 @@ class ChatCubit extends Cubit<ChatState> {
         !_conversationExists(conversationId)) {
       return;
     }
+    // Never send read receipts for messages the member cannot see on screen.
+    if (_findConversation(conversationId)?.contentLocked == true) return;
     final epoch = _sessionEpoch;
     final actor = SupabaseService.currentUserId;
     try {
@@ -585,6 +602,10 @@ class ChatCubit extends Cubit<ChatState> {
           'p_description': description,
         },
       );
+      // A message report closes the match until staff review it. Reload so
+      // the open chat shows that state and the composer goes away, instead
+      // of letting the next message fail with a bare retry icon.
+      unawaited(loadConversations(showLoading: false, force: true));
       return true;
     } catch (e) {
       debugPrint('ChatCubit: Error reporting message: $e');
@@ -1164,6 +1185,28 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   bool _lastSendBlockedBySafety = false;
+  String? _refusedDraft;
+
+  void _refuseForSafety(String conversationId, ChatMessage localMessage) {
+    _lastSendBlockedBySafety = true;
+    _refusedDraft = localMessage.text;
+    if (isClosed) return;
+    final updated = state.conversations.map((c) {
+      if (c.id != conversationId) return c;
+      return c.copyWith(
+        messages: c.messages.where((m) => m.id != localMessage.id).toList(),
+      );
+    }).toList();
+    emit(state.copyWith(conversations: updated));
+  }
+
+  /// The text of the last message refused for contact details, once, so the
+  /// screen can put it back in the composer for the member to edit.
+  String? takeRefusedDraft() {
+    final draft = _refusedDraft;
+    _refusedDraft = null;
+    return draft;
+  }
 
   /// True once after a send was refused for contact details (phone, email,
   /// link, handle), so the screen can explain instead of offering a retry.

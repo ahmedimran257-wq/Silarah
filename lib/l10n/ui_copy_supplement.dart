@@ -1,6 +1,20 @@
 // GENERATED FILE. Source strings are audited by localization_quality_test.dart.
 const supplementalUiCopy = <String, Map<String, String>>{
   'ar': {
+    'Reviewed':
+        'تمت المراجعة',
+    '1 person viewed your profile this week':
+        'شخص واحد شاهد ملفك الشخصي هذا الأسبوع',
+    'No one has viewed your profile this week yet':
+        'لم يشاهد أحد ملفك الشخصي هذا الأسبوع بعد',
+    'Replace or add photos. Every new upload runs through the safety scan.':
+        'استبدل الصور أو أضفها. يمر كل تحميل جديد عبر فحص الأمان.',
+    'Contact details (phone numbers, emails, links or social handles) cannot be shared in your profile.':
+        'لا يمكن مشاركة بيانات التواصل (أرقام الهواتف أو البريد الإلكتروني أو الروابط أو حسابات التواصل الاجتماعي) في ملفك الشخصي.',
+    'You reported a message. This chat is closed while Silarah reviews it.':
+        'لقد أبلغت عن رسالة. هذه المحادثة مغلقة بينما يراجعها فريق سيلارا.',
+    'Message · {reason}':
+        'رسالة · {reason}',
     'Please fill in:': 'يُرجى تعبئة:',
     'A fresh export was created recently. You can create another in 10 minutes.':
         'تم إنشاء نسخة تصدير حديثًا. يمكنكم إنشاء نسخة أخرى بعد 10 دقائق.',
@@ -805,8 +819,6 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Recognize official Silarah email':
         'التعرف على البريد الإلكتروني الرسمي لSilarah',
     'Refresh access': 'تحديث الوصول',
-    'Reorder, replace or add photos. Every new upload runs through the safety scan.':
-        'إعادة ترتيب الصور أو استبدالها أو إضافتها. يتم تنفيذ كل عملية تحميل جديدة من خلال فحص الأمان.',
     'Reports are reviewed by Silarah safety staff.':
         'تتم مراجعة التقارير من قبل موظفي السلامة في Silarah.',
     'Restore Purchase': 'استعادة الشراء',
@@ -963,6 +975,20 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'الآن',
   },
   'bn': {
+    'Reviewed':
+        'পর্যালোচিত',
+    '1 person viewed your profile this week':
+        'এই সপ্তাহে ১ জন আপনার প্রোফাইল দেখেছেন',
+    'No one has viewed your profile this week yet':
+        'এই সপ্তাহে এখনও কেউ আপনার প্রোফাইল দেখেননি',
+    'Replace or add photos. Every new upload runs through the safety scan.':
+        'ফটো বদলান বা যোগ করুন। প্রতিটি নতুন আপলোড নিরাপত্তা যাচাইয়ের মধ্য দিয়ে যায়।',
+    'Contact details (phone numbers, emails, links or social handles) cannot be shared in your profile.':
+        'আপনার প্রোফাইলে যোগাযোগের তথ্য (ফোন নম্বর, ইমেল, লিঙ্ক বা সোশ্যাল হ্যান্ডেল) শেয়ার করা যাবে না।',
+    'You reported a message. This chat is closed while Silarah reviews it.':
+        'আপনি একটি বার্তা রিপোর্ট করেছেন। Silarah পর্যালোচনা করার সময় এই চ্যাট বন্ধ থাকবে।',
+    'Message · {reason}':
+        'বার্তা · {reason}',
     'Please fill in:': 'অনুগ্রহ করে পূরণ করুন:',
     'A fresh export was created recently. You can create another in 10 minutes.':
         'সম্প্রতি একটি এক্সপোর্ট তৈরি করা হয়েছে। আপনি ১০ মিনিট পরে আরেকটি তৈরি করতে পারবেন।',
@@ -1783,8 +1809,6 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Profiles unavailable': 'প্রোফাইল অনুপলব্ধ',
     'Recognize official Silarah email': 'অফিসিয়াল সিলারাহ ইমেল চিনুন',
     'Refresh access': 'রিফ্রেশ অ্যাক্সেস',
-    'Reorder, replace or add photos. Every new upload runs through the safety scan.':
-        'পুনঃক্রম, প্রতিস্থাপন বা ফটো যোগ করুন. প্রতিটি নতুন আপলোড নিরাপত্তা স্ক্যানের মাধ্যমে চলে।',
     'Reports are reviewed by Silarah safety staff.':
         'রিপোর্টগুলি সিলারাহ নিরাপত্তা কর্মীরা পর্যালোচনা করে।',
     'Restore Purchase': 'ক্রয় পুনরুদ্ধার করুন',
@@ -1942,6 +1966,20 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'এখন',
   },
   'de': {
+    'Reviewed':
+        'Geprüft',
+    '1 person viewed your profile this week':
+        '1 Person hat dein Profil diese Woche angesehen',
+    'No one has viewed your profile this week yet':
+        'Diese Woche hat noch niemand dein Profil angesehen',
+    'Replace or add photos. Every new upload runs through the safety scan.':
+        'Fotos ersetzen oder hinzufügen. Jeder neue Upload durchläuft den Sicherheitsscan.',
+    'Contact details (phone numbers, emails, links or social handles) cannot be shared in your profile.':
+        'Kontaktdaten (Telefonnummern, E-Mail-Adressen, Links oder Social-Media-Namen) dürfen nicht in deinem Profil stehen.',
+    'You reported a message. This chat is closed while Silarah reviews it.':
+        'Du hast eine Nachricht gemeldet. Dieser Chat bleibt geschlossen, während Silarah die Meldung prüft.',
+    'Message · {reason}':
+        'Nachricht · {reason}',
     'Please fill in:': 'Bitte ausfüllen:',
     'A fresh export was created recently. You can create another in 10 minutes.':
         'Vor Kurzem wurde ein Export erstellt. Sie können in 10 Minuten einen weiteren erstellen.',
@@ -2787,8 +2825,6 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Recognize official Silarah email':
         'Erkennen Sie die offizielle Silarah-E-Mail',
     'Refresh access': 'Zugriff aktualisieren',
-    'Reorder, replace or add photos. Every new upload runs through the safety scan.':
-        'Fotos neu anordnen, ersetzen oder hinzufügen. Jeder neue Upload durchläuft den Sicherheitsscan.',
     'Reports are reviewed by Silarah safety staff.':
         'Berichte werden vom Sicherheitspersonal von Silarah geprüft.',
     'Restore Purchase': 'Kauf wiederherstellen',
@@ -2949,6 +2985,20 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'Jetzt',
   },
   'fr': {
+    'Reviewed':
+        'Examiné',
+    '1 person viewed your profile this week':
+        '1 personne a consulté votre profil cette semaine',
+    'No one has viewed your profile this week yet':
+        'Personne n\'a encore consulté votre profil cette semaine',
+    'Replace or add photos. Every new upload runs through the safety scan.':
+        'Remplacez ou ajoutez des photos. Chaque nouvel envoi passe par l\'analyse de sécurité.',
+    'Contact details (phone numbers, emails, links or social handles) cannot be shared in your profile.':
+        'Les coordonnées (numéros de téléphone, e-mails, liens ou identifiants de réseaux sociaux) ne peuvent pas figurer dans votre profil.',
+    'You reported a message. This chat is closed while Silarah reviews it.':
+        'Vous avez signalé un message. Cette conversation est fermée pendant que Silarah l\'examine.',
+    'Message · {reason}':
+        'Message · {reason}',
     'Please fill in:': 'Veuillez renseigner :',
     'A fresh export was created recently. You can create another in 10 minutes.':
         'Un export a été créé récemment. Vous pourrez en créer un autre dans 10 minutes.',
@@ -3789,8 +3839,6 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Recognize official Silarah email':
         'Reconnaître l\'e-mail officiel de Silarah',
     'Refresh access': 'Actualiser l\'accès',
-    'Reorder, replace or add photos. Every new upload runs through the safety scan.':
-        'Réorganisez, remplacez ou ajoutez des photos. Chaque nouveau téléchargement passe par l\'analyse de sécurité.',
     'Reports are reviewed by Silarah safety staff.':
         'Les rapports sont examinés par le personnel de sécurité de Silarah.',
     'Restore Purchase': 'Restaurer l\'achat',
@@ -3952,6 +4000,20 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'maintenant',
   },
   'hi': {
+    'Reviewed':
+        'समीक्षित',
+    '1 person viewed your profile this week':
+        'इस हफ़्ते 1 व्यक्ति ने आपकी प्रोफ़ाइल देखी',
+    'No one has viewed your profile this week yet':
+        'इस हफ़्ते अभी तक किसी ने आपकी प्रोफ़ाइल नहीं देखी',
+    'Replace or add photos. Every new upload runs through the safety scan.':
+        'फ़ोटो बदलें या जोड़ें। हर नया अपलोड सुरक्षा जाँच से गुज़रता है।',
+    'Contact details (phone numbers, emails, links or social handles) cannot be shared in your profile.':
+        'आपकी प्रोफ़ाइल में संपर्क जानकारी (फ़ोन नंबर, ईमेल, लिंक या सोशल हैंडल) साझा नहीं की जा सकती।',
+    'You reported a message. This chat is closed while Silarah reviews it.':
+        'आपने एक संदेश की रिपोर्ट की है। Silarah की समीक्षा पूरी होने तक यह चैट बंद रहेगी।',
+    'Message · {reason}':
+        'संदेश · {reason}',
     'Please fill in:': 'कृपया भरें:',
     'A fresh export was created recently. You can create another in 10 minutes.':
         'हाल ही में एक एक्सपोर्ट बनाया गया है। आप 10 मिनट बाद दूसरा बना सकते हैं।',
@@ -4727,7 +4789,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Maybe later': 'शायद बाद में',
     'Message not sent. Tap the alert beside it to retry.':
         'संदेश नहीं भेजा गया. पुनः प्रयास करने के लिए इसके बगल में स्थित अलर्ट पर टैप करें।',
-    'Messages': 'संदेशों',
+    'Messages': 'संदेश',
     'Messaging is temporarily suspended':
         'संदेश-सेवा अस्थायी रूप से निलंबित है',
     'New requests will appear here instantly.':
@@ -4773,8 +4835,6 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Profiles unavailable': 'प्रोफ़ाइल अनुपलब्ध',
     'Recognize official Silarah email': 'आधिकारिक सिलारा ईमेल को पहचानें',
     'Refresh access': 'पहुंच ताज़ा करें',
-    'Reorder, replace or add photos. Every new upload runs through the safety scan.':
-        'फ़ोटो को पुन: व्यवस्थित करें, बदलें या जोड़ें। प्रत्येक नया अपलोड सुरक्षा स्कैन के माध्यम से चलता है।',
     'Reports are reviewed by Silarah safety staff.':
         'रिपोर्टों की समीक्षा सिलारा सुरक्षा कर्मचारियों द्वारा की जाती है।',
     'Restore Purchase': 'पुनःस्थापन क्रय',
@@ -4933,6 +4993,20 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'अब',
   },
   'id': {
+    'Reviewed':
+        'Ditinjau',
+    '1 person viewed your profile this week':
+        '1 orang melihat profil Anda minggu ini',
+    'No one has viewed your profile this week yet':
+        'Belum ada yang melihat profil Anda minggu ini',
+    'Replace or add photos. Every new upload runs through the safety scan.':
+        'Ganti atau tambahkan foto. Setiap unggahan baru melewati pemindaian keamanan.',
+    'Contact details (phone numbers, emails, links or social handles) cannot be shared in your profile.':
+        'Detail kontak (nomor telepon, email, tautan, atau akun media sosial) tidak boleh dibagikan di profil Anda.',
+    'You reported a message. This chat is closed while Silarah reviews it.':
+        'Anda melaporkan sebuah pesan. Obrolan ini ditutup selama Silarah meninjaunya.',
+    'Message · {reason}':
+        'Pesan · {reason}',
     'Please fill in:': 'Harap isi:',
     'A fresh export was created recently. You can create another in 10 minutes.':
         'Ekspor baru saja dibuat. Anda dapat membuat lagi dalam 10 menit.',
@@ -5756,8 +5830,6 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Profiles unavailable': 'Profil tidak tersedia',
     'Recognize official Silarah email': 'Kenali email resmi Silarah',
     'Refresh access': 'Segarkan akses',
-    'Reorder, replace or add photos. Every new upload runs through the safety scan.':
-        'Susun ulang, ganti, atau tambahkan foto. Setiap unggahan baru melewati pemindaian keamanan.',
     'Reports are reviewed by Silarah safety staff.':
         'Laporan ditinjau oleh staf keselamatan Silarah.',
     'Restore Purchase': 'Kembalikan Pembelian',
@@ -5916,6 +5988,20 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'Sekarang',
   },
   'ms': {
+    'Reviewed':
+        'Disemak',
+    '1 person viewed your profile this week':
+        '1 orang melihat profil anda minggu ini',
+    'No one has viewed your profile this week yet':
+        'Belum ada sesiapa melihat profil anda minggu ini',
+    'Replace or add photos. Every new upload runs through the safety scan.':
+        'Ganti atau tambah foto. Setiap muat naik baharu melalui imbasan keselamatan.',
+    'Contact details (phone numbers, emails, links or social handles) cannot be shared in your profile.':
+        'Butiran hubungan (nombor telefon, e-mel, pautan atau akaun media sosial) tidak boleh dikongsi dalam profil anda.',
+    'You reported a message. This chat is closed while Silarah reviews it.':
+        'Anda telah melaporkan satu mesej. Sembang ini ditutup semasa Silarah menyemaknya.',
+    'Message · {reason}':
+        'Mesej · {reason}',
     'Please fill in:': 'Sila isi:',
     'A fresh export was created recently. You can create another in 10 minutes.':
         'Eksport baru sahaja dibuat. Anda boleh membuat yang lain selepas 10 minit.',
@@ -6745,8 +6831,6 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Profiles unavailable': 'Profil tidak tersedia',
     'Recognize official Silarah email': 'Kenali e-mel rasmi Silarah',
     'Refresh access': 'Muat semula akses',
-    'Reorder, replace or add photos. Every new upload runs through the safety scan.':
-        'Susun semula, ganti atau tambah foto. Setiap muat naik baharu dijalankan melalui imbasan keselamatan.',
     'Reports are reviewed by Silarah safety staff.':
         'Laporan disemak oleh kakitangan keselamatan Silarah.',
     'Restore Purchase': 'Pulihkan Pembelian',
@@ -6905,6 +6989,20 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'sekarang',
   },
   'tr': {
+    'Reviewed':
+        'İncelendi',
+    '1 person viewed your profile this week':
+        'Bu hafta 1 kişi profilinizi görüntüledi',
+    'No one has viewed your profile this week yet':
+        'Bu hafta henüz kimse profilinizi görüntülemedi',
+    'Replace or add photos. Every new upload runs through the safety scan.':
+        'Fotoğrafları değiştirin veya ekleyin. Her yeni yükleme güvenlik taramasından geçer.',
+    'Contact details (phone numbers, emails, links or social handles) cannot be shared in your profile.':
+        'Profilinizde iletişim bilgileri (telefon numarası, e-posta, bağlantı veya sosyal medya kullanıcı adı) paylaşılamaz.',
+    'You reported a message. This chat is closed while Silarah reviews it.':
+        'Bir mesajı bildirdiniz. Silarah inceleme yaparken bu sohbet kapalı kalacak.',
+    'Message · {reason}':
+        'Mesaj · {reason}',
     'Please fill in:': 'Lütfen doldurun:',
     'A fresh export was created recently. You can create another in 10 minutes.':
         'Yakın zamanda bir dışa aktarma oluşturuldu. 10 dakika sonra yenisini oluşturabilirsiniz.',
@@ -7728,8 +7826,6 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Profiles unavailable': 'Profiller kullanılamıyor',
     'Recognize official Silarah email': 'Resmi Silarah e-postasını tanıyın',
     'Refresh access': 'Erişimi yenile',
-    'Reorder, replace or add photos. Every new upload runs through the safety scan.':
-        'Fotoğrafları yeniden sıralayın, değiştirin veya ekleyin. Her yeni yükleme güvenlik taramasından geçer.',
     'Reports are reviewed by Silarah safety staff.':
         'Raporlar Silarah güvenlik personeli tarafından incelenir.',
     'Restore Purchase': 'Satın Alma İşlemini Geri Yükle',
@@ -7887,6 +7983,20 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'Şimdi',
   },
   'ur': {
+    'Reviewed':
+        'جائزہ مکمل',
+    '1 person viewed your profile this week':
+        'اس ہفتے 1 شخص نے آپ کی پروفائل دیکھی',
+    'No one has viewed your profile this week yet':
+        'اس ہفتے ابھی تک کسی نے آپ کی پروفائل نہیں دیکھی',
+    'Replace or add photos. Every new upload runs through the safety scan.':
+        'تصاویر تبدیل کریں یا شامل کریں۔ ہر نیا اپ لوڈ حفاظتی جانچ سے گزرتا ہے۔',
+    'Contact details (phone numbers, emails, links or social handles) cannot be shared in your profile.':
+        'آپ کی پروفائل میں رابطے کی تفصیلات (فون نمبر، ای میل، لنکس یا سوشل ہینڈلز) شیئر نہیں کی جا سکتیں۔',
+    'You reported a message. This chat is closed while Silarah reviews it.':
+        'آپ نے ایک پیغام کی رپورٹ کی ہے۔ سلارہ کے جائزے تک یہ چیٹ بند رہے گی۔',
+    'Message · {reason}':
+        'پیغام · {reason}',
     'Please fill in:': 'براہ کرم پُر کریں:',
     'A fresh export was created recently. You can create another in 10 minutes.':
         'حال ہی میں ایک ایکسپورٹ بنائی گئی ہے۔ آپ 10 منٹ بعد دوسری بنا سکتے ہیں۔',
@@ -8709,8 +8819,6 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Profiles unavailable': 'پروفائلز دستیاب نہیں ہیں۔',
     'Recognize official Silarah email': 'سرکاری سلارہ ای میل کو پہچانیں۔',
     'Refresh access': 'رسائی کو تازہ کریں۔',
-    'Reorder, replace or add photos. Every new upload runs through the safety scan.':
-        'دوبارہ ترتیب دیں، تبدیل کریں یا تصاویر شامل کریں۔ ہر نیا اپ لوڈ حفاظتی اسکین کے ذریعے چلتا ہے۔',
     'Reports are reviewed by Silarah safety staff.':
         'رپورٹس کا جائزہ سلارہ کے حفاظتی عملے کے ذریعے کیا جاتا ہے۔',
     'Restore Purchase': 'خریداری کو بحال کریں۔',

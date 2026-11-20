@@ -1321,7 +1321,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get onboarding_label_niqab => 'নেকাব';
 
   @override
-  String get onboarding_label_practicing => 'অনুশীলন করছে';
+  String get onboarding_label_practicing => 'ধর্মপরায়ণ';
 
   @override
   String get onboarding_label_praysFiveDaily =>
@@ -1697,7 +1697,7 @@ class AppLocalizationsBn extends AppLocalizations {
   String get preferences_deen_moderate => 'পরিমিত';
 
   @override
-  String get preferences_deen_practicing => 'অনুশীলন করছে';
+  String get preferences_deen_practicing => 'ধর্মপরায়ণ';
 
   @override
   String get preferences_edu_any => 'যে কোন';

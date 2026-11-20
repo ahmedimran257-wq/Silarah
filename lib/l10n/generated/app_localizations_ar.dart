@@ -1300,7 +1300,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get onboarding_label_niqab => 'النقاب';
 
   @override
-  String get onboarding_label_practicing => 'ممارسة';
+  String get onboarding_label_practicing => 'ملتزم';
 
   @override
   String get onboarding_label_praysFiveDaily => 'أصلي خمس مرات يوميا';
@@ -1675,7 +1675,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get preferences_deen_moderate => 'معتدل';
 
   @override
-  String get preferences_deen_practicing => 'ممارسة';
+  String get preferences_deen_practicing => 'ملتزم';
 
   @override
   String get preferences_edu_any => 'أي';
@@ -1977,7 +1977,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيكون التقييم متاحًا بمجرد إطلاق سيلارا في متجر التطبيقات.';
 
   @override
-  String get settings_label_reports => 'تقرير التاريخ';
+  String get settings_label_reports => 'سجل البلاغات';
 
   @override
   String settings_label_reports_count(Object count) {

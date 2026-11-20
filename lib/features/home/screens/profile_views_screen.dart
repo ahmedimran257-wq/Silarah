@@ -69,10 +69,25 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_markSeen());
+      unawaited(_loadWeeklyCount());
       if (mounted && context.read<SubscriptionCubit>().state.isSubscribed) {
         _loadViews();
       }
     });
+  }
+
+  /// The weekly viewer count is free for everyone; Premium reveals who.
+  int? _weeklyViewerCount;
+
+  Future<void> _loadWeeklyCount() async {
+    try {
+      final summary = await ProfileViewService.instance.activitySummary();
+      if (mounted) {
+        setState(() => _weeklyViewerCount = summary.weeklyViewerCount);
+      }
+    } catch (error) {
+      debugPrint('[ProfileViewsScreen] weekly count failed: $error');
+    }
   }
 
   Future<void> _markSeen() async {
@@ -231,6 +246,7 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
                 ? const _ShimmerLoader()
                 : !subscription.isSubscribed
                     ? _PremiumViewerGate(
+                        weeklyViewerCount: _weeklyViewerCount,
                         onUpgrade: () => context.push(AppRoutes.subscription),
                       )
                     : _isLoading && !_awaitingServerPremium
@@ -249,10 +265,10 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
                                       Padding(
                                         padding: const EdgeInsets.fromLTRB(
                                             24, 8, 24, 16),
-                                        child: UiText(
-                                          context.uiCopyWith(
-                                            '{count} people viewed your profile this week',
-                                            {'count': _loadedViewers.length},
+                                        child: UiText.verbatim(
+                                          weeklyViewersLabel(
+                                            context,
+                                            _loadedViewers.length,
                                           ),
                                           style: AppTypography.screenTitle
                                               .copyWith(fontSize: 18),
@@ -382,10 +398,25 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
   }
 }
 
+/// "No one … yet" / "1 person …" / "{count} people viewed your profile this
+/// week", localized.
+String weeklyViewersLabel(BuildContext context, int count) => switch (count) {
+      0 => context.uiCopy('No one has viewed your profile this week yet'),
+      1 => context.uiCopy('1 person viewed your profile this week'),
+      _ => context.uiCopyWith(
+          '{count} people viewed your profile this week', {'count': count}),
+    };
+
 class _PremiumViewerGate extends StatelessWidget {
-  const _PremiumViewerGate({required this.onUpgrade});
+  const _PremiumViewerGate({
+    required this.onUpgrade,
+    this.weeklyViewerCount,
+  });
 
   final VoidCallback onUpgrade;
+
+  /// Null while loading (or if it could not be read).
+  final int? weeklyViewerCount;
 
   @override
   Widget build(BuildContext context) {
@@ -399,8 +430,10 @@ class _PremiumViewerGate extends StatelessWidget {
             const SizedBox(height: AppDimensions.space24),
             SilarahEntrance(
               delay: const Duration(milliseconds: 80),
-              child: UiText(
-                context.uiCopy('Your weekly count stays visible'),
+              child: UiText.verbatim(
+                weeklyViewerCount == null
+                    ? context.uiCopy('Your weekly count stays visible')
+                    : weeklyViewersLabel(context, weeklyViewerCount!),
                 style: AppTypography.screenTitle.copyWith(fontSize: 22),
                 textAlign: TextAlign.center,
               ),

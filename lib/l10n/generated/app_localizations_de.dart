@@ -1330,7 +1330,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get onboarding_label_niqab => 'Niqab';
 
   @override
-  String get onboarding_label_practicing => 'Üben';
+  String get onboarding_label_practicing => 'Praktizierend';
 
   @override
   String get onboarding_label_praysFiveDaily => 'Ich bete fünfmal täglich';
@@ -1712,7 +1712,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get preferences_deen_moderate => 'Mäßig';
 
   @override
-  String get preferences_deen_practicing => 'Üben';
+  String get preferences_deen_practicing => 'Praktizierend';
 
   @override
   String get preferences_edu_any => 'Beliebig';

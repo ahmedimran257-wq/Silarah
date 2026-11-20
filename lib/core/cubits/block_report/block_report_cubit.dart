@@ -61,16 +61,26 @@ class BlockReportCubit extends Cubit<BlockReportState> {
             .limit(200),
         SupabaseService.client
             .from('reports')
-            .select('id, reported_user_id, reason, description, created_at')
+            .select('id, reported_user_id, reason, description, created_at, status')
+            .eq('reporter_id', userId)
+            .order('created_at', ascending: false)
+            .limit(100),
+        // Chat message reports belong in the same history: they close the
+        // match until staff review it, so the member should see them.
+        SupabaseService.client
+            .from('message_reports')
+            .select('id, reported_user_id, reason, created_at, status')
             .eq('reporter_id', userId)
             .order('created_at', ascending: false)
             .limit(100),
       ]);
       final blockedRows = results[0] as List<dynamic>;
       final reportRows = results[1] as List<dynamic>;
+      final messageReportRows = results[2] as List<dynamic>;
       final relatedUserIds = <String>{
         for (final row in blockedRows) row['blocked_id'] as String,
         for (final row in reportRows) row['reported_user_id'] as String,
+        for (final row in messageReportRows) row['reported_user_id'] as String,
       };
       final profileRows = await AuthorizedProfileService.load(relatedUserIds);
       final profilesByUser = <String, Map<String, dynamic>>{
@@ -119,8 +129,34 @@ class BlockReportCubit extends Cubit<BlockReportState> {
           description: row['description'] as String?,
           submittedAt:
               DateTime.tryParse(row['created_at'] as String) ?? DateTime.now(),
+          status: row['status'] as String? ?? 'pending',
         ));
       }
+
+      // Message reports do not hide the member: dismissing one reopens the
+      // chat, so it is not a judgement about the profile.
+      for (final row in messageReportRows) {
+        final reportedUserId = row['reported_user_id'] as String;
+        final reason = row['reason'] as String? ?? 'other';
+        reportHistory.add(ReportEntry(
+          reportId: row['id'] as String,
+          reportedUserId: reportedUserId,
+          reportedName:
+              (profilesByUser[reportedUserId]?['first_name'] as String?) ??
+                  'User',
+          reason: ReportReason.values.firstWhere(
+            (r) => r.key == reason,
+            orElse: () => ReportReason.other,
+          ),
+          submittedAt:
+              DateTime.tryParse(row['created_at'] as String) ?? DateTime.now(),
+          isMessageReport: true,
+          status: row['status'] as String? ?? 'pending',
+          messageReasonLabel: ReportEntry.messageReasonLabels[reason] ??
+              ReportEntry.messageReasonLabels['other'],
+        ));
+      }
+      reportHistory.sort((a, b) => b.submittedAt.compareTo(a.submittedAt));
 
       if (!isClosed) {
         emit(state.copyWith(

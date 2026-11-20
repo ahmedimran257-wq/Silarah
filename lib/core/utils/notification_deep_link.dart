@@ -121,13 +121,18 @@ String? notificationDestinationPath({
     return '/home?tab=3';
   }
 
+  // A Guardian reads a ward's conversation on the Guardian dashboard, never
+  // through the member chat route (they are not a participant, so that route
+  // can only say "Conversation no longer available"). Older rows carried a
+  // silarah://chat link; the type decides.
+  if (type == 'guardian_message_mirror') return '/guardian-dashboard';
+
   final deepLinkPath = notificationPathFromDeepLink(deepLink);
   if (deepLinkPath != null) return deepLinkPath;
 
   switch (type) {
     case 'new_message':
       return _entityPath('chat', matchId) ?? '/home?tab=2';
-    case 'guardian_message_mirror':
     case 'guardian_sent_message':
       return _entityPath('chat', matchId) ?? '/guardian-dashboard';
     case 'match':

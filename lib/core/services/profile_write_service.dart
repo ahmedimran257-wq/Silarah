@@ -15,6 +15,27 @@ import 'supabase_service.dart';
 class ProfileWriteService {
   ProfileWriteService._();
 
+  /// Shown when the server refuses profile text that carries contact details
+  /// (migration 318 trigger). The app's own filter normally catches these
+  /// first; this keeps a refusal from ever looking like a network failure.
+  static const contactDetailsRefusalMessage =
+      'Contact details (phone numbers, emails, links or social handles) cannot be shared in your profile.';
+
+  static bool _contactDetailsRefused = false;
+
+  /// True once after a save was refused for contact details in profile text.
+  static bool takeContactDetailsRefusal() {
+    final refused = _contactDetailsRefused;
+    _contactDetailsRefused = false;
+    return refused;
+  }
+
+  static void _noteWriteFailure(Object error) {
+    if (error.toString().contains('profile_contact_details_blocked')) {
+      _contactDetailsRefused = true;
+    }
+  }
+
   /// Whether real writes are possible (Supabase configured).
   static bool get _canWrite => SupabaseService.isInitialized;
 
@@ -78,7 +99,8 @@ class ProfileWriteService {
       });
 
       return true;
-    } catch (_) {
+    } catch (error) {
+      _noteWriteFailure(error);
       OperationalTelemetryService.record('profile_write', 'save_step_failed');
       return false;
     }
@@ -99,7 +121,8 @@ class ProfileWriteService {
         },
       );
       return true;
-    } catch (_) {
+    } catch (error) {
+      _noteWriteFailure(error);
       OperationalTelemetryService.record(
         'profile_write',
         'profile_type_resume_failed',
@@ -142,7 +165,8 @@ class ProfileWriteService {
         },
       );
       return true;
-    } catch (_) {
+    } catch (error) {
+      _noteWriteFailure(error);
       OperationalTelemetryService.record(
         'profile_write',
         'onboarding_location_failed',
@@ -177,7 +201,8 @@ class ProfileWriteService {
           .eq('user_id', _userId!)
           .maybeSingle();
       if (existing != null) return true;
-    } catch (_) {
+    } catch (error) {
+      _noteWriteFailure(error);
       return false;
     }
 
@@ -243,6 +268,7 @@ class ProfileWriteService {
       });
       return true;
     } catch (error) {
+      _noteWriteFailure(error);
       debugPrint(
         '[ProfileWriteService] Basic Identity RPC failed: '
         '${error.runtimeType}',
@@ -292,7 +318,8 @@ class ProfileWriteService {
       );
       if (!userProgressSaved) return false;
       return true;
-    } catch (_) {
+    } catch (error) {
+      _noteWriteFailure(error);
       return false;
     }
   }
@@ -305,7 +332,8 @@ class ProfileWriteService {
       await SupabaseService.client
           .rpc('set_my_onboarding_step_for_back', params: {'p_step': step});
       return true;
-    } catch (_) {
+    } catch (error) {
+      _noteWriteFailure(error);
       return false;
     }
   }
@@ -315,7 +343,8 @@ class ProfileWriteService {
     try {
       await SupabaseService.client.rpc('complete_onboarding_profile');
       return true;
-    } catch (_) {
+    } catch (error) {
+      _noteWriteFailure(error);
       return false;
     }
   }
@@ -345,7 +374,8 @@ class ProfileWriteService {
       await SupabaseService.client
           .rpc('patch_my_user', params: {'p_fields': fields});
       return true;
-    } catch (_) {
+    } catch (error) {
+      _noteWriteFailure(error);
       return false;
     }
   }
@@ -405,7 +435,8 @@ class ProfileWriteService {
         return null;
       }
       return committedData;
-    } catch (_) {
+    } catch (error) {
+      _noteWriteFailure(error);
       return null;
     }
   }
@@ -454,7 +485,8 @@ class ProfileWriteService {
         lat: lat,
         lng: lng,
       );
-    } catch (_) {
+    } catch (error) {
+      _noteWriteFailure(error);
       return null;
     }
   }

@@ -1328,7 +1328,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get onboarding_label_niqab => 'Niqab';
 
   @override
-  String get onboarding_label_practicing => 'Berlatih';
+  String get onboarding_label_practicing => 'Taat';
 
   @override
   String get onboarding_label_praysFiveDaily => 'Saya berdoa lima kali sehari';
@@ -1709,7 +1709,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get preferences_deen_moderate => 'Sedang';
 
   @override
-  String get preferences_deen_practicing => 'Berlatih';
+  String get preferences_deen_practicing => 'Taat';
 
   @override
   String get preferences_edu_any => 'Setiap';
@@ -2017,7 +2017,7 @@ class AppLocalizationsId extends AppLocalizations {
       'Peringkat akan tersedia setelah Silarah diluncurkan di app store.';
 
   @override
-  String get settings_label_reports => 'Laporan Sejarah';
+  String get settings_label_reports => 'Riwayat Laporan';
 
   @override
   String settings_label_reports_count(Object count) {

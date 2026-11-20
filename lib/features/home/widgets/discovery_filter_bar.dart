@@ -52,7 +52,7 @@ class DiscoveryFilterBar extends StatelessWidget {
               _Chip(
                 icon: Icons.mosque_outlined,
                 accentSlot: 2,
-                label: f.sect ?? 'Sect',
+                label: f.sect != null ? discoveryFacetLabel(f.sect!) : 'Sect',
                 isActive: f.sect != null,
                 onTap: () => _showSectFilter(context, f),
               ),
@@ -78,7 +78,9 @@ class DiscoveryFilterBar extends StatelessWidget {
               _Chip(
                 icon: Icons.people_outline_rounded,
                 accentSlot: 5,
-                label: f.familyType ?? 'Family Type',
+                label: f.familyType != null
+                    ? discoveryFacetLabel(f.familyType!)
+                    : 'Family Type',
                 isActive: f.familyType != null,
                 onTap: () => _showFamilyFilter(context, f),
               ),

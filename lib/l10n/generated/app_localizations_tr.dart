@@ -809,7 +809,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get interests_tab_sent => 'Gönderilmiş';
 
   @override
-  String get interests_title => 'İlgi alanları';
+  String get interests_title => 'İlgiler';
 
   @override
   String get lang_albanian => 'Arnavut';
@@ -1323,7 +1323,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get onboarding_label_niqab => 'Peçe';
 
   @override
-  String get onboarding_label_practicing => 'pratik yapmak';
+  String get onboarding_label_practicing => 'Dinini yaşayan';
 
   @override
   String get onboarding_label_praysFiveDaily => 'Günde beş defa dua ediyorum';
@@ -1699,7 +1699,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get preferences_deen_moderate => 'Ilıman';
 
   @override
-  String get preferences_deen_practicing => 'pratik yapmak';
+  String get preferences_deen_practicing => 'Dinini yaşayan';
 
   @override
   String get preferences_edu_any => 'Herhangi';

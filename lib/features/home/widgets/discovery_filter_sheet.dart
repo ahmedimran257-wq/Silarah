@@ -374,19 +374,7 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
     };
   }
 
-  String _facetLabel(String value) {
-    if (value == 'no') return 'Never Married';
-    if (value == 'prefer_not_to_say') return 'Prefer not to say';
-    final words = value
-        .replaceAll('_', ' ')
-        .split(RegExp(r'\s+'))
-        .where((word) => word.isNotEmpty)
-        .map((word) {
-      if (word.length <= 1) return word.toUpperCase();
-      return '${word[0].toUpperCase()}${word.substring(1)}';
-    });
-    return words.join(' ');
-  }
+  String _facetLabel(String value) => discoveryFacetLabel(value);
 
   List<String> _optionLabels(List<String> options) {
     return options
@@ -1925,4 +1913,21 @@ class _AllIndiaScopeTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Display label for a stored discovery facet value ("shia" -> "Shia",
+/// "prefer_not_to_say" -> "Prefer not to say"). Shared by the filter sheet
+/// and the filter bar chips so both always show the same words.
+String discoveryFacetLabel(String value) {
+  if (value == 'no') return 'Never Married';
+  if (value == 'prefer_not_to_say') return 'Prefer not to say';
+  final words = value
+      .replaceAll('_', ' ')
+      .split(RegExp(r'\s+'))
+      .where((word) => word.isNotEmpty)
+      .map((word) {
+    if (word.length <= 1) return word.toUpperCase();
+    return '${word[0].toUpperCase()}${word.substring(1)}';
+  });
+  return words.join(' ');
 }
