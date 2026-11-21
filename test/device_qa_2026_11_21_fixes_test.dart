@@ -156,4 +156,30 @@ void main() {
           reason: locale);
     }
   });
+
+  test('daily limits reset at each member own midnight', () {
+    final migration = read(
+        'supabase/migrations/321_daily_limits_reset_at_member_midnight.sql');
+    // One definition of "today", from the member's stored timezone.
+    expect(migration, contains('FUNCTION private.member_today(p_user uuid)'));
+    expect(
+        migration, contains('FUNCTION private.member_day_start(p_user uuid)'));
+    expect(migration, contains('JOIN private.timezone_names tz'));
+    // Every daily limit uses it; none keeps the UTC day.
+    for (final signature in [
+      'public.record_profile_view(uuid, boolean)',
+      'public.get_profile_view_quota()',
+      'public.get_discovery_feed(',
+      'public.get_authorized_member_profiles(uuid[])',
+      'public.get_authorized_photo_paths(',
+      'public.can_bookmark_member(uuid)',
+      'public.get_interest_quota()',
+      'public.enforce_interest_limits()',
+    ]) {
+      expect(migration, contains(signature), reason: signature);
+    }
+    // Hopping timezones for extra resets is limited.
+    expect(migration, contains("interval '7 days'"));
+    expect(migration, contains('NEW.timezone := OLD.timezone;'));
+  });
 }
