@@ -2,10 +2,10 @@
 // Complete palette identities. Zero Material widgets allowed to
 // show through — every component uses SILARAH's design language.
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'app_colors.dart';
 import 'app_dimensions.dart';
 import 'app_typography.dart';
+import 'system_bars.dart';
 
 abstract final class AppTheme {
   // Identity builder
@@ -52,17 +52,7 @@ abstract final class AppTheme {
           color: AppColors.pearlWhite,
           size: AppDimensions.iconSizeLarge,
         ),
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness:
-              mode.isDark ? Brightness.light : Brightness.dark,
-          statusBarBrightness: mode.isDark ? Brightness.dark : Brightness.light,
-          systemNavigationBarColor: AppColors.obsidianNight,
-          systemNavigationBarIconBrightness:
-              mode.isDark ? Brightness.light : Brightness.dark,
-          systemNavigationBarDividerColor: Colors.transparent,
-          systemNavigationBarContrastEnforced: false,
-        ),
+        systemOverlayStyle: SilarahSystemBars.forDarkTheme(mode.isDark),
       ),
 
       // Eliminate ALL Material ripple/ink effects

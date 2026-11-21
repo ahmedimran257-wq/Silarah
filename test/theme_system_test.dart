@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +11,7 @@ import 'package:silarah/core/cubits/theme/theme_cubit.dart';
 import 'package:silarah/core/services/app_lifecycle_service.dart';
 import 'package:silarah/core/theme/app_colors.dart';
 import 'package:silarah/core/theme/app_theme.dart';
+import 'package:silarah/core/theme/system_bars.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -266,14 +266,59 @@ void main() {
   test('Android system chrome never adds a contrast divider artifact', () {
     for (final mode in SilarahThemeMode.values) {
       final overlay = AppTheme.forMode(mode).appBarTheme.systemOverlayStyle;
-      expect(overlay?.systemNavigationBarDividerColor, Colors.transparent);
       expect(overlay?.systemNavigationBarContrastEnforced, isFalse);
+      expect(overlay?.systemStatusBarContrastEnforced, isFalse);
     }
     final androidStyles = File(
       'android/app/src/main/res/values/styles.xml',
     ).readAsStringSync();
     expect(androidStyles, contains('android:navigationBarDividerColor'));
     expect(androidStyles, contains('android:enforceNavigationBarContrast'));
+  });
+
+  test('system bars are edge-to-edge and set icon brightness only', () {
+    final styles = [
+      SilarahSystemBars.launch,
+      for (final mode in SilarahThemeMode.values) ...[
+        AppTheme.forMode(mode).appBarTheme.systemOverlayStyle!,
+        SilarahSystemBars.forDarkTheme(mode.isDark),
+      ],
+    ];
+    for (final style in styles) {
+      // Android 15 deprecated the Window bar-colour setters; a null colour
+      // keeps Flutter from calling them on any Android version.
+      expect(style.statusBarColor, isNull);
+      expect(style.systemNavigationBarColor, isNull);
+      expect(style.systemNavigationBarDividerColor, isNull);
+    }
+    for (final mode in SilarahThemeMode.values) {
+      final style = AppTheme.forMode(mode).appBarTheme.systemOverlayStyle!;
+      final icons = mode.isDark ? Brightness.light : Brightness.dark;
+      expect(style.statusBarIconBrightness, icons, reason: mode.name);
+      expect(style.systemNavigationBarIconBrightness, icons, reason: mode.name);
+    }
+    expect(SilarahSystemBars.launch.statusBarIconBrightness, Brightness.dark);
+
+    final activity = File(
+      'android/app/src/main/kotlin/com/silarah/app/MainActivity.kt',
+    ).readAsStringSync();
+    expect(activity, contains('WindowCompat.enableEdgeToEdge(window)'));
+    for (final deprecated in [
+      'setStatusBarColor',
+      'setNavigationBarColor',
+      'setNavigationBarDividerColor',
+      'statusBarColor =',
+      'navigationBarColor =',
+    ]) {
+      expect(activity, isNot(contains(deprecated)), reason: deprecated);
+    }
+    for (final dir in ['values', 'values-night']) {
+      final xml = File('android/app/src/main/res/$dir/styles.xml')
+          .readAsStringSync();
+      final normalTheme = xml.substring(xml.indexOf('name="NormalTheme"'));
+      expect(normalTheme, isNot(contains('android:statusBarColor')));
+      expect(normalTheme, isNot(contains('android:navigationBarColor')));
+    }
   });
 
   test('launch sequence is white-first and uses one complete wordmark', () {

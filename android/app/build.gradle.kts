@@ -166,6 +166,11 @@ tasks.matching { it.name == "compileReleaseJavaWithJavac" }.configureEach {
     dependsOn(sanitizeReleasePluginRegistrant)
 }
 
+dependencies {
+    // WindowCompat.enableEdgeToEdge (MainActivity) first shipped in 1.17.0.
+    implementation("androidx.core:core:1.17.0")
+}
+
 flutter {
     source = "../.."
 }

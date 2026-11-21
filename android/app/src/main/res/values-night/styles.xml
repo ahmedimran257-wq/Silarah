@@ -7,6 +7,9 @@
         <!-- Show a splash screen on the activity. Automatically removed when
              the Flutter engine draws its first frame -->
         <item name="android:windowBackground">@drawable/launch_background</item>
+        <!-- Paints the starting window on Android 7-11 (values-v31 covers 12+).
+             Once Flutter starts, MainActivity turns on edge-to-edge and the
+             bars become transparent. -->
         <item name="android:statusBarColor">@color/launch_background</item>
         <item name="android:navigationBarColor">@color/launch_background</item>
         <item name="android:windowLightStatusBar">true</item>
@@ -22,12 +25,15 @@
 
          This Theme is only used starting with V2 of Flutter's Android embedding. -->
     <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <!-- No status or navigation bar colour here: MainActivity draws
+             edge-to-edge with transparent bars and Flutter sets the icon
+             brightness per theme. -->
         <item name="android:windowBackground">@drawable/launch_background</item>
         <item name="android:colorBackground">@color/launch_background</item>
-        <item name="android:statusBarColor">@color/launch_background</item>
-        <item name="android:navigationBarColor">@color/launch_background</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
+        <!-- Stops Android 9-14 drawing a grey line above three-button
+             navigation; Android 15+ never draws it. -->
         <item name="android:navigationBarDividerColor">@android:color/transparent</item>
         <item name="android:enforceNavigationBarContrast">false</item>
         <item name="android:enforceStatusBarContrast">false</item>

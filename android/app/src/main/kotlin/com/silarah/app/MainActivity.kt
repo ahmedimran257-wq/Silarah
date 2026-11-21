@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import androidx.core.view.WindowCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -18,6 +19,7 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         createNotificationChannels()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // Android 12 otherwise inserts its own icon fade between the
@@ -95,6 +97,18 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    // Android 15+ always draws apps edge-to-edge when they target SDK 35+.
+    // Opting in from Android 8 keeps every phone on the same layout: Flutter
+    // reports the bar sizes as MediaQuery padding and each screen insets its
+    // own content. AndroidX makes both bars transparent and turns off the
+    // system scrim, so the deprecated Window bar-colour setters are never
+    // called from Silarah's code. Android 7 cannot draw dark navigation
+    // buttons, so it keeps the opaque system navigation bar.
+    private fun enableEdgeToEdge() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        WindowCompat.enableEdgeToEdge(window)
     }
 
     private fun createNotificationChannels() {

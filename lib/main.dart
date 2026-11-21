@@ -22,6 +22,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/config/app_config.dart';
 
 import 'core/theme/app_theme.dart';
+import 'core/theme/system_bars.dart';
 import 'core/theme/app_dimensions.dart';
 import 'core/services/supabase_service.dart';
 import 'core/services/my_account_snapshot.dart';
@@ -278,16 +279,8 @@ void main() async {
     );
   };
 
-  // Status bar: transparent, dark icons on the signature white canvas.
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-    statusBarBrightness: Brightness.light,
-    systemNavigationBarColor: Color(0xFFFFFFFF),
-    systemNavigationBarIconBrightness: Brightness.dark,
-    systemNavigationBarDividerColor: Colors.transparent,
-    systemNavigationBarContrastEnforced: false,
-  ));
+  // Transparent edge-to-edge bars with dark icons on the white launch canvas.
+  SystemChrome.setSystemUIOverlayStyle(SilarahSystemBars.launch);
 
   unawaited(SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

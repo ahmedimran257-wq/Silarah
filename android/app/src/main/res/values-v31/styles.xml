@@ -7,6 +7,8 @@
         <!-- Flutter owns the only launch motion. A zero-duration platform
              exit prevents Android from inserting a second icon fade. -->
         <item name="android:windowSplashScreenAnimationDuration">0</item>
+        <!-- Bars of the Android 12-14 splash window; Android 15+ ignores
+             these and draws the splash edge-to-edge. -->
         <item name="android:statusBarColor">#FFFFFF</item>
         <item name="android:navigationBarColor">#FFFFFF</item>
         <item name="android:windowLightStatusBar">true</item>

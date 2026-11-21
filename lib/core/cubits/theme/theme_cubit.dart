@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/system_bars.dart';
 
 /// Owns the active visual identity and persists it locally. Theme selection is
 /// deliberately device-scoped: it applies before authentication and never
@@ -143,19 +144,11 @@ class ThemeCubit extends Cubit<ThemeSelectionState> {
 
   static void _applySystemIdentity(SilarahThemeMode mode) {
     AppColors.activate(mode);
-    final iconBrightness = mode.isDark ? Brightness.light : Brightness.dark;
     SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: iconBrightness,
-        statusBarBrightness: mode.isDark ? Brightness.dark : Brightness.light,
-        systemNavigationBarColor: AppColors.obsidianNight,
-        systemNavigationBarIconBrightness: iconBrightness,
-        systemNavigationBarDividerColor: Colors.transparent,
-        systemNavigationBarContrastEnforced: false,
-      ),
+      SilarahSystemBars.forDarkTheme(mode.isDark),
     );
   }
+
 }
 
 class _PlatformBrightnessObserver with WidgetsBindingObserver {
