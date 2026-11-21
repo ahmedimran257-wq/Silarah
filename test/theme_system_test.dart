@@ -276,7 +276,7 @@ void main() {
     expect(androidStyles, contains('android:enforceNavigationBarContrast'));
   });
 
-  test('system bars are edge-to-edge and set icon brightness only', () {
+  test('system bars are edge-to-edge and transparent', () {
     final styles = [
       SilarahSystemBars.launch,
       for (final mode in SilarahThemeMode.values) ...[
@@ -285,12 +285,18 @@ void main() {
       ],
     ];
     for (final style in styles) {
-      // Android 15 deprecated the Window bar-colour setters; a null colour
-      // keeps Flutter from calling them on any Android version.
+      // Only the navigation bar gets a colour, and only a transparent one:
+      // MaterialApp otherwise leaves it opaque black on Android 8-14.
       expect(style.statusBarColor, isNull);
-      expect(style.systemNavigationBarColor, isNull);
+      expect(style.systemNavigationBarColor, const Color(0x00000000));
       expect(style.systemNavigationBarDividerColor, isNull);
     }
+    final mainSource = File('lib/main.dart').readAsStringSync();
+    expect(
+      'AnnotatedRegion<SystemUiOverlayStyle>'.allMatches(mainSource).length,
+      2,
+      reason: 'Launch and app roots must override MaterialApp bar defaults.',
+    );
     for (final mode in SilarahThemeMode.values) {
       final style = AppTheme.forMode(mode).appBarTheme.systemOverlayStyle!;
       final icons = mode.isDark ? Brightness.light : Brightness.dark;
@@ -313,8 +319,8 @@ void main() {
       expect(activity, isNot(contains(deprecated)), reason: deprecated);
     }
     for (final dir in ['values', 'values-night']) {
-      final xml = File('android/app/src/main/res/$dir/styles.xml')
-          .readAsStringSync();
+      final xml =
+          File('android/app/src/main/res/$dir/styles.xml').readAsStringSync();
       final normalTheme = xml.substring(xml.indexOf('name="NormalTheme"'));
       expect(normalTheme, isNot(contains('android:statusBarColor')));
       expect(normalTheme, isNot(contains('android:navigationBarColor')));

@@ -16,3 +16,11 @@
 # android/build.gradle.kts to avoid a duplicate receiver with Firebase
 # Messaging. This unreachable optional path is the only remaining reference.
 -dontwarn com.google.firebase.iid.FirebaseInstanceId
+
+# MainActivity turns on edge-to-edge through AndroidX. Keep that helper as its
+# own method: inlined, R8 would copy its API-guarded Window bar-colour calls
+# (deprecated on Android 15) into MainActivity, and Play Console would then
+# report Silarah's own class as calling them.
+-keep class androidx.core.view.WindowCompat {
+    public static void enableEdgeToEdge(android.view.Window);
+}
