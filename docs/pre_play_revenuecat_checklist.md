@@ -98,6 +98,26 @@ about an empty Play draft and reserved code 42042 are historical, not current.
 6. Verify referral Premium interaction and every paid entitlement: browsing,
    interests, messaging rules, advanced filters, profile viewers and boosts.
 
+## Issuing a refund (verified 21 November 2026)
+
+Refund only in Play Console → Order management → the order → **Refund**, and
+always tick **Remove entitlement**.
+
+- With the box ticked, Google ends the subscription at once: RevenueCat sends a
+  cancellation and an expiry within a minute, Silarah records `REVOCATION` and
+  `EXPIRATION`, Premium ends, and the member gets "Your Silarah subscription has
+  ended". The refund itself reaches RevenueCat later (about 2 hours in the
+  test) and is recorded as `REFUND`.
+- Without the box, Google returns the money but keeps the subscription. Google
+  then leaves the order out of its voided-purchase feed and RevenueCat never
+  learns of the refund, so Silarah keeps Premium to the end of the period and
+  has no refund record. (Test of 21 Nov: a refund without the box was still
+  missing from RevenueCat hours later.)
+- A refund of an earlier, already-ended period changes nothing in the app;
+  RevenueCat reports refunds of the latest period only.
+- While the member has the app open, the billing notification makes the app
+  re-read Premium, so the change shows without restarting.
+
 ## Later production gates
 
 - Complete Google merchant/payment verification before accepting real paid

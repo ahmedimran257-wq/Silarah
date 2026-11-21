@@ -184,3 +184,13 @@ String? notificationDestinationPath({
       return null;
   }
 }
+
+/// Notifications the billing webhook sends when a membership changes.
+bool isBillingNotificationType(String type) => const {
+      'subscription_active',
+      'subscription_renewed',
+      'subscription_updated',
+      'subscription_cancelled',
+      'subscription_expired',
+      'subscription_refunded',
+    }.contains(type);

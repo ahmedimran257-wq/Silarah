@@ -57,6 +57,7 @@ import 'core/theme/app_colors.dart';
 import 'core/cubits/account_standing/account_standing_cubit.dart';
 import 'core/router/app_router.dart';
 import 'core/router/notification_navigation.dart';
+import 'core/utils/notification_deep_link.dart';
 import 'core/widgets/in_app_notification_banner.dart';
 import 'core/widgets/startup_offline_screen.dart';
 import 'core/widgets/silarah_launch_sequence.dart';
@@ -564,6 +565,12 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
       }
       if (item.type == 'referral_reward') {
         unawaited(_refreshPremiumEntitlement(refreshDiscovery: true));
+      }
+      // Billing changed on the server (bought, renewed, cancelled, expired,
+      // refunded). Without this a refund left Premium on screen until the
+      // app was next resumed.
+      if (isBillingNotificationType(item.type)) {
+        unawaited(_subscriptionCubit.refreshFromStore());
       }
     });
 

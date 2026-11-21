@@ -115,13 +115,6 @@ class _LegalGateScreenState extends State<LegalGateScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: AppDimensions.space32),
-                    UiText(l10n.legal_title, style: AppTypography.screenTitle),
-                    const SizedBox(height: AppDimensions.space8),
-                    UiText(
-                      l10n.legal_subtitle,
-                      style: AppTypography.bodyMuted,
-                    ),
                   ],
                 ),
               ),
@@ -143,15 +136,30 @@ class _LegalGateScreenState extends State<LegalGateScreen> {
                     ],
                     stops: [0, 0.04, 0.95, 1],
                   ).createShader(bounds),
+                  // The title scrolls with the terms: with the largest text
+                  // on a small phone a fixed title left the checkboxes a
+                  // strip about 110dp tall.
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.space24,
-                      vertical: AppDimensions.space24,
+                    padding: const EdgeInsets.fromLTRB(
+                      AppDimensions.space24,
+                      AppDimensions.space32,
+                      AppDimensions.space24,
+                      AppDimensions.space24,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        UiText(
+                          l10n.legal_title,
+                          style: AppTypography.screenTitle,
+                        ),
+                        const SizedBox(height: AppDimensions.space8),
+                        UiText(
+                          l10n.legal_subtitle,
+                          style: AppTypography.bodyMuted,
+                        ),
+                        const SizedBox(height: AppDimensions.space24),
                         _TermsSummaryCard(),
                         const SizedBox(height: AppDimensions.space24),
 
@@ -444,7 +452,8 @@ class _SilarahCheckbox extends StatelessWidget {
           const SizedBox(width: AppDimensions.space12),
           Expanded(
             child: richLabel != null
-                ? RichText(text: richLabel!)
+                // Text.rich follows the member's text size; RichText does not.
+                ? Text.rich(richLabel!)
                 : UiText(label, style: AppTypography.body),
           ),
         ],

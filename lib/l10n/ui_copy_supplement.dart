@@ -58,6 +58,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Appears to be under 18': 'يبدو أنه دون سن 18',
     'Apply ({count})': 'تطبيق ({count})',
     'Apply {count} filters': 'تطبيق {count} من عوامل التصفية',
+    'Apply 1 filter': 'تطبيق عامل تصفية واحد',
     'Approval could not be saved. Please try again.':
         'تعذّر حفظ الموافقة. يُرجى المحاولة مرة أخرى.',
     'Approve this match before messaging can begin.':
@@ -669,6 +670,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     '{count} photos · visible after acceptance':
         '{count} صور · تظهر بعد القبول',
     '{count} preferences selected': '{count} تفضيلات محددة',
+    '1 preference selected': 'تفضيل واحد محدد',
     '{count} remaining': '{count} متبقية',
     '{count} unread': '{count} غير مقروءة',
     '{name} ended this match.': 'أنهى {name} هذا التوافق.',
@@ -1034,6 +1036,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Appears to be under 18': '১৮ বছরের কম বয়সী মনে হচ্ছে',
     'Apply ({count})': 'প্রয়োগ করুন ({count})',
     'Apply {count} filters': '{count}টি ফিল্টার প্রয়োগ করুন',
+    'Apply 1 filter': '1টি ফিল্টার প্রয়োগ করুন',
     'Approval could not be saved. Please try again.':
         'অনুমোদন সংরক্ষণ করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।',
     'Approve this match before messaging can begin.':
@@ -1657,6 +1660,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     '{count} photos · visible after acceptance':
         '{count}টি ছবি · গ্রহণের পরে দৃশ্যমান',
     '{count} preferences selected': '{count}টি পছন্দ নির্বাচিত',
+    '1 preference selected': '1টি পছন্দ নির্বাচিত',
     '{count} remaining': '{count}টি বাকি',
     '{count} unread': '{count}টি অপঠিত',
     '{name} ended this match.': '{name} এই ম্যাচ শেষ করেছেন।',
@@ -2025,6 +2029,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Appears to be under 18': 'Scheint unter 18 zu sein',
     'Apply ({count})': 'Anwenden ({count})',
     'Apply {count} filters': '{count} Filter anwenden',
+    'Apply 1 filter': '1 Filter anwenden',
     'Approval could not be saved. Please try again.':
         'Die Genehmigung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.',
     'Approve this match before messaging can begin.':
@@ -2668,6 +2673,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     '{count} photos · visible after acceptance':
         '{count} Fotos · sichtbar nach Annahme',
     '{count} preferences selected': '{count} Präferenzen ausgewählt',
+    '1 preference selected': '1 Präferenz ausgewählt',
     '{count} remaining': '{count} übrig',
     '{count} unread': '{count} ungelesen',
     '{name} ended this match.': '{name} hat dieses Match beendet.',
@@ -3043,6 +3049,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Appears to be under 18': 'Semble avoir moins de 18 ans',
     'Apply ({count})': 'Appliquer ({count})',
     'Apply {count} filters': 'Appliquer {count} filtres',
+    'Apply 1 filter': 'Appliquer 1 filtre',
     'Approval could not be saved. Please try again.':
         'Impossible d’enregistrer l’approbation. Veuillez réessayer.',
     'Approve this match before messaging can begin.':
@@ -3682,6 +3689,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     '{count} photos · visible after acceptance':
         '{count} photos · visibles après acceptation',
     '{count} preferences selected': '{count} préférences sélectionnées',
+    '1 preference selected': '1 préférence sélectionnée',
     '{count} remaining': '{count} restants',
     '{count} unread': '{count} non lus',
     '{name} ended this match.': '{name} a mis fin à ce match.',
@@ -4057,6 +4065,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Appears to be under 18': '18 वर्ष से कम उम्र के लगते हैं',
     'Apply ({count})': 'लागू करें ({count})',
     'Apply {count} filters': '{count} फ़िल्टर लागू करें',
+    'Apply 1 filter': '1 फ़िल्टर लागू करें',
     'Approval could not be saved. Please try again.':
         'मंज़ूरी सहेजी नहीं जा सकी। कृपया फिर से कोशिश करें।',
     'Approve this match before messaging can begin.':
@@ -4682,6 +4691,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     '{count} photos · visible after acceptance':
         '{count} तस्वीरें · स्वीकृति के बाद दिखेंगी',
     '{count} preferences selected': '{count} पसंद चुनी गईं',
+    '1 preference selected': '1 पसंद चुनी गई',
     '{count} remaining': '{count} बाकी',
     '{count} unread': '{count} अपठित',
     '{name} ended this match.': '{name} ने यह मैच समाप्त किया।',
@@ -5051,6 +5061,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Appears to be under 18': 'Tampaknya berusia di bawah 18 tahun',
     'Apply ({count})': 'Terapkan ({count})',
     'Apply {count} filters': 'Terapkan {count} filter',
+    'Apply 1 filter': 'Terapkan 1 filter',
     'Approval could not be saved. Please try again.':
         'Persetujuan tidak dapat disimpan. Silakan coba lagi.',
     'Approve this match before messaging can begin.':
@@ -5678,6 +5689,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     '{count} photos · visible after acceptance':
         '{count} foto · terlihat setelah diterima',
     '{count} preferences selected': '{count} preferensi dipilih',
+    '1 preference selected': '1 preferensi dipilih',
     '{count} remaining': '{count} tersisa',
     '{count} unread': '{count} belum dibaca',
     '{name} ended this match.': '{name} mengakhiri kecocokan ini.',
@@ -6046,6 +6058,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Appears to be under 18': 'Kelihatan berumur bawah 18 tahun',
     'Apply ({count})': 'Guna ({count})',
     'Apply {count} filters': 'Guna {count} penapis',
+    'Apply 1 filter': 'Guna 1 penapis',
     'Approval could not be saved. Please try again.':
         'Kelulusan tidak dapat disimpan. Sila cuba lagi.',
     'Approve this match before messaging can begin.':
@@ -6677,6 +6690,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     '{count} photos · visible after acceptance':
         '{count} foto · kelihatan selepas diterima',
     '{count} preferences selected': '{count} keutamaan dipilih',
+    '1 preference selected': '1 keutamaan dipilih',
     '{count} remaining': '{count} berbaki',
     '{count} unread': '{count} belum dibaca',
     '{name} ended this match.': '{name} telah menamatkan padanan ini.',
@@ -7046,6 +7060,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Appears to be under 18': '18 yaşından küçük görünüyor',
     'Apply ({count})': 'Uygula ({count})',
     'Apply {count} filters': '{count} filtreyi uygula',
+    'Apply 1 filter': '1 filtreyi uygula',
     'Approval could not be saved. Please try again.':
         'Onay kaydedilemedi. Lütfen tekrar deneyin.',
     'Approve this match before messaging can begin.':
@@ -7674,6 +7689,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     '{count} photos · visible after acceptance':
         '{count} fotoğraf · kabulden sonra görünür',
     '{count} preferences selected': '{count} tercih seçildi',
+    '1 preference selected': '1 tercih seçildi',
     '{count} remaining': '{count} kaldı',
     '{count} unread': '{count} okunmamış',
     '{name} ended this match.': '{name} bu eşleşmeyi sonlandırdı.',
@@ -8041,6 +8057,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'Appears to be under 18': '18 سال سے کم عمر لگتے ہیں',
     'Apply ({count})': 'لاگو کریں ({count})',
     'Apply {count} filters': '{count} فلٹر لاگو کریں',
+    'Apply 1 filter': '1 فلٹر لاگو کریں',
     'Approval could not be saved. Please try again.':
         'منظوری محفوظ نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔',
     'Approve this match before messaging can begin.':
@@ -8665,6 +8682,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     '{count} photos · visible after acceptance':
         '{count} تصاویر · قبولیت کے بعد نظر آئیں گی',
     '{count} preferences selected': '{count} ترجیحات منتخب',
+    '1 preference selected': '1 ترجیح منتخب',
     '{count} remaining': '{count} باقی',
     '{count} unread': '{count} غیر پڑھے',
     '{name} ended this match.': '{name} نے یہ میچ ختم کر دیا۔',

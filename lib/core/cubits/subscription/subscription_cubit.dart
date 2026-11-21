@@ -540,7 +540,14 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
     );
   }
 
-  Future<void> _refreshAfterExpiry() async {
+  Future<void> _refreshAfterExpiry() => refreshFromStore();
+
+  /// Re-reads Premium after the store state changed on the server: an
+  /// expiry, or a billing notification (refund, renewal, cancellation) that
+  /// arrived while the app was open. RevenueCat's on-device copy can still
+  /// read as active for minutes, and an active store answer would keep
+  /// Premium on screen after a refund, so it is dropped first.
+  Future<void> refreshFromStore() async {
     try {
       await Purchases.invalidateCustomerInfoCache();
     } catch (e) {

@@ -1811,7 +1811,21 @@ class _BoostLocked extends StatelessWidget {
   }
 }
 
-class _ReferralPremiumProfileBanner extends StatelessWidget {
+/// How long until the "…remaining" wording on a time-limited Premium banner
+/// next changes. The wording counts whole minutes, so the next change is
+/// when the current minute runs out; a small margin makes sure the rebuild
+/// lands after the boundary, not just before it.
+@visibleForTesting
+Duration premiumCountdownRefreshDelay(Duration remaining) {
+  if (remaining <= Duration.zero) return const Duration(minutes: 1);
+  final intoMinute = Duration(
+      microseconds: remaining.inMicroseconds % Duration.microsecondsPerMinute);
+  final untilChange =
+      intoMinute == Duration.zero ? const Duration(minutes: 1) : intoMinute;
+  return untilChange + const Duration(milliseconds: 250);
+}
+
+class _ReferralPremiumProfileBanner extends StatefulWidget {
   const _ReferralPremiumProfileBanner({
     required this.expiresAt,
     required this.onTap,
@@ -1823,7 +1837,52 @@ class _ReferralPremiumProfileBanner extends StatelessWidget {
   final bool isTest;
 
   @override
+  State<_ReferralPremiumProfileBanner> createState() =>
+      _ReferralPremiumProfileBannerState();
+}
+
+/// The banner counts down while Profile stays open, so the remaining time it
+/// shows is never older than a minute.
+class _ReferralPremiumProfileBannerState
+    extends State<_ReferralPremiumProfileBanner> {
+  Timer? _tick;
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleTick();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ReferralPremiumProfileBanner oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.expiresAt != widget.expiresAt) _scheduleTick();
+  }
+
+  void _scheduleTick() {
+    _tick?.cancel();
+    final expiresAt = widget.expiresAt;
+    if (expiresAt == null) return;
+    final remaining = expiresAt.difference(DateTime.now());
+    if (remaining <= Duration.zero) return;
+    _tick = Timer(premiumCountdownRefreshDelay(remaining), () {
+      if (!mounted) return;
+      setState(() {});
+      _scheduleTick();
+    });
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final expiresAt = widget.expiresAt;
+    final onTap = widget.onTap;
+    final isTest = widget.isTest;
     final l10n = AppLocalizations.of(context);
     final remaining = expiresAt?.toLocal().difference(DateTime.now());
     final days = remaining?.inDays ?? 3;

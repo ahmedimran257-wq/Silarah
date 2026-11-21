@@ -384,11 +384,17 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
                     ),
                     child: Row(
                       children: [
+                        // The wordmark is the logo: it keeps its size at
+                        // large system text sizes so the counter beside it
+                        // still has room (it collapsed to an empty pill).
                         UiText('سيلارا',
+                            textScaler: TextScaler.noScaling,
                             style:
                                 AppTypography.wordmark.copyWith(fontSize: 26)),
                         const SizedBox(width: AppDimensions.space8),
-                        UiText('SILARAH', style: AppTypography.wordmark),
+                        UiText('SILARAH',
+                            textScaler: TextScaler.noScaling,
+                            style: AppTypography.wordmark),
                         const SizedBox(width: AppDimensions.space8),
                         // Free-tier counter badge. It takes the leftover
                         // width so long translations shrink instead of
@@ -849,6 +855,15 @@ class _FreeTierCounter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    // Shrinks as a whole when the header is tight (large text on a narrow
+    // phone) instead of ellipsizing its text away inside an empty pill.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: _counterPill(context, l10n),
+    );
+  }
+
+  Widget _counterPill(BuildContext context, AppLocalizations l10n) {
     return AnimatedContainer(
       duration: AppDimensions.durationTransition,
       padding: const EdgeInsets.symmetric(
@@ -871,7 +886,6 @@ class _FreeTierCounter extends StatelessWidget {
         semanticsLabel: l10n.discovery_remaining_profiles(remaining.toString()),
         maxLines: 1,
         softWrap: false,
-        overflow: TextOverflow.ellipsis,
         style: AppTypography.caption.copyWith(
           color: remaining <= 3 ? AppColors.errorRed : AppColors.slateMist,
           fontSize: 11,

@@ -485,6 +485,10 @@ class _SplashBrandScreenState extends State<SplashBrandScreen>
                                 ),
                               ),
                               const SizedBox(height: AppDimensions.space8),
+                              // No line cap on these links: with the largest
+                              // text size on a narrow phone they need three
+                              // lines, and a cap cut "Have a referral code?"
+                              // to "Have a referral". The page scrolls.
                               FadeTransition(
                                 opacity: _tertiaryOpacity,
                                 child: Row(
@@ -505,7 +509,6 @@ class _SplashBrandScreenState extends State<SplashBrandScreen>
                                             context
                                                 .uiCopy('Guardian invitation'),
                                             textAlign: TextAlign.center,
-                                            maxLines: 2,
                                             style: AppTypography.captionMedium
                                                 .copyWith(
                                               color: AppColors.champagneGold,
@@ -523,7 +526,6 @@ class _SplashBrandScreenState extends State<SplashBrandScreen>
                                         child: UiText(
                                           l10n.splash_referral_question,
                                           textAlign: TextAlign.center,
-                                          maxLines: 2,
                                           style: AppTypography.captionMedium
                                               .copyWith(
                                             color: AppColors.champagneGold,

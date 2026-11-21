@@ -169,3 +169,47 @@ Not fixed, needs the owner:
 - H4 selfie verification needs camera permission and a live face.
 - E9 and K3 need a network that is not the phone's own tether.
 - All nine translations are machine-made; Malay, Turkish and Hindi need a native review first.
+
+---
+
+# Second list — 21 Nov 2026
+
+Devices: OnePlus `d2e084e7` (Abdul), Redmi Note 4 `427bc4f00903` (Android 10, 1080×1920,
+Neha `6949307d…`; for the large-text pass its display was set to the default 360 dp width and
+Android's "Largest" text, 1.3, then restored to the owner's 0.95 text / 378 density), and
+briefly an emulator `qa_small` (Android 15, 320×533 dp, text 200%; dropped after it crashed
+twice on this PC's RAM). Evidence in `release/device-qa-2026-11-21/` (local only).
+
+| # | Check | Status | Evidence / note |
+|---|---|---|---|
+| L1 | Crashlytics, Play vitals, pre-launch, tester feedback | PASS | 90-day crash issues all from builds ≤44046 (last event 2 Nov), each already fixed in code; 7-day crash-free users 100%; Play vitals 0 crashes / 0 ANRs in 28 days; no tester feedback; no pre-launch report generated. Play warnings (SafetyNet via `firebase_app_check` 0.3.x, deprecated edge-to-edge colour APIs) need library/UI work, not crash fixes |
+| L2a | Test purchase (license tester, test card) | PASS | Play sheet "Test card, always approves"; app showed Premium; server `INITIAL_PURCHASE` 04:52 UTC, notification "Silarah Premium is active" |
+| L2b | Renewal | PASS | `RENEWAL` 04:57 UTC, expiry moved, "Your membership renewed" |
+| L2c | Plan change (monthly → 3 months) | GAP | No way to do it: an active member sees only "Manage Subscription", and Play's subscription page offers no plan switch. Needs an in-app switch (product decision) |
+| L2d | Cancel and expiry | PASS | Cancelled in Play 05:01; access kept to the period end; `REVOCATION` + `EXPIRATION` 05:02, status `none`, app back to the paywall, "Your Silarah subscription has ended" |
+| L2e | Refund | FIXED | First refund (04:57 order) was issued without "Remove entitlement": Google keeps such orders out of its voided-purchase feed, so RevenueCat and Silarah never heard of it (documented behaviour, not a code bug). Second test purchase 06:13, refunded with "Remove entitlement": `REVOCATION` + `EXPIRATION` reached the server in 40 s, status `none`, "subscription has ended" sent; RevenueCat then logged `REFUND` at 08:07. The open app still showed Premium until resumed (#22, fixed). Procedure written into `docs/pre_play_revenuecat_checklist.md` |
+| L3 | Two phones chatting live | PASS | delivery 2.7 s / 3.2 s, "Neha is typing", read tick + `status=read`, unread badge; Wi-Fi off on the Redmi → "Message failed. Tap to retry", reconnect in 7 s, retry delivered once |
+| L4 | Push: background, killed, after reboot, Guardian link | PASS | killed: push arrived, tap opened the chat; after reboot: arrived in ~9 s without opening the app; background + Guardian dashboard link verified 20 Nov (migration 319) |
+| L5 | Upgrade keeping data | PASS | Redmi 42046 → current: Neha still signed in, filters 22–31, unread count, language kept; retired theme falls back to Ivory & Emerald. OnePlus 42053 → current kept Abdul's session |
+| L6 | Small screen + largest text | FIXED | welcome, sign-in, referral sheet, Guardian invitation scroll to every button; "Have a referral code?" was cut to "Have a referral" (#18); the consent screen left the checkboxes a ~110 dp strip (#19); the Terms consent line and the code screen's "sent to" line ignored the system text size (#21) |
+| L6b | Old Android | PASS (Android 10) | Redmi Note 4 on Android 10 ran every check in this list: upgrade, live chat, push after reboot, idle sign-in and the large-text pass. Android 7–9 (the app's minSdk is 24) was not run: no device and no older emulator image |
+| L6c | Largest text on the Redmi (signed in) | FIXED | Discover, Interests, Messages, chat, Profile, Settings, Edit profile, filter sheet and Notifications all scroll and wrap. Found: the Discover header counter collapsed to an empty pill (#23); "Profile quali… · Good pro…" and the profile tips were cut (#24); "1 preferences selected" / "Apply 1 filters" (#25, every text size) |
+| L7a | Daily limits reset | NOTE | views and interests reset at UTC midnight (05:30 IST); the sheet says "Renews at 5:30 AM". Member-local midnight would change ~9 server functions — product decision |
+| L7b | Premium expiring with the app open | FIXED | card disappeared at expiry, but its "Xm remaining" did not count down (#17) |
+| L7c | Long-idle sign-in | PASS | Neha's 19-day-old session sat idle past its 1-hour token; reopening refreshed it (05:25:11) with no sign-out and the feed loaded |
+| L7d | Rematch pause (7 days) | PASS | server test one minute either side: `rematch_cooldown` at 7d−1m, interest sent at 7d+1m (rolled back) |
+| L7e | Decline pause (30 days) | FIXED | counted from when the interest was sent, so a decline on day 13 paused only 17 days (#20); now counts from the decline: 30d−1m refused, 30d+1m sent (rolled back) |
+
+## Findings and fixes (second list)
+
+| # | Finding | Fix | Verified |
+|---|---|---|---|
+| 17 | Profile's time-limited Premium banner showed a frozen "Xm remaining" while open | banner reschedules itself just after each shown minute runs out (`premiumCountdownRefreshDelay`) | unit tests; phone |
+| 18 | "Have a referral code?" cut off at large text | link texts wrap freely (page scrolls) | emulator, 200% text |
+| 19 | Consent screen: fixed title left a tiny scroll strip for the three checkboxes on small phones at large text | title and subtitle scroll with the terms; Back and Continue stay fixed | emulator, 200% text |
+| 20 | 30-day decline pause measured from the interest's send time | migration 320: `interests.responded_at` stamped by trigger on every answer path, immutable; `send_interest` measures from it | staging + production, boundary test rolled back |
+| 21 | Two texts (Terms consent line, "We sent a code to …") used `RichText`, which ignores the system text size | `Text.rich`; a test fails if `RichText(` returns anywhere in `lib/` | emulator, 200% text |
+| 22 | After a refund (or any billing change) the open app kept showing Premium until the next resume; RevenueCat's on-device cache still said active | billing notifications (`subscription_*`) now make the app drop RevenueCat's cache and re-read Premium (`SubscriptionCubit.refreshFromStore`) | phone |
+| 23 | Discover header: at large text the wordmark took the whole row and the "15 left" counter ellipsized to an empty pill | the wordmark (logo) keeps its size; the counter scales down as a whole | Redmi, Largest text |
+| 24 | Profile card: "Profile quality · Good profile" cut on both halves; tip lines cut to one line | one wrapping line (2 lines max); tips allow 2 lines | Redmi, Largest text |
+| 25 | "1 preferences selected" and "Apply 1 filters" | singular wording in English and the 9 translations | Redmi |

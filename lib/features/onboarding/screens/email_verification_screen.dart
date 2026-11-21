@@ -614,9 +614,10 @@ class _OtpViewState extends State<_OtpView>
                 const SizedBox(height: 10),
                 FadeTransition(
                   opacity: _subtitleFade,
-                  child: RichText(
+                  // Text.rich follows the member's text size; RichText does not.
+                  child: Text.rich(
                     textAlign: TextAlign.center,
-                    text: TextSpan(
+                    TextSpan(
                       children: [
                         TextSpan(
                           text: l10n.auth_label_sentCodeTo,

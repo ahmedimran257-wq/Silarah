@@ -395,26 +395,28 @@ class _ProfileQualityCardState extends State<ProfileQualityCard>
                     painter: _KhatamGlyphPainter(color: gold),
                   ),
                   const SizedBox(width: AppDimensions.space6),
-                  Flexible(
-                    child: UiText.verbatim(
-                      context.uiCopy('Profile quality'),
-                      maxLines: 1,
+                  // One run that wraps: two one-line halves were both
+                  // cut ("Profile quali… · Good pro…") at large text sizes.
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(children: [
+                        TextSpan(
+                          text: context.uiCopy('Profile quality'),
+                          style: AppTypography.sectionLabel.copyWith(
+                            color: gold,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                        TextSpan(
+                          text: '  ·  ${_tier(l10n)}',
+                          style: AppTypography.sectionLabel.copyWith(
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ]),
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.sectionLabel.copyWith(
-                        color: gold,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.6,
-                      ),
-                    ),
-                  ),
-                  Flexible(
-                    child: UiText.verbatim(
-                      '  ·  ${_tier(l10n)}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.sectionLabel.copyWith(
-                        letterSpacing: 0.3,
-                      ),
                     ),
                   ),
                 ],
@@ -1065,9 +1067,10 @@ class _RankTipRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.captionMedium,
                     ),
+                    // Two lines so the reason survives large text sizes.
                     UiText.verbatim(
                       benefit,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.caption.copyWith(fontSize: 11.5),
                     ),

@@ -443,9 +443,11 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
                           child: UiText(
                             _draft.activeCount == 0
                                 ? 'Showing the broadest pool'
-                                : context.uiCopyWith(
-                                    '{count} preferences selected',
-                                    {'count': _draft.activeCount}),
+                                : _draft.activeCount == 1
+                                    ? context.uiCopy('1 preference selected')
+                                    : context.uiCopyWith(
+                                        '{count} preferences selected',
+                                        {'count': _draft.activeCount}),
                             key: ValueKey(_draft.activeCount),
                             style: AppTypography.caption,
                           ),
@@ -1151,8 +1153,11 @@ class _DiscoveryFilterSheetState extends State<DiscoveryFilterSheet> {
                             child: UiText(
                               _draft.activeCount == 0
                                   ? 'Show all profiles'
-                                  : context.uiCopyWith('Apply {count} filters',
-                                      {'count': _draft.activeCount}),
+                                  : _draft.activeCount == 1
+                                      ? context.uiCopy('Apply 1 filter')
+                                      : context.uiCopyWith(
+                                          'Apply {count} filters',
+                                          {'count': _draft.activeCount}),
                               key: ValueKey(_draft.activeCount),
                               style: AppTypography.button,
                             ),
