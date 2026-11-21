@@ -326,47 +326,52 @@ class _SilarahBootstrapState extends State<_SilarahBootstrap> {
         };
         final keepBrandLayer = !_brandRevealCompleted || !destinationReady;
 
-        return ColoredBox(
-          color: SilarahLaunchSequence.surface,
-          child: Stack(
-            textDirection: TextDirection.ltr,
-            children: [
-              Positioned.fill(
-                child: switch (stage) {
-                  _BootstrapStage.loading => ColoredBox(
-                      color: SilarahLaunchSequence.surface,
-                    ),
-                  _BootstrapStage.ready => SilarahApp(
-                      initialLocation: _bootstrapInitialLocation,
-                      initialTheme: _bootstrapInitialTheme,
-                      followSystemTheme: _bootstrapFollowSystemTheme,
-                      startupStartedAt: widget.startupStartedAt,
-                      onStartupGateResolved: _resolveStartupGate,
-                    ),
-                  _BootstrapStage.failed => const _StartupFailureApp(),
-                },
-              ),
-              Positioned.fill(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeOutCubic,
-                  child: keepBrandLayer
-                      ? MaterialApp(
-                          key: const ValueKey('startup-brand-layer'),
-                          color: SilarahLaunchSequence.surface,
-                          debugShowCheckedModeBanner: false,
-                          theme: AppTheme.forMode(_bootstrapInitialTheme),
-                          home: SilarahLaunchSequence(
-                            onCompleted: _completeBrandReveal,
-                          ),
-                        )
-                      : const SizedBox.expand(
-                          key: ValueKey('startup-destination-layer'),
-                        ),
+        // The brand layer's MaterialApp pushes Flutter's default bar style
+        // (opaque black navigation bar); this region overrides it each frame.
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SilarahSystemBars.launch,
+          child: ColoredBox(
+            color: SilarahLaunchSequence.surface,
+            child: Stack(
+              textDirection: TextDirection.ltr,
+              children: [
+                Positioned.fill(
+                  child: switch (stage) {
+                    _BootstrapStage.loading => ColoredBox(
+                        color: SilarahLaunchSequence.surface,
+                      ),
+                    _BootstrapStage.ready => SilarahApp(
+                        initialLocation: _bootstrapInitialLocation,
+                        initialTheme: _bootstrapInitialTheme,
+                        followSystemTheme: _bootstrapFollowSystemTheme,
+                        startupStartedAt: widget.startupStartedAt,
+                        onStartupGateResolved: _resolveStartupGate,
+                      ),
+                    _BootstrapStage.failed => const _StartupFailureApp(),
+                  },
                 ),
-              ),
-            ],
+                Positioned.fill(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeOutCubic,
+                    child: keepBrandLayer
+                        ? MaterialApp(
+                            key: const ValueKey('startup-brand-layer'),
+                            color: SilarahLaunchSequence.surface,
+                            debugShowCheckedModeBanner: false,
+                            theme: AppTheme.forMode(_bootstrapInitialTheme),
+                            home: SilarahLaunchSequence(
+                              onCompleted: _completeBrandReveal,
+                            ),
+                          )
+                        : const SizedBox.expand(
+                            key: ValueKey('startup-destination-layer'),
+                          ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -1104,28 +1109,38 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
                         ),
                       ),
                     );
-                    return AnimatedSwitcher(
-                      duration: AppDimensions.durationReveal,
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      child: switch (_startupNetworkState) {
-                        // The root bootstrap owns the only visible brand
-                        // sequence. Keeping this layer neutral prevents a
-                        // second animation from flashing through at handoff.
-                        _StartupNetworkState.checking => ColoredBox(
-                            key: const ValueKey('startup-brand-underlay'),
-                            color: SilarahLaunchSequence.surface,
-                          ),
-                        _StartupNetworkState.offline => StartupOfflineScreen(
-                            key: const ValueKey('startup-connectivity-offline'),
-                            onRetry: _retryStartupConnectivity,
-                            quality: _startupConnectionQuality,
-                          ),
-                        _StartupNetworkState.ready => KeyedSubtree(
-                            key: const ValueKey('startup-connectivity-ready'),
-                            child: routedApp,
-                          ),
-                      },
+                    // MaterialApp pushes Flutter's default bar style (opaque
+                    // black navigation bar) on every theme build. A root
+                    // region is re-applied after each frame, so the themed
+                    // transparent edge-to-edge style always wins.
+                    return AnnotatedRegion<SystemUiOverlayStyle>(
+                      value: SilarahSystemBars.forDarkTheme(
+                        themeState.activeMode.isDark,
+                      ),
+                      child: AnimatedSwitcher(
+                        duration: AppDimensions.durationReveal,
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        child: switch (_startupNetworkState) {
+                          // The root bootstrap owns the only visible brand
+                          // sequence. Keeping this layer neutral prevents a
+                          // second animation from flashing through at handoff.
+                          _StartupNetworkState.checking => ColoredBox(
+                              key: const ValueKey('startup-brand-underlay'),
+                              color: SilarahLaunchSequence.surface,
+                            ),
+                          _StartupNetworkState.offline => StartupOfflineScreen(
+                              key: const ValueKey(
+                                  'startup-connectivity-offline'),
+                              onRetry: _retryStartupConnectivity,
+                              quality: _startupConnectionQuality,
+                            ),
+                          _StartupNetworkState.ready => KeyedSubtree(
+                              key: const ValueKey('startup-connectivity-ready'),
+                              child: routedApp,
+                            ),
+                        },
+                      ),
                     );
                   },
                 ),
