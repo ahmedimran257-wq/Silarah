@@ -2,9 +2,9 @@
 -- 322). Synthetic members only; everything rolls back.
 --
 -- Both directions arrive as PRODUCT_CHANGE (product_id = old plan,
--- new_product_id = new plan, expiry = the change time), then the new plan's
--- INITIAL_PURCHASE when it takes effect: at once for monthly -> 3 months,
--- at the 3-month period end for 3 months -> monthly.
+-- new_product_id = new plan, expiry = the change time). The new plan then
+-- starts with an INITIAL_PURCHASE at once for monthly -> 3 months, and with
+-- a RENEWAL under monthly at the 3-month period end for 3 months -> monthly.
 begin;
 create extension if not exists pgtap with schema extensions;
 select extensions.plan(19);
@@ -19,7 +19,7 @@ select up_id from plan_fixture
 union all select down_id from plan_fixture
 union all select late_id from plan_fixture;
 insert into public.users(id, email, country_code, gender)
-select id, id::text || '@staging.silarah.invalid', 'IN', 'male'
+select id, id::text || '@qa.silarah.com', 'IN', 'male'
 from (select up_id as id from plan_fixture
       union all select down_id from plan_fixture
       union all select late_id from plan_fixture) members;
@@ -99,10 +99,10 @@ select extensions.is((select count(*) from public.transactional_email_outbox o
   where o.event_type = 'PRODUCT_CHANGE'), 0::bigint,
   'downgrade: booking sends no "plan changed" email before anything changed');
 select extensions.is(public.apply_revenuecat_subscription_event(
-  down_id, 'down-monthly-' || down_id, 'INITIAL_PURCHASE', t0 + 600000,
+  down_id, 'down-monthly-' || down_id, 'RENEWAL', t0 + 600000,
   'active', now() + interval '70 days', 'silarah_monthly:monthly', 'INR', 299,
   now() + interval '70 days')->>'reason', 'applied',
-  'downgrade: monthly starts with its purchase at the renewal') from plan_fixture;
+  'downgrade: monthly starts with a renewal at the 3-month period end') from plan_fixture;
 select extensions.is((select count(*) from public.subscription_events e
   join plan_fixture f on e.user_id = f.down_id
   where e.event_type = 'PRODUCT_REPLACED'

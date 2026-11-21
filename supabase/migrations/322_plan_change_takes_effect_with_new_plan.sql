@@ -4,8 +4,9 @@
 -- not when it takes effect, and the event looks the same either way:
 -- product_id = old plan, new_product_id = new plan, price 0, and
 -- expiration_at_ms = the moment of the change. The new plan then starts with
--- its own INITIAL_PURCHASE: seconds later for an immediate upgrade, at the
--- old plan's period end for a deferred downgrade.
+-- its own event: an INITIAL_PURCHASE seconds later for an immediate upgrade,
+-- and a RENEWAL under the new plan at the old plan's period end for a
+-- deferred downgrade (both seen live on 21 Nov).
 --
 -- Migration 314 applied PRODUCT_CHANGE as access: it stored the change time
 -- as the expiry and retired the old plan at once. Booking a downgrade from
@@ -14,8 +15,8 @@
 -- expiry fell from 13:09:48 to 12:59:09 on booking).
 --
 -- Now PRODUCT_CHANGE is only noted in the ledger (no access change, no
--- message: the new plan's purchase sends those). The old plan is retired
--- when the new plan's INITIAL_PURCHASE arrives, so 314's guarantee still
+-- message: the new plan's own event sends those). The old plan is retired
+-- when the new plan starts, so 314's guarantee still
 -- holds: after the switch only the plan in force can grant Premium, and a
 -- refund of the new plan is not covered by the old one.
 
@@ -106,11 +107,11 @@ BEGIN
       )
       ON CONFLICT DO NOTHING;
 
-      -- Delivered after the new plan's purchase: retire the old plan now.
+      -- Delivered after the new plan started: retire the old plan now.
       SELECT min(e.event_timestamp_ms) INTO v_started_ms
       FROM public.subscription_events e
       WHERE e.user_id = p_user_id
-        AND e.event_type = 'INITIAL_PURCHASE'
+        AND e.event_type IN ('INITIAL_PURCHASE', 'RENEWAL')
         AND split_part(e.product_id, ':', 1) = split_part(p_product_id, ':', 1)
         AND e.event_timestamp_ms >= p_event_timestamp_ms;
       IF v_started_ms IS NOT NULL THEN
@@ -148,10 +149,11 @@ BEGIN
     );
   END IF;
 
-  -- The new plan has started: the plan a noted change came from can no
-  -- longer grant Premium on its own. Only a change made since this plan's
-  -- previous purchase counts.
-  IF p_event_type = 'INITIAL_PURCHASE' AND p_product_id IS NOT NULL THEN
+  -- The new plan has started (an upgrade's purchase, or a booked downgrade's
+  -- first renewal): the plan a noted change came from can no longer grant
+  -- Premium on its own. Only the first start after the change counts.
+  IF p_event_type IN ('INITIAL_PURCHASE', 'RENEWAL')
+    AND p_product_id IS NOT NULL THEN
     SELECT f.product_id INTO v_from_product
     FROM public.subscription_events c
     JOIN public.subscription_events f
@@ -164,7 +166,7 @@ BEGIN
       AND NOT EXISTS (
         SELECT 1 FROM public.subscription_events p
         WHERE p.user_id = p_user_id
-          AND p.event_type = 'INITIAL_PURCHASE'
+          AND p.event_type IN ('INITIAL_PURCHASE', 'RENEWAL')
           AND split_part(p.product_id, ':', 1)
             = split_part(p_product_id, ':', 1)
           AND p.event_timestamp_ms >= c.event_timestamp_ms

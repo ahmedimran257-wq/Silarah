@@ -457,7 +457,7 @@ Deno.test("monthly → 3 months: the change is noted under the new plan, nothing
   assertEquals(call?.p_product_id, "silarah_three_month:three-month");
   assertEquals(call?.p_replaced_product_id, "silarah_monthly:monthly");
   assertEquals(call?.p_price, 0);
-  // The new plan's purchase sends the messages, not the note.
+  // The new plan's own event sends the messages, not the note.
   assert(!notified(db));
   assertEquals(db.brevoCalls, 0);
   assert(!db.rpcCalls.some((c) => c.fn === "claim_transactional_email"));
@@ -501,12 +501,17 @@ Deno.test("3 months → monthly: booking is noted, the paid period is not touche
   assertEquals(db.brevoCalls, 0);
 });
 
-Deno.test("3 months → monthly: monthly starts with its purchase at the renewal", async () => {
+Deno.test("3 months → monthly: monthly starts with a renewal at the period end", async () => {
+  // Seen live: the booked switch arrives as a RENEWAL under the new plan.
   const db = backend();
   const expiry = Date.now() + 30 * DAY;
   const response = await deliver(
     db,
-    event({ product_id: "silarah_monthly:monthly", expiration_at_ms: expiry }),
+    event({
+      type: "RENEWAL",
+      product_id: "silarah_monthly:monthly",
+      expiration_at_ms: expiry,
+    }),
   );
   assertEquals(response.status, 200);
   const call = applyCall(db);
