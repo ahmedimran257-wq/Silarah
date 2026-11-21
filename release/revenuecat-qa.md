@@ -197,3 +197,28 @@ After the test the webhook was set back to "Production only" and
 
 Found and fixed in 42048: a woman who pays saw no Premium status card and no
 Manage Subscription link (the card was hidden for all women).
+
+### Results — 21 November 2026 (in-app plan switch, production backend)
+
+Tester `0b9630d4-…` (OnePlus 8, license tester, "Test card, always
+approves"), release APK from `claude/plan-switch-42045`. With the owner's OK
+the production webhook was set to "Both" and `REVENUECAT_SANDBOX_TESTER_IDS`
+to this one ID; both were reverted at 13:08 UTC and checked after a reload.
+
+| Step | App | Server (UTC) |
+|---|---|---|
+| Buy monthly | Premium; card "Your plan: monthly · ₹299/month" | `INITIAL_PURCHASE` monthly 12:45:08, expiry 12:50:05 |
+| Switch to 3 months (`CHARGE_FULL_PRICE`) | Play: "Today ₹749.00 · 12 minutes"; card shows 3 months | `PRODUCT_CHANGE` 12:47:09.898 (product_id monthly, new_product_id 3-month, price 0, expiration = change time) then `INITIAL_PURCHASE` 3-month 12:47:09.904, ₹749, expiry 12:59:48; user expiry 13:09:48 |
+| Switch to monthly (`DEFERRED`) | Play: "first charge … 6:29:47 PM IST"; card "Monthly at ₹299/month starts on …", no button | `PRODUCT_CHANGE` 12:49:09 (same shape). **User expiry fell to 12:59:09** |
+| Switch takes effect | — | `RENEWAL` under `silarah_monthly:monthly` 13:01:19, ₹299; user active again |
+
+Finding: `PRODUCT_CHANGE` is sent when a switch is made, and its
+`expiration_at_ms` is the change time for both directions. Migration 314
+applied it as access, so a booked downgrade ended server Premium ten minutes
+after booking (server Premium was off 12:59:09–13:01:21 here; with real
+plans, for the rest of the 3-month period). Migration 322 notes the change
+only and retires the old plan when the new plan starts (its
+`INITIAL_PURCHASE`, or its first `RENEWAL` for a deferred switch). Verified
+on staging inside a rolled-back transaction (19/19). Production still runs
+314 until 322 and the webhook are deployed; ship them with the app build
+that has the switch.

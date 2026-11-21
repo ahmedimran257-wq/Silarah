@@ -1687,5 +1687,71 @@
   "profile_quality_name_fallback": "Your name",
   "profile_quality_subtitle_fallback": "Complete your profile below",
   "@profile_quality_name_fallback": {},
-  "@profile_quality_subtitle_fallback": {}
+  "@profile_quality_subtitle_fallback": {},
+  "subscription_planMonthlyCurrent": "Your plan: monthly · {price}/month",
+  "@subscription_planMonthlyCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_planThreeMonthCurrent": "Your plan: 3 months · {price}/3 months",
+  "@subscription_planThreeMonthCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToThreeMonth": "Switch to 3 months · {price}",
+  "@subscription_switchToThreeMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToMonthly": "Switch to monthly · {price}/month",
+  "@subscription_switchToMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchUpgradeNote": "Google Play charges {price} today and your 3-month plan starts now. The unused days of your monthly plan are added to it, so nothing you paid is lost.",
+  "@subscription_switchUpgradeNote": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchDowngradeNote": "Nothing is charged today. Your 3-month plan stays active until {date}, then renews as monthly at {price}/month.",
+  "@subscription_switchDowngradeNote": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchScheduled": "Monthly at {price}/month starts on {date}. Your 3-month plan stays active until then.",
+  "@subscription_switchScheduled": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchConfirmTitle": "Switch plan?",
+  "@subscription_switchConfirmTitle": {},
+  "subscription_switchConfirmButton": "Switch plan",
+  "@subscription_switchConfirmButton": {}
 }

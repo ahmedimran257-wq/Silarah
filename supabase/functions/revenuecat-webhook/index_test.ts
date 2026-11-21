@@ -418,3 +418,114 @@ Deno.test("unhandled event types change nothing", async () => {
   assertEquals(response.status, 200);
   assertEquals(db.rpcCalls.length, 0);
 });
+
+// Plan switches, shaped like the Google Play events of the 21 Nov 2026 test:
+// PRODUCT_CHANGE carries the old plan as product_id, the new one as
+// new_product_id, price 0 and the change time as its expiry, for an
+// immediate upgrade and a deferred downgrade alike.
+function planChange(from: string, to: string) {
+  const now = Date.now();
+  return event({
+    type: "PRODUCT_CHANGE",
+    product_id: from,
+    new_product_id: to,
+    event_timestamp_ms: now - 1000,
+    expiration_at_ms: now - 1001,
+    price: 0,
+    price_in_purchased_currency: 0,
+  });
+}
+
+const noted = () =>
+  backend({
+    applyResult: {
+      applied: false,
+      reason: "plan_change_recorded",
+      email_dedupe_key: "k",
+    },
+  });
+
+Deno.test("monthly → 3 months: the change is noted under the new plan, nothing sent", async () => {
+  const db = noted();
+  const response = await deliver(
+    db,
+    planChange("silarah_monthly:monthly", "silarah_three_month:three-month"),
+  );
+  assertEquals(response.status, 200);
+  const call = applyCall(db);
+  assertEquals(call?.p_event_type, "PRODUCT_CHANGE");
+  assertEquals(call?.p_product_id, "silarah_three_month:three-month");
+  assertEquals(call?.p_replaced_product_id, "silarah_monthly:monthly");
+  assertEquals(call?.p_price, 0);
+  // The new plan's own event sends the messages, not the note.
+  assert(!notified(db));
+  assertEquals(db.brevoCalls, 0);
+  assert(!db.rpcCalls.some((c) => c.fn === "claim_transactional_email"));
+});
+
+Deno.test("monthly → 3 months: the new plan's purchase applies with its own expiry", async () => {
+  const db = backend();
+  const expiry = Date.now() + 92 * DAY;
+  const response = await deliver(
+    db,
+    event({
+      product_id: "silarah_three_month:three-month",
+      expiration_at_ms: expiry,
+      price_in_purchased_currency: 749,
+    }),
+  );
+  assertEquals(response.status, 200);
+  const call = applyCall(db);
+  assertEquals(call?.p_event_type, "INITIAL_PURCHASE");
+  assertEquals(call?.p_product_id, "silarah_three_month:three-month");
+  assertEquals(call?.p_subscription_status, "active");
+  assertEquals(call?.p_subscription_expires_at, new Date(expiry).toISOString());
+  assertEquals(call?.p_price, 749);
+  assertEquals(call?.p_replaced_product_id, null);
+  assert(notified(db));
+});
+
+Deno.test("3 months → monthly: booking is noted, the paid period is not touched", async () => {
+  const db = noted();
+  const response = await deliver(
+    db,
+    planChange("silarah_three_month:three-month", "silarah_monthly:monthly"),
+  );
+  assertEquals(response.status, 200);
+  const call = applyCall(db);
+  assertEquals(call?.p_event_type, "PRODUCT_CHANGE");
+  assertEquals(call?.p_product_id, "silarah_monthly:monthly");
+  assertEquals(call?.p_replaced_product_id, "silarah_three_month:three-month");
+  assertEquals(db.rpcCalls.length, 1);
+  assert(!notified(db));
+  assertEquals(db.brevoCalls, 0);
+});
+
+Deno.test("3 months → monthly: monthly starts with a renewal at the period end", async () => {
+  // Seen live: the booked switch arrives as a RENEWAL under the new plan.
+  const db = backend();
+  const expiry = Date.now() + 30 * DAY;
+  const response = await deliver(
+    db,
+    event({
+      type: "RENEWAL",
+      product_id: "silarah_monthly:monthly",
+      expiration_at_ms: expiry,
+    }),
+  );
+  assertEquals(response.status, 200);
+  const call = applyCall(db);
+  assertEquals(call?.p_product_id, "silarah_monthly:monthly");
+  assertEquals(call?.p_subscription_expires_at, new Date(expiry).toISOString());
+  assert(notified(db));
+});
+
+Deno.test("a plan change to an unknown product grants nothing", async () => {
+  const db = noted();
+  const response = await deliver(
+    db,
+    planChange("silarah_monthly:monthly", "someone_elses_product:base"),
+  );
+  assertEquals(response.status, 400);
+  assertEquals(db.rpcCalls.length, 0);
+});

@@ -199,9 +199,10 @@ Deno.serve(async (req: Request) => {
       p_event_timestamp_ms: eventTimestampMs,
       p_subscription_status: newStatus,
       p_subscription_expires_at: newExpiresAt,
-      // A plan change is recorded under the NEW plan, and the old plan is
-      // marked replaced so it can no longer keep Premium alive on its own
-      // (for example after the new plan is refunded).
+      // A plan change is noted under the NEW plan with the old plan beside
+      // it. The old plan is retired once the new plan starts, so
+      // it cannot keep Premium alive on its own (for example after the new
+      // plan is refunded), yet a booked downgrade keeps the paid period.
       p_product_id: eventType === "PRODUCT_CHANGE" && event.new_product_id
         ? event.new_product_id
         : event.product_id ?? null,
@@ -221,6 +222,17 @@ Deno.serve(async (req: Request) => {
       applyError.message,
     );
     return new Response("Internal Server Error", { status: 500 });
+  }
+
+  // A plan change is noted, not applied: the new plan's own event starts it
+  // (an INITIAL_PURCHASE at once for an upgrade, a RENEWAL under the new plan
+  // at the period end for a deferred downgrade) and sends the messages
+  // (migration 322).
+  if (applyResult?.reason === "plan_change_recorded") {
+    console.log(
+      `[revenuecat-webhook] Plan change noted for ${supabaseUserId}; it takes effect when the new plan starts.`,
+    );
+    return new Response("OK", { status: 200 });
   }
 
   if (

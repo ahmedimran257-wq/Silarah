@@ -270,6 +270,109 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
     }
   }
 
+  /// Switches the active Google Play plan. Monthly to 3 months takes effect
+  /// now; 3 months to monthly is booked for the next renewal.
+  Future<bool> changePlan(SubscriptionPlan to) async {
+    if (_purchaseRequested) return false;
+    _purchaseRequested = true;
+    final generation = _sessionGeneration;
+    try {
+      return await _withStoreIdentity(() => _changePlan(to, generation));
+    } finally {
+      _purchaseRequested = false;
+    }
+  }
+
+  Future<bool> _changePlan(SubscriptionPlan to, int generation) async {
+    if (!_isCurrentSession(generation) || state.isLoading) return false;
+    if (!_storeIdentityReady) {
+      await _loginUser(_loggedInUserId!, generation);
+      if (!_isCurrentSession(generation)) return false;
+      if (!_storeIdentityReady) {
+        emit(state.copyWith(
+            isLoading: false,
+            error: _purchaseErrorMessage(PurchasesErrorCode.networkError)));
+        return false;
+      }
+    }
+    if (!state.hasPaidPremium) {
+      emit(state.copyWith(isLoading: false, error: _noPlanToChangeMessage));
+      return false;
+    }
+
+    emit(state.copyWith(isLoading: true, clearError: true));
+    try {
+      final result = await SubscriptionService.instance.changePlan(to: to);
+      if (!_isCurrentSession(generation)) return false;
+
+      Future<void> refresh(String? message) async =>
+          _refreshEffectiveEntitlement(
+            result.customerInfo ?? await Purchases.getCustomerInfo(),
+            generation: generation,
+            isLoading: false,
+            successMessage: message,
+          );
+
+      switch (result.outcome) {
+        case SubscriptionPurchaseOutcome.planChanged:
+          await refresh(
+              'Switched to the 3-month plan. The unused days of your monthly plan were added on.');
+          return _isCurrentSession(generation);
+        case SubscriptionPurchaseOutcome.planChangeScheduled:
+          await refresh(
+              'Plan change booked. Your 3-month plan runs to its end date, then renews as monthly. Nothing was charged today.');
+          return _isCurrentSession(generation);
+        case SubscriptionPurchaseOutcome.samePlan:
+          await refresh('You are already on this plan.');
+          return false;
+        case SubscriptionPurchaseOutcome.cancelled:
+          emit(state.copyWith(isLoading: false, clearError: true));
+          return false;
+        case SubscriptionPurchaseOutcome.noPlanToChange:
+          await refresh(null);
+          if (_isCurrentSession(generation)) {
+            emit(state.copyWith(error: _noPlanToChangeMessage));
+          }
+          return false;
+        default:
+          break;
+      }
+
+      final message = switch (result.outcome) {
+        SubscriptionPurchaseOutcome.pending =>
+          'Payment is pending. Your plan switches after Google Play confirms it, and your current plan stays active until then.',
+        SubscriptionPurchaseOutcome.entitlementPending ||
+        SubscriptionPurchaseOutcome.unconfirmed =>
+          _switchUnconfirmedMessage,
+        SubscriptionPurchaseOutcome.otherPlanUnconfirmed
+            when result.errorCode == PurchasesErrorCode.paymentPendingError =>
+          _pendingPaymentMessage,
+        SubscriptionPurchaseOutcome.otherPlanUnconfirmed =>
+          _switchUnconfirmedMessage,
+        SubscriptionPurchaseOutcome.billingIssue =>
+          _renewalPaymentFailedMessage,
+        _ => _purchaseErrorMessage(result.errorCode),
+      };
+      emit(state.copyWith(isLoading: false, error: message));
+      return false;
+    } catch (e) {
+      debugPrint('[SubscriptionCubit] Plan change error: $e');
+      if (_isCurrentSession(generation)) {
+        emit(state.copyWith(
+          isLoading: false,
+          error: _purchaseErrorMessage(PurchasesErrorCode.networkError),
+        ));
+      }
+      return false;
+    }
+  }
+
+  static const _noPlanToChangeMessage =
+      'Plan switching needs an active Google Play subscription on this account. Please try again in a moment.';
+
+  static const _switchUnconfirmedMessage =
+      'Google Play has not confirmed the switch yet. Your current plan stays active. Please check again in a few minutes rather than switching twice.';
+
   static const _renewalPaymentFailedMessage =
       'Your Premium renewal payment did not go through. Update your payment method in Google Play to restore Premium without paying twice.';
 
@@ -460,6 +563,15 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
         ? null
         : DateTime.tryParse(storePremium.expirationDate ?? '');
 
+    // Without a store answer, keep the plan it last reported.
+    final paidPlan = customerInfo == null
+        ? state.paidPlan
+        : PlanSwitch.planOf(storePremium?.productIdentifier);
+    final userId = _loggedInUserId;
+    final booked = paidPlan == null || userId == null
+        ? null
+        : await ScheduledPlanChangeMemory.read(userId, currentPlan: paidPlan);
+
     final server = await _loadServerEntitlement(allowRecent: allowRecent);
     if (!_isCurrentSession(generation) || refreshId != _entitlementRefreshId) {
       return;
@@ -516,6 +628,11 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
       clearPaidExpiresAt: paidExpiry == null,
       willRenew: willRenew,
       clearWillRenew: willRenew == null,
+      paidPlan: active ? paidPlan : null,
+      clearPaidPlan: !active || paidPlan == null,
+      scheduledPlan: booked?.plan,
+      scheduledPlanStartsAt: booked?.startsAt,
+      clearScheduledPlan: booked == null,
       successMessage: successMessage,
     ));
     _armExpiryRefresh(expiry);

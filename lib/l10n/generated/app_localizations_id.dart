@@ -2895,4 +2895,45 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get profile_quality_subtitle_fallback =>
       'Lengkapi profil Anda di bawah';
+
+  @override
+  String subscription_planMonthlyCurrent(String price) {
+    return 'Paket Anda: bulanan · $price/bulan';
+  }
+
+  @override
+  String subscription_planThreeMonthCurrent(String price) {
+    return 'Paket Anda: 3 bulan · $price/3 bulan';
+  }
+
+  @override
+  String subscription_switchToThreeMonth(String price) {
+    return 'Beralih ke 3 bulan · $price';
+  }
+
+  @override
+  String subscription_switchToMonthly(String price) {
+    return 'Beralih ke bulanan · $price/bulan';
+  }
+
+  @override
+  String subscription_switchUpgradeNote(String price) {
+    return 'Google Play menagih $price hari ini dan paket 3 bulan Anda dimulai sekarang. Sisa hari paket bulanan Anda ditambahkan ke paket ini, jadi tidak ada pembayaran yang hilang.';
+  }
+
+  @override
+  String subscription_switchDowngradeNote(String date, String price) {
+    return 'Tidak ada tagihan hari ini. Paket 3 bulan Anda tetap aktif hingga $date, lalu diperpanjang bulanan seharga $price/bulan.';
+  }
+
+  @override
+  String subscription_switchScheduled(String price, String date) {
+    return 'Paket bulanan seharga $price/bulan dimulai pada $date. Paket 3 bulan Anda tetap aktif sampai saat itu.';
+  }
+
+  @override
+  String get subscription_switchConfirmTitle => 'Ganti paket?';
+
+  @override
+  String get subscription_switchConfirmButton => 'Ganti paket';
 }

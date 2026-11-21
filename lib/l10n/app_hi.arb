@@ -1624,5 +1624,71 @@
   "profile_quality_tip_guardian_benefit": "परिवार जुड़े हुए अभिभावक को महत्व देते हैं",
   "profile_quality_done": "हो गया",
   "profile_quality_name_fallback": "आपका नाम",
-  "profile_quality_subtitle_fallback": "नीचे अपनी प्रोफ़ाइल पूरी करें"
+  "profile_quality_subtitle_fallback": "नीचे अपनी प्रोफ़ाइल पूरी करें",
+  "subscription_planMonthlyCurrent": "आपका प्लान: मासिक · {price}/माह",
+  "@subscription_planMonthlyCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_planThreeMonthCurrent": "आपका प्लान: 3 महीने · {price}/3 महीने",
+  "@subscription_planThreeMonthCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToThreeMonth": "3 महीने पर जाएँ · {price}",
+  "@subscription_switchToThreeMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToMonthly": "मासिक पर जाएँ · {price}/माह",
+  "@subscription_switchToMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchUpgradeNote": "Google Play आज {price} चार्ज करेगा और आपका 3 महीने का प्लान अभी शुरू होगा। मासिक प्लान के बचे हुए दिन इसमें जोड़ दिए जाते हैं, इसलिए आपका चुकाया हुआ कुछ भी नहीं जाता।",
+  "@subscription_switchUpgradeNote": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchDowngradeNote": "आज कोई चार्ज नहीं है। आपका 3 महीने का प्लान {date} तक चालू रहेगा, फिर {price}/माह पर मासिक रूप से नवीनीकृत होगा।",
+  "@subscription_switchDowngradeNote": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchScheduled": "{date} से {price}/माह वाला मासिक प्लान शुरू होगा। तब तक आपका 3 महीने का प्लान चालू रहेगा।",
+  "@subscription_switchScheduled": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchConfirmTitle": "प्लान बदलें?",
+  "@subscription_switchConfirmTitle": {},
+  "subscription_switchConfirmButton": "प्लान बदलें",
+  "@subscription_switchConfirmButton": {}
 }

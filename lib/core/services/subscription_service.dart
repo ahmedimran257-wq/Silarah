@@ -99,7 +99,119 @@ enum SubscriptionPurchaseOutcome {
   /// The Premium subscription is on account hold. Fixing the payment in
   /// Google Play restores it; buying again would charge twice.
   billingIssue,
+
+  /// A plan switch took effect now: the member is on the new plan.
+  planChanged,
+
+  /// A plan switch is booked for the next renewal; the current plan runs on
+  /// until then.
+  planChangeScheduled,
+
+  /// The member is already on the plan they asked to switch to.
+  samePlan,
+
+  /// No active Google Play plan of this account to switch from (a referral
+  /// or test grant, or a store answer that is not current).
+  noPlanToChange,
   failed,
+}
+
+/// How switching between the two Play subscriptions runs.
+///
+/// Monthly and 3-month are separate Play subscriptions. Google allows
+/// "charge the prorated difference" only when the price per day goes up,
+/// and the 3-month plan is cheaper per day, so it cannot be used here:
+/// - monthly → 3 months: CHARGE_FULL_PRICE. Play charges the 3-month price
+///   now, the new plan starts today, and the unused value of the monthly
+///   plan is added to it as extra days. Nothing already paid is lost.
+/// - 3 months → monthly: DEFERRED. Nothing is charged today; the 3-month
+///   plan runs to its end and then renews as monthly. Google recommends
+///   deferring a move to a cheaper plan.
+abstract final class PlanSwitch {
+  static const monthlySubscriptionId = 'silarah_monthly';
+  static const threeMonthSubscriptionId = 'silarah_three_month';
+
+  /// Play reports products as "subscriptionId:basePlanId".
+  static String subscriptionIdOf(String productId) =>
+      productId.split(':').first;
+
+  static SubscriptionPlan? planOf(String? productId) {
+    if (productId == null) return null;
+    return switch (subscriptionIdOf(productId)) {
+      monthlySubscriptionId => SubscriptionPlan.monthly,
+      threeMonthSubscriptionId => SubscriptionPlan.threeMonth,
+      _ => null,
+    };
+  }
+
+  static SubscriptionPlan otherPlan(SubscriptionPlan plan) =>
+      plan == SubscriptionPlan.monthly
+          ? SubscriptionPlan.threeMonth
+          : SubscriptionPlan.monthly;
+
+  static StoreReplacementMode modeFor(SubscriptionPlan to) =>
+      to == SubscriptionPlan.threeMonth
+          ? StoreReplacementMode.chargeFullPrice
+          : StoreReplacementMode.deferred;
+
+  static bool takesEffectNow(SubscriptionPlan to) =>
+      modeFor(to) != StoreReplacementMode.deferred;
+}
+
+/// Remembers, per account, a switch booked for the next renewal. Neither
+/// RevenueCat nor Play reports a pending deferred change to the app, so
+/// without this the screen would offer the same switch again.
+class ScheduledPlanChangeMemory {
+  ScheduledPlanChangeMemory._();
+
+  static String _key(String userId) => 'subscription_plan_change_$userId';
+
+  static Future<void> remember(
+    String userId,
+    SubscriptionPlan plan,
+    DateTime startsAt,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        _key(userId), '${plan.name}|${startsAt.millisecondsSinceEpoch}');
+  }
+
+  /// The booked plan and when it starts, while the booking still stands:
+  /// the member is still on the other plan and the start is not long past.
+  static Future<({SubscriptionPlan plan, DateTime startsAt})?> read(
+    String userId, {
+    required SubscriptionPlan? currentPlan,
+    DateTime? now,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final parts = prefs.getString(_key(userId))?.split('|');
+    final at =
+        parts == null || parts.length != 2 ? null : int.tryParse(parts[1]);
+    SubscriptionPlan? plan;
+    for (final value in SubscriptionPlan.values) {
+      if (parts != null && value.name == parts[0]) plan = value;
+    }
+    if (plan == null || at == null) {
+      await prefs.remove(_key(userId));
+      return null;
+    }
+    final startsAt = DateTime.fromMillisecondsSinceEpoch(at);
+    // Once the new plan is in force, or a day after it should have been,
+    // the booking is history (taken effect, or undone in Google Play).
+    final settled = currentPlan == null ||
+        currentPlan == plan ||
+        (now ?? DateTime.now()).isAfter(startsAt.add(const Duration(days: 1)));
+    if (settled) {
+      await prefs.remove(_key(userId));
+      return null;
+    }
+    return (plan: plan, startsAt: startsAt);
+  }
+
+  static Future<void> clear(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_key(userId));
+  }
 }
 
 class SubscriptionPurchaseResult {
@@ -437,6 +549,161 @@ class SubscriptionService {
       }
       if (userId != null) {
         await UnconfirmedPurchaseMemory.remember(userId, plan, pending: false);
+      }
+      return const SubscriptionPurchaseResult(
+        outcome: SubscriptionPurchaseOutcome.unconfirmed,
+      );
+    }
+  }
+
+  /// Switches an active Google Play plan to [to] (see [PlanSwitch] for how
+  /// each direction is charged). Premium stays on throughout: the old plan
+  /// is replaced, never cancelled first.
+  Future<SubscriptionPurchaseResult> changePlan({
+    required SubscriptionPlan to,
+  }) async {
+    final generation = _sessionGeneration;
+    final userId = _userId;
+    const stale =
+        SubscriptionPurchaseResult(outcome: SubscriptionPurchaseOutcome.failed);
+    var storeOpened = false;
+    try {
+      Offering? offering = _activeOffering;
+      if (offering == null) {
+        final offerings = await Purchases.syncAttributesAndOfferingsIfNeeded();
+        if (generation != _sessionGeneration) return stale;
+        offering = _selectOffering(offerings);
+      }
+      final package = switch (to) {
+        SubscriptionPlan.monthly => offering?.monthly,
+        SubscriptionPlan.threeMonth => offering?.threeMonth,
+      };
+      if (package == null) throw Exception('Package not available');
+
+      // The plan being replaced must be the one Play has now, not a cached
+      // or stale answer.
+      await Purchases.invalidateCustomerInfoCache();
+      final current = await Purchases.getCustomerInfo();
+      if (generation != _sessionGeneration) return stale;
+      _customerInfo = current;
+      final premium = SubscriptionEntitlements.activePremium(current);
+      final currentPlan = PlanSwitch.planOf(premium?.productIdentifier);
+      if (premium == null ||
+          currentPlan == null ||
+          premium.store != Store.playStore) {
+        return SubscriptionPurchaseResult(
+          outcome: SubscriptionPurchaseOutcome.noPlanToChange,
+          customerInfo: current,
+        );
+      }
+      if (currentPlan == to) {
+        return SubscriptionPurchaseResult(
+          outcome: SubscriptionPurchaseOutcome.samePlan,
+          customerInfo: current,
+        );
+      }
+      // A failed renewal must be fixed first; switching would not fix it.
+      if (premium.billingIssueDetectedAt != null) {
+        return SubscriptionPurchaseResult(
+          outcome: SubscriptionPurchaseOutcome.billingIssue,
+          customerInfo: current,
+        );
+      }
+      if (userId != null) {
+        final booked = await ScheduledPlanChangeMemory.read(userId,
+            currentPlan: currentPlan);
+        if (generation != _sessionGeneration) return stale;
+        if (booked != null && booked.plan == to) {
+          return SubscriptionPurchaseResult(
+            outcome: SubscriptionPurchaseOutcome.planChangeScheduled,
+            customerInfo: current,
+          );
+        }
+        // An earlier switch or purchase whose result is still unknown. One
+        // for the plan the member is on now has settled.
+        final unconfirmed = await UnconfirmedPurchaseMemory.plan(userId);
+        if (unconfirmed == currentPlan) {
+          await UnconfirmedPurchaseMemory.clear(userId);
+        } else if (unconfirmed != null) {
+          final pending = await UnconfirmedPurchaseMemory.isPending(userId);
+          return SubscriptionPurchaseResult(
+            outcome: SubscriptionPurchaseOutcome.otherPlanUnconfirmed,
+            errorCode: pending ? PurchasesErrorCode.paymentPendingError : null,
+          );
+        }
+      }
+
+      storeOpened = true;
+      final result = await Purchases.purchase(
+        PurchaseParams.package(
+          package,
+          productChangeInfo: StoreProductChangeInfo(
+            // RevenueCat wants the subscription ID; it strips a base plan
+            // from a deferred change anyway.
+            PlanSwitch.subscriptionIdOf(premium.productIdentifier),
+            replacementMode: PlanSwitch.modeFor(to),
+          ),
+        ),
+      );
+      if (generation != _sessionGeneration) return stale;
+      final info = result.customerInfo;
+      _customerInfo = info;
+      _isSubscribed = SubscriptionEntitlements.isPremiumActive(info);
+      final nowOn = PlanSwitch.planOf(
+          SubscriptionEntitlements.activePremium(info)?.productIdentifier);
+
+      if (!PlanSwitch.takesEffectNow(to)) {
+        // Play keeps the current plan to its period end, then renews as
+        // the new one.
+        final startsAt = DateTime.tryParse(premium.expirationDate ?? '');
+        if (userId != null && startsAt != null) {
+          await ScheduledPlanChangeMemory.remember(userId, to, startsAt);
+        }
+        return SubscriptionPurchaseResult(
+          outcome: SubscriptionPurchaseOutcome.planChangeScheduled,
+          customerInfo: info,
+        );
+      }
+      if (nowOn == to) {
+        if (userId != null) {
+          await UnconfirmedPurchaseMemory.clear(userId);
+          await ScheduledPlanChangeMemory.clear(userId);
+        }
+        return SubscriptionPurchaseResult(
+          outcome: SubscriptionPurchaseOutcome.planChanged,
+          customerInfo: info,
+        );
+      }
+      // Charged, but RevenueCat has not moved the plan over yet.
+      if (userId != null) {
+        await UnconfirmedPurchaseMemory.remember(userId, to, pending: true);
+      }
+      return SubscriptionPurchaseResult(
+        outcome: SubscriptionPurchaseOutcome.entitlementPending,
+        customerInfo: info,
+      );
+    } on PlatformException catch (error) {
+      if (generation != _sessionGeneration) return stale;
+      final code = storeErrorCode(error);
+      var outcome = classifySubscriptionPurchaseError(code);
+      if (storeOpened &&
+          outcome == SubscriptionPurchaseOutcome.failed &&
+          unconfirmedPurchaseErrorCodes.contains(code)) {
+        outcome = SubscriptionPurchaseOutcome.unconfirmed;
+      }
+      if (userId != null &&
+          (outcome == SubscriptionPurchaseOutcome.pending ||
+              outcome == SubscriptionPurchaseOutcome.unconfirmed)) {
+        await UnconfirmedPurchaseMemory.remember(userId, to,
+            pending: outcome == SubscriptionPurchaseOutcome.pending);
+      }
+      debugPrint('[SubscriptionService] Plan change error ($code): $error');
+      return SubscriptionPurchaseResult(outcome: outcome, errorCode: code);
+    } catch (error) {
+      debugPrint('[SubscriptionService] Plan change error: $error');
+      if (!storeOpened || generation != _sessionGeneration) return stale;
+      if (userId != null) {
+        await UnconfirmedPurchaseMemory.remember(userId, to, pending: false);
       }
       return const SubscriptionPurchaseResult(
         outcome: SubscriptionPurchaseOutcome.unconfirmed,

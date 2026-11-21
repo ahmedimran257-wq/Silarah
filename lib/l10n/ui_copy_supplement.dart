@@ -1,6 +1,18 @@
 // GENERATED FILE. Source strings are audited by localization_quality_test.dart.
 const supplementalUiCopy = <String, Map<String, String>>{
   'ar': {
+    'Switched to the 3-month plan. The unused days of your monthly plan were added on.':
+        'تم التحويل إلى خطة الأشهر الثلاثة. أُضيفت إليها الأيام غير المستخدمة من خطتكم الشهرية.',
+    'Plan change booked. Your 3-month plan runs to its end date, then renews as monthly. Nothing was charged today.':
+        'تم حجز تغيير الخطة. تستمر خطة الأشهر الثلاثة حتى تاريخ انتهائها، ثم تتجدد شهريًا. لم يُحصَّل أي مبلغ اليوم.',
+    'You are already on this plan.':
+        'أنتم مشتركون في هذه الخطة بالفعل.',
+    'Payment is pending. Your plan switches after Google Play confirms it, and your current plan stays active until then.':
+        'الدفع قيد الانتظار. تتغير خطتكم بعد أن يؤكده Google Play، وتبقى خطتكم الحالية نشطة حتى ذلك الحين.',
+    'Plan switching needs an active Google Play subscription on this account. Please try again in a moment.':
+        'يتطلب تغيير الخطة اشتراكًا نشطًا في Google Play على هذا الحساب. يُرجى المحاولة مرة أخرى بعد قليل.',
+    'Google Play has not confirmed the switch yet. Your current plan stays active. Please check again in a few minutes rather than switching twice.':
+        'لم يؤكد Google Play التحويل بعد. تبقى خطتكم الحالية نشطة. يُرجى التحقق مجددًا بعد بضع دقائق بدلًا من التحويل مرتين.',
     'Reviewed':
         'تمت المراجعة',
     '1 person viewed your profile this week':
@@ -977,6 +989,18 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'الآن',
   },
   'bn': {
+    'Switched to the 3-month plan. The unused days of your monthly plan were added on.':
+        '৩ মাসের প্ল্যানে বদলানো হয়েছে। মাসিক প্ল্যানের অব্যবহৃত দিনগুলো এতে যোগ করা হয়েছে।',
+    'Plan change booked. Your 3-month plan runs to its end date, then renews as monthly. Nothing was charged today.':
+        'প্ল্যান বদল নির্ধারিত হয়েছে। আপনার ৩ মাসের প্ল্যান শেষ তারিখ পর্যন্ত চলবে, তারপর মাসিক হিসেবে নবায়ন হবে। আজ কোনো চার্জ হয়নি।',
+    'You are already on this plan.':
+        'আপনি ইতিমধ্যে এই প্ল্যানে আছেন।',
+    'Payment is pending. Your plan switches after Google Play confirms it, and your current plan stays active until then.':
+        'পেমেন্ট অপেক্ষমাণ। Google Play নিশ্চিত করার পর আপনার প্ল্যান বদলাবে, ততক্ষণ বর্তমান প্ল্যান চালু থাকবে।',
+    'Plan switching needs an active Google Play subscription on this account. Please try again in a moment.':
+        'প্ল্যান বদলাতে এই অ্যাকাউন্টে একটি চালু Google Play সাবস্ক্রিপশন দরকার। একটু পরে আবার চেষ্টা করুন।',
+    'Google Play has not confirmed the switch yet. Your current plan stays active. Please check again in a few minutes rather than switching twice.':
+        'Google Play এখনও বদলটি নিশ্চিত করেনি। আপনার বর্তমান প্ল্যান চালু আছে। দুবার বদলানোর বদলে কয়েক মিনিট পরে আবার দেখুন।',
     'Reviewed':
         'পর্যালোচিত',
     '1 person viewed your profile this week':
@@ -1970,6 +1994,18 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'এখন',
   },
   'de': {
+    'Switched to the 3-month plan. The unused days of your monthly plan were added on.':
+        'Zum 3-Monats-Tarif gewechselt. Die ungenutzten Tage Ihres Monatstarifs wurden hinzugefügt.',
+    'Plan change booked. Your 3-month plan runs to its end date, then renews as monthly. Nothing was charged today.':
+        'Tarifwechsel vorgemerkt. Ihr 3-Monats-Tarif läuft bis zu seinem Enddatum und verlängert sich dann monatlich. Heute wurde nichts berechnet.',
+    'You are already on this plan.':
+        'Sie haben diesen Tarif bereits.',
+    'Payment is pending. Your plan switches after Google Play confirms it, and your current plan stays active until then.':
+        'Die Zahlung steht noch aus. Ihr Tarif wechselt, sobald Google Play sie bestätigt; bis dahin bleibt Ihr aktueller Tarif aktiv.',
+    'Plan switching needs an active Google Play subscription on this account. Please try again in a moment.':
+        'Für einen Tarifwechsel braucht dieses Konto ein aktives Google-Play-Abo. Bitte versuchen Sie es gleich noch einmal.',
+    'Google Play has not confirmed the switch yet. Your current plan stays active. Please check again in a few minutes rather than switching twice.':
+        'Google Play hat den Wechsel noch nicht bestätigt. Ihr aktueller Tarif bleibt aktiv. Bitte prüfen Sie es in ein paar Minuten erneut, statt zweimal zu wechseln.',
     'Reviewed':
         'Geprüft',
     '1 person viewed your profile this week':
@@ -2991,6 +3027,18 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'Jetzt',
   },
   'fr': {
+    'Switched to the 3-month plan. The unused days of your monthly plan were added on.':
+        'Vous êtes passé à la formule 3 mois. Les jours non utilisés de votre formule mensuelle ont été ajoutés.',
+    'Plan change booked. Your 3-month plan runs to its end date, then renews as monthly. Nothing was charged today.':
+        'Changement de formule enregistré. Votre formule 3 mois va jusqu’à sa date de fin, puis se renouvelle en mensuel. Rien n’a été facturé aujourd’hui.',
+    'You are already on this plan.':
+        'Vous avez déjà cette formule.',
+    'Payment is pending. Your plan switches after Google Play confirms it, and your current plan stays active until then.':
+        'Le paiement est en attente. Votre formule changera dès que Google Play le confirmera ; d’ici là, votre formule actuelle reste active.',
+    'Plan switching needs an active Google Play subscription on this account. Please try again in a moment.':
+        'Pour changer de formule, ce compte doit avoir un abonnement Google Play actif. Veuillez réessayer dans un instant.',
+    'Google Play has not confirmed the switch yet. Your current plan stays active. Please check again in a few minutes rather than switching twice.':
+        'Google Play n’a pas encore confirmé le changement. Votre formule actuelle reste active. Vérifiez de nouveau dans quelques minutes plutôt que de changer deux fois.',
     'Reviewed':
         'Examiné',
     '1 person viewed your profile this week':
@@ -4008,6 +4056,18 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'maintenant',
   },
   'hi': {
+    'Switched to the 3-month plan. The unused days of your monthly plan were added on.':
+        '3 महीने के प्लान पर बदल दिया गया। मासिक प्लान के बचे हुए दिन जोड़ दिए गए हैं।',
+    'Plan change booked. Your 3-month plan runs to its end date, then renews as monthly. Nothing was charged today.':
+        'प्लान बदलाव तय हो गया। आपका 3 महीने का प्लान अपनी अंतिम तारीख तक चलेगा, फिर मासिक रूप से नवीनीकृत होगा। आज कोई चार्ज नहीं हुआ।',
+    'You are already on this plan.':
+        'आप पहले से इसी प्लान पर हैं।',
+    'Payment is pending. Your plan switches after Google Play confirms it, and your current plan stays active until then.':
+        'भुगतान लंबित है। Google Play की पुष्टि के बाद आपका प्लान बदलेगा, तब तक आपका मौजूदा प्लान चालू रहेगा।',
+    'Plan switching needs an active Google Play subscription on this account. Please try again in a moment.':
+        'प्लान बदलने के लिए इस खाते पर एक चालू Google Play सदस्यता चाहिए। कृपया थोड़ी देर में फिर कोशिश करें।',
+    'Google Play has not confirmed the switch yet. Your current plan stays active. Please check again in a few minutes rather than switching twice.':
+        'Google Play ने अभी तक बदलाव की पुष्टि नहीं की है। आपका मौजूदा प्लान चालू है। दो बार बदलने के बजाय कुछ मिनट बाद फिर देखें।',
     'Reviewed':
         'समीक्षित',
     '1 person viewed your profile this week':
@@ -5003,6 +5063,18 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'अब',
   },
   'id': {
+    'Switched to the 3-month plan. The unused days of your monthly plan were added on.':
+        'Beralih ke paket 3 bulan. Sisa hari paket bulanan Anda sudah ditambahkan.',
+    'Plan change booked. Your 3-month plan runs to its end date, then renews as monthly. Nothing was charged today.':
+        'Penggantian paket dijadwalkan. Paket 3 bulan Anda berjalan hingga tanggal berakhirnya, lalu diperpanjang bulanan. Tidak ada tagihan hari ini.',
+    'You are already on this plan.':
+        'Anda sudah menggunakan paket ini.',
+    'Payment is pending. Your plan switches after Google Play confirms it, and your current plan stays active until then.':
+        'Pembayaran tertunda. Paket Anda berganti setelah Google Play mengonfirmasinya, dan paket Anda saat ini tetap aktif sampai saat itu.',
+    'Plan switching needs an active Google Play subscription on this account. Please try again in a moment.':
+        'Penggantian paket memerlukan langganan Google Play yang aktif di akun ini. Silakan coba lagi sebentar lagi.',
+    'Google Play has not confirmed the switch yet. Your current plan stays active. Please check again in a few minutes rather than switching twice.':
+        'Google Play belum mengonfirmasi penggantian paket. Paket Anda saat ini tetap aktif. Periksa lagi dalam beberapa menit, jangan mengganti dua kali.',
     'Reviewed':
         'Ditinjau',
     '1 person viewed your profile this week':
@@ -6000,6 +6072,18 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'Sekarang',
   },
   'ms': {
+    'Switched to the 3-month plan. The unused days of your monthly plan were added on.':
+        'Ditukar ke pelan 3 bulan. Baki hari pelan bulanan anda telah ditambah.',
+    'Plan change booked. Your 3-month plan runs to its end date, then renews as monthly. Nothing was charged today.':
+        'Pertukaran pelan telah dijadualkan. Pelan 3 bulan anda berjalan hingga tarikh tamatnya, kemudian diperbaharui secara bulanan. Tiada caj hari ini.',
+    'You are already on this plan.':
+        'Anda sudah menggunakan pelan ini.',
+    'Payment is pending. Your plan switches after Google Play confirms it, and your current plan stays active until then.':
+        'Pembayaran belum selesai. Pelan anda bertukar selepas Google Play mengesahkannya, dan pelan semasa anda kekal aktif sehingga itu.',
+    'Plan switching needs an active Google Play subscription on this account. Please try again in a moment.':
+        'Pertukaran pelan memerlukan langganan Google Play yang aktif pada akaun ini. Sila cuba lagi sebentar nanti.',
+    'Google Play has not confirmed the switch yet. Your current plan stays active. Please check again in a few minutes rather than switching twice.':
+        'Google Play belum mengesahkan pertukaran itu. Pelan semasa anda kekal aktif. Sila semak semula dalam beberapa minit dan jangan tukar dua kali.',
     'Reviewed':
         'Disemak',
     '1 person viewed your profile this week':
@@ -7003,6 +7087,18 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'sekarang',
   },
   'tr': {
+    'Switched to the 3-month plan. The unused days of your monthly plan were added on.':
+        '3 aylık plana geçildi. Aylık planınızın kullanılmayan günleri eklendi.',
+    'Plan change booked. Your 3-month plan runs to its end date, then renews as monthly. Nothing was charged today.':
+        'Plan değişikliği ayarlandı. 3 aylık planınız bitiş tarihine kadar sürer, ardından aylık olarak yenilenir. Bugün ücret alınmadı.',
+    'You are already on this plan.':
+        'Zaten bu plandasınız.',
+    'Payment is pending. Your plan switches after Google Play confirms it, and your current plan stays active until then.':
+        'Ödeme beklemede. Google Play onayladıktan sonra planınız değişir; o zamana kadar mevcut planınız etkin kalır.',
+    'Plan switching needs an active Google Play subscription on this account. Please try again in a moment.':
+        'Plan değiştirmek için bu hesapta etkin bir Google Play aboneliği gerekir. Lütfen biraz sonra tekrar deneyin.',
+    'Google Play has not confirmed the switch yet. Your current plan stays active. Please check again in a few minutes rather than switching twice.':
+        'Google Play geçişi henüz onaylamadı. Mevcut planınız etkin kalır. İki kez değiştirmek yerine lütfen birkaç dakika sonra tekrar kontrol edin.',
     'Reviewed':
         'İncelendi',
     '1 person viewed your profile this week':
@@ -7999,6 +8095,18 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'now': 'Şimdi',
   },
   'ur': {
+    'Switched to the 3-month plan. The unused days of your monthly plan were added on.':
+        '3 ماہ کے پلان پر منتقل ہو گیا۔ ماہانہ پلان کے بچے ہوئے دن شامل کر دیے گئے ہیں۔',
+    'Plan change booked. Your 3-month plan runs to its end date, then renews as monthly. Nothing was charged today.':
+        'پلان کی تبدیلی طے ہو گئی۔ آپ کا 3 ماہ کا پلان اپنی آخری تاریخ تک چلے گا، پھر ماہانہ تجدید ہوگا۔ آج کوئی رقم وصول نہیں ہوئی۔',
+    'You are already on this plan.':
+        'آپ پہلے ہی اسی پلان پر ہیں۔',
+    'Payment is pending. Your plan switches after Google Play confirms it, and your current plan stays active until then.':
+        'ادائیگی زیر التوا ہے۔ Google Play کی تصدیق کے بعد آپ کا پلان بدلے گا، تب تک آپ کا موجودہ پلان فعال رہے گا۔',
+    'Plan switching needs an active Google Play subscription on this account. Please try again in a moment.':
+        'پلان تبدیل کرنے کے لیے اس اکاؤنٹ پر فعال Google Play سبسکرپشن ضروری ہے۔ براہ کرم کچھ دیر بعد دوبارہ کوشش کریں۔',
+    'Google Play has not confirmed the switch yet. Your current plan stays active. Please check again in a few minutes rather than switching twice.':
+        'Google Play نے ابھی تبدیلی کی تصدیق نہیں کی۔ آپ کا موجودہ پلان فعال ہے۔ دو بار تبدیل کرنے کے بجائے چند منٹ بعد دوبارہ دیکھیں۔',
     'Reviewed':
         'جائزہ مکمل',
     '1 person viewed your profile this week':

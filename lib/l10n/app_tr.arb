@@ -1624,5 +1624,71 @@
   "profile_quality_tip_guardian_benefit": "Aileler bağlı bir veliye değer verir",
   "profile_quality_done": "Tamam",
   "profile_quality_name_fallback": "Adın",
-  "profile_quality_subtitle_fallback": "Profilini aşağıdan tamamla"
+  "profile_quality_subtitle_fallback": "Profilini aşağıdan tamamla",
+  "subscription_planMonthlyCurrent": "Planınız: aylık · {price}/ay",
+  "@subscription_planMonthlyCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_planThreeMonthCurrent": "Planınız: 3 ay · {price}/3 ay",
+  "@subscription_planThreeMonthCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToThreeMonth": "3 aylığa geçin · {price}",
+  "@subscription_switchToThreeMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToMonthly": "Aylığa geçin · {price}/ay",
+  "@subscription_switchToMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchUpgradeNote": "Google Play bugün {price} tahsil eder ve 3 aylık planınız hemen başlar. Aylık planınızın kullanılmayan günleri bu plana eklenir; ödediğiniz hiçbir şey boşa gitmez.",
+  "@subscription_switchUpgradeNote": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchDowngradeNote": "Bugün ücret alınmaz. 3 aylık planınız {date} tarihine kadar etkin kalır, ardından {price}/ay ücretle aylık olarak yenilenir.",
+  "@subscription_switchDowngradeNote": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchScheduled": "{price}/ay ücretli aylık plan {date} tarihinde başlar. 3 aylık planınız o zamana kadar etkin kalır.",
+  "@subscription_switchScheduled": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchConfirmTitle": "Plan değiştirilsin mi?",
+  "@subscription_switchConfirmTitle": {},
+  "subscription_switchConfirmButton": "Planı değiştir",
+  "@subscription_switchConfirmButton": {}
 }

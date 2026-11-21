@@ -1624,5 +1624,71 @@
   "profile_quality_tip_guardian_benefit": "Keluarga menghargai wali yang dipautkan",
   "profile_quality_done": "Selesai",
   "profile_quality_name_fallback": "Nama anda",
-  "profile_quality_subtitle_fallback": "Lengkapkan profil anda di bawah"
+  "profile_quality_subtitle_fallback": "Lengkapkan profil anda di bawah",
+  "subscription_planMonthlyCurrent": "Pelan anda: bulanan · {price}/bulan",
+  "@subscription_planMonthlyCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_planThreeMonthCurrent": "Pelan anda: 3 bulan · {price}/3 bulan",
+  "@subscription_planThreeMonthCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToThreeMonth": "Tukar ke 3 bulan · {price}",
+  "@subscription_switchToThreeMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToMonthly": "Tukar ke bulanan · {price}/bulan",
+  "@subscription_switchToMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchUpgradeNote": "Google Play mengenakan caj {price} hari ini dan pelan 3 bulan anda bermula sekarang. Baki hari pelan bulanan anda ditambah kepadanya, jadi tiada bayaran anda yang hilang.",
+  "@subscription_switchUpgradeNote": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchDowngradeNote": "Tiada caj hari ini. Pelan 3 bulan anda kekal aktif sehingga {date}, kemudian diperbaharui secara bulanan pada {price}/bulan.",
+  "@subscription_switchDowngradeNote": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchScheduled": "Pelan bulanan pada {price}/bulan bermula pada {date}. Pelan 3 bulan anda kekal aktif sehingga itu.",
+  "@subscription_switchScheduled": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchConfirmTitle": "Tukar pelan?",
+  "@subscription_switchConfirmTitle": {},
+  "subscription_switchConfirmButton": "Tukar pelan",
+  "@subscription_switchConfirmButton": {}
 }

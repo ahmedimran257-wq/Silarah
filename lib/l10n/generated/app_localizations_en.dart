@@ -2868,4 +2868,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profile_quality_subtitle_fallback => 'Complete your profile below';
+
+  @override
+  String subscription_planMonthlyCurrent(String price) {
+    return 'Your plan: monthly · $price/month';
+  }
+
+  @override
+  String subscription_planThreeMonthCurrent(String price) {
+    return 'Your plan: 3 months · $price/3 months';
+  }
+
+  @override
+  String subscription_switchToThreeMonth(String price) {
+    return 'Switch to 3 months · $price';
+  }
+
+  @override
+  String subscription_switchToMonthly(String price) {
+    return 'Switch to monthly · $price/month';
+  }
+
+  @override
+  String subscription_switchUpgradeNote(String price) {
+    return 'Google Play charges $price today and your 3-month plan starts now. The unused days of your monthly plan are added to it, so nothing you paid is lost.';
+  }
+
+  @override
+  String subscription_switchDowngradeNote(String date, String price) {
+    return 'Nothing is charged today. Your 3-month plan stays active until $date, then renews as monthly at $price/month.';
+  }
+
+  @override
+  String subscription_switchScheduled(String price, String date) {
+    return 'Monthly at $price/month starts on $date. Your 3-month plan stays active until then.';
+  }
+
+  @override
+  String get subscription_switchConfirmTitle => 'Switch plan?';
+
+  @override
+  String get subscription_switchConfirmButton => 'Switch plan';
 }
