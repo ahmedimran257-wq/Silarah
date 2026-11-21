@@ -140,6 +140,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
               appBar: _appBar(),
               body: _PaidPremiumActiveView(
                 isFemale: isFemale,
+                planSwitch: _PlanSwitchCard(
+                  pricing: _pricing,
+                  subscription: state,
+                  isBusy: state.isLoading || _purchaseFlowInProgress,
+                  onSwitch: _confirmPlanSwitch,
+                ),
                 onBackToProfile: _closeScreen,
               ),
             ),
@@ -347,6 +353,48 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     }
   }
 
+  Future<void> _confirmPlanSwitch(SubscriptionPlan to) async {
+    if (_purchaseFlowInProgress) return;
+    final l10n = AppLocalizations.of(context);
+    final subscription = context.read<SubscriptionCubit>().state;
+    final note = _PlanSwitchCard.switchNote(
+        context, l10n, _pricing, to, subscription.paidExpiresAt);
+    if (note == null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.obsidianNight,
+        title: UiText.verbatim(
+          l10n.subscription_switchConfirmTitle,
+          style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+        ),
+        content: UiText.verbatim(note, style: AppTypography.body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: UiText.verbatim(l10n.common_button_cancel),
+          ),
+          TextButton(
+            key: const ValueKey('plan-switch-confirm'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: UiText.verbatim(
+              l10n.subscription_switchConfirmButton,
+              style: AppTypography.buttonSecondary
+                  .copyWith(color: AppColors.champagneGold),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _purchaseFlowInProgress = true);
+    try {
+      await context.read<SubscriptionCubit>().changePlan(to);
+    } finally {
+      if (mounted) setState(() => _purchaseFlowInProgress = false);
+    }
+  }
+
   void _showSuccess(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -384,10 +432,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
 class _PaidPremiumActiveView extends StatelessWidget {
   const _PaidPremiumActiveView({
     required this.isFemale,
+    required this.planSwitch,
     required this.onBackToProfile,
   });
 
   final bool isFemale;
+  final Widget planSwitch;
   final VoidCallback onBackToProfile;
 
   @override
@@ -438,6 +488,7 @@ class _PaidPremiumActiveView extends StatelessWidget {
           const SizedBox(height: AppDimensions.space24),
           _IncludedFeatures(isFemale: isFemale, isSmallScreen: false),
           const SizedBox(height: AppDimensions.space24),
+          planSwitch,
           SizedBox(
             height: AppDimensions.buttonHeight,
             // The filled-button text style is background-coloured on light
@@ -469,6 +520,125 @@ class _PaidPremiumActiveView extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The plan in force and a switch to the other one. Monthly to 3 months is
+/// charged now with the unused monthly days added on; 3 months to monthly
+/// waits for the next renewal (see [PlanSwitch]).
+class _PlanSwitchCard extends StatelessWidget {
+  const _PlanSwitchCard({
+    required this.pricing,
+    required this.subscription,
+    required this.isBusy,
+    required this.onSwitch,
+  });
+
+  final DisplayPricing pricing;
+  final SubscriptionState subscription;
+  final bool isBusy;
+  final ValueChanged<SubscriptionPlan> onSwitch;
+
+  static String _date(BuildContext context, DateTime date) =>
+      MaterialLocalizations.of(context).formatMediumDate(date.toLocal());
+
+  /// What the switch to [to] costs and when it starts, or null when that
+  /// cannot be stated truthfully (no prices, or no renewal date).
+  static String? switchNote(
+    BuildContext context,
+    AppLocalizations l10n,
+    DisplayPricing pricing,
+    SubscriptionPlan to,
+    DateTime? renewsAt,
+  ) {
+    if (!pricing.isAvailable) return null;
+    if (to == SubscriptionPlan.threeMonth) {
+      return l10n.subscription_switchUpgradeNote(pricing.threeMonthPrice);
+    }
+    if (renewsAt == null) return null;
+    return l10n.subscription_switchDowngradeNote(
+        _date(context, renewsAt), pricing.monthlyPrice);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final current = subscription.paidPlan;
+    if (current == null || !pricing.isAvailable) {
+      return const SizedBox.shrink();
+    }
+    final to = PlanSwitch.otherPlan(current);
+    final startsAt = subscription.scheduledPlan == to
+        ? subscription.scheduledPlanStartsAt
+        : null;
+    // A failed renewal is fixed in Google Play first.
+    final note = subscription.status == SubscriptionStatus.grace
+        ? null
+        : switchNote(context, l10n, pricing, to, subscription.paidExpiresAt);
+
+    final currentLabel = current == SubscriptionPlan.monthly
+        ? l10n.subscription_planMonthlyCurrent(pricing.monthlyPrice)
+        : l10n.subscription_planThreeMonthCurrent(pricing.threeMonthPrice);
+    final switchLabel = to == SubscriptionPlan.threeMonth
+        ? l10n.subscription_switchToThreeMonth(pricing.threeMonthPrice)
+        : l10n.subscription_switchToMonthly(pricing.monthlyPrice);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppDimensions.space12),
+      child: Container(
+        padding: const EdgeInsets.all(AppDimensions.space16),
+        decoration: BoxDecoration(
+          color: AppColors.champagneGold.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
+          border: Border.all(color: AppColors.goldBorder),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            UiText.verbatim(currentLabel,
+                style: AppTypography.bodyMedium
+                    .copyWith(fontWeight: FontWeight.w600)),
+            if (startsAt != null) ...[
+              const SizedBox(height: AppDimensions.space8),
+              UiText.verbatim(
+                l10n.subscription_switchScheduled(
+                    pricing.monthlyPrice, _date(context, startsAt)),
+                style: AppTypography.bodyMedium
+                    .copyWith(color: AppColors.verifiedTeal),
+              ),
+            ] else if (note != null) ...[
+              const SizedBox(height: AppDimensions.space8),
+              UiText.verbatim(note, style: AppTypography.caption),
+              const SizedBox(height: AppDimensions.space12),
+              ConstrainedBox(
+                constraints:
+                    const BoxConstraints(minHeight: AppDimensions.buttonHeight),
+                child: OutlinedButton.icon(
+                  key: const ValueKey('plan-switch-button'),
+                  onPressed: isBusy ? null : () => onSwitch(to),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.champagneGold,
+                    side: BorderSide(color: AppColors.goldBorder),
+                  ),
+                  icon: isBusy
+                      ? SilarahActivityIndicator(
+                          size: 18,
+                          color: AppColors.champagneGold,
+                        )
+                      : Icon(Icons.swap_horiz_rounded,
+                          color: AppColors.champagneGold),
+                  label: UiText.verbatim(
+                    switchLabel,
+                    style: AppTypography.buttonSecondary,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

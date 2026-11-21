@@ -1624,5 +1624,71 @@
   "profile_quality_tip_guardian_benefit": "خاندان منسلک سرپرست کو اہمیت دیتے ہیں",
   "profile_quality_done": "ہو گیا",
   "profile_quality_name_fallback": "آپ کا نام",
-  "profile_quality_subtitle_fallback": "نیچے اپنی پروفائل مکمل کریں"
+  "profile_quality_subtitle_fallback": "نیچے اپنی پروفائل مکمل کریں",
+  "subscription_planMonthlyCurrent": "آپ کا پلان: ماہانہ · {price}/مہینہ",
+  "@subscription_planMonthlyCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_planThreeMonthCurrent": "آپ کا پلان: 3 ماہ · {price}/3 ماہ",
+  "@subscription_planThreeMonthCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToThreeMonth": "3 ماہ پر جائیں · {price}",
+  "@subscription_switchToThreeMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToMonthly": "ماہانہ پر جائیں · {price}/مہینہ",
+  "@subscription_switchToMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchUpgradeNote": "Google Play آج {price} وصول کرے گا اور آپ کا 3 ماہ کا پلان ابھی شروع ہو جائے گا۔ ماہانہ پلان کے بچے ہوئے دن اس میں شامل کر دیے جاتے ہیں، اس لیے آپ کی ادائیگی کا کچھ ضائع نہیں ہوتا۔",
+  "@subscription_switchUpgradeNote": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchDowngradeNote": "آج کوئی رقم وصول نہیں ہوگی۔ آپ کا 3 ماہ کا پلان {date} تک فعال رہے گا، پھر {price}/مہینہ پر ماہانہ تجدید ہوگا۔",
+  "@subscription_switchDowngradeNote": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchScheduled": "{price}/مہینہ والا ماہانہ پلان {date} کو شروع ہوگا۔ تب تک آپ کا 3 ماہ کا پلان فعال رہے گا۔",
+  "@subscription_switchScheduled": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchConfirmTitle": "پلان تبدیل کریں؟",
+  "@subscription_switchConfirmTitle": {},
+  "subscription_switchConfirmButton": "پلان تبدیل کریں",
+  "@subscription_switchConfirmButton": {}
 }

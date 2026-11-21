@@ -1624,5 +1624,71 @@
   "profile_quality_tip_guardian_benefit": "Familien schätzen eine verbundene Vertrauensperson",
   "profile_quality_done": "Erledigt",
   "profile_quality_name_fallback": "Dein Name",
-  "profile_quality_subtitle_fallback": "Vervollständige unten dein Profil"
+  "profile_quality_subtitle_fallback": "Vervollständige unten dein Profil",
+  "subscription_planMonthlyCurrent": "Ihr Tarif: monatlich · {price}/Monat",
+  "@subscription_planMonthlyCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_planThreeMonthCurrent": "Ihr Tarif: 3 Monate · {price}/3 Monate",
+  "@subscription_planThreeMonthCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToThreeMonth": "Zu 3 Monaten wechseln · {price}",
+  "@subscription_switchToThreeMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToMonthly": "Zu monatlich wechseln · {price}/Monat",
+  "@subscription_switchToMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchUpgradeNote": "Google Play berechnet heute {price}, und Ihr 3-Monats-Tarif beginnt sofort. Die ungenutzten Tage Ihres Monatstarifs werden ihm gutgeschrieben, sodass nichts von Ihrer Zahlung verloren geht.",
+  "@subscription_switchUpgradeNote": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchDowngradeNote": "Heute wird nichts berechnet. Ihr 3-Monats-Tarif bleibt bis {date} aktiv und verlängert sich danach monatlich zu {price}/Monat.",
+  "@subscription_switchDowngradeNote": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchScheduled": "Der Monatstarif zu {price}/Monat beginnt am {date}. Bis dahin bleibt Ihr 3-Monats-Tarif aktiv.",
+  "@subscription_switchScheduled": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchConfirmTitle": "Tarif wechseln?",
+  "@subscription_switchConfirmTitle": {},
+  "subscription_switchConfirmButton": "Tarif wechseln",
+  "@subscription_switchConfirmButton": {}
 }

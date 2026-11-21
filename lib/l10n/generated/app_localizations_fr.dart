@@ -2905,4 +2905,45 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get profile_quality_subtitle_fallback =>
       'Complétez votre profil ci-dessous';
+
+  @override
+  String subscription_planMonthlyCurrent(String price) {
+    return 'Votre formule : mensuelle · $price/mois';
+  }
+
+  @override
+  String subscription_planThreeMonthCurrent(String price) {
+    return 'Votre formule : 3 mois · $price/3 mois';
+  }
+
+  @override
+  String subscription_switchToThreeMonth(String price) {
+    return 'Passer à 3 mois · $price';
+  }
+
+  @override
+  String subscription_switchToMonthly(String price) {
+    return 'Passer au mensuel · $price/mois';
+  }
+
+  @override
+  String subscription_switchUpgradeNote(String price) {
+    return 'Google Play facture $price aujourd’hui et votre formule 3 mois commence maintenant. Les jours non utilisés de votre formule mensuelle y sont ajoutés : rien de ce que vous avez payé n’est perdu.';
+  }
+
+  @override
+  String subscription_switchDowngradeNote(String date, String price) {
+    return 'Rien n’est facturé aujourd’hui. Votre formule 3 mois reste active jusqu’au $date, puis se renouvelle en mensuel à $price/mois.';
+  }
+
+  @override
+  String subscription_switchScheduled(String price, String date) {
+    return 'La formule mensuelle à $price/mois commence le $date. Votre formule 3 mois reste active jusque-là.';
+  }
+
+  @override
+  String get subscription_switchConfirmTitle => 'Changer de formule ?';
+
+  @override
+  String get subscription_switchConfirmButton => 'Changer de formule';
 }

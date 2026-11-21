@@ -2901,4 +2901,45 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get profile_quality_subtitle_fallback =>
       'Vervollständige unten dein Profil';
+
+  @override
+  String subscription_planMonthlyCurrent(String price) {
+    return 'Ihr Tarif: monatlich · $price/Monat';
+  }
+
+  @override
+  String subscription_planThreeMonthCurrent(String price) {
+    return 'Ihr Tarif: 3 Monate · $price/3 Monate';
+  }
+
+  @override
+  String subscription_switchToThreeMonth(String price) {
+    return 'Zu 3 Monaten wechseln · $price';
+  }
+
+  @override
+  String subscription_switchToMonthly(String price) {
+    return 'Zu monatlich wechseln · $price/Monat';
+  }
+
+  @override
+  String subscription_switchUpgradeNote(String price) {
+    return 'Google Play berechnet heute $price, und Ihr 3-Monats-Tarif beginnt sofort. Die ungenutzten Tage Ihres Monatstarifs werden ihm gutgeschrieben, sodass nichts von Ihrer Zahlung verloren geht.';
+  }
+
+  @override
+  String subscription_switchDowngradeNote(String date, String price) {
+    return 'Heute wird nichts berechnet. Ihr 3-Monats-Tarif bleibt bis $date aktiv und verlängert sich danach monatlich zu $price/Monat.';
+  }
+
+  @override
+  String subscription_switchScheduled(String price, String date) {
+    return 'Der Monatstarif zu $price/Monat beginnt am $date. Bis dahin bleibt Ihr 3-Monats-Tarif aktiv.';
+  }
+
+  @override
+  String get subscription_switchConfirmTitle => 'Tarif wechseln?';
+
+  @override
+  String get subscription_switchConfirmButton => 'Tarif wechseln';
 }

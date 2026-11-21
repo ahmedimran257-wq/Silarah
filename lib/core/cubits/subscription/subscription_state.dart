@@ -2,6 +2,7 @@
 // merged into one canonical runtime state.
 import 'package:equatable/equatable.dart';
 
+import '../../services/subscription_service.dart';
 import '../../utils/messaging_access_policy.dart';
 
 enum SubscriptionStatus { none, active, grace }
@@ -34,6 +35,13 @@ class SubscriptionState extends Equatable {
   /// Whether the store will renew at [expiresAt]. False once cancelled; null
   /// when the store has not answered.
   final bool? willRenew;
+
+  /// The Google Play plan in force, when Premium is paid.
+  final SubscriptionPlan? paidPlan;
+
+  /// A switch booked for the next renewal and when it starts.
+  final SubscriptionPlan? scheduledPlan;
+  final DateTime? scheduledPlanStartsAt;
   final bool isLoading;
   final String? error;
   final String? successMessage;
@@ -44,6 +52,9 @@ class SubscriptionState extends Equatable {
     this.expiresAt,
     this.paidExpiresAt,
     this.willRenew,
+    this.paidPlan,
+    this.scheduledPlan,
+    this.scheduledPlanStartsAt,
     this.isLoading = false,
     this.error,
     this.successMessage,
@@ -102,12 +113,17 @@ class SubscriptionState extends Equatable {
     DateTime? expiresAt,
     DateTime? paidExpiresAt,
     bool? willRenew,
+    SubscriptionPlan? paidPlan,
+    SubscriptionPlan? scheduledPlan,
+    DateTime? scheduledPlanStartsAt,
     bool? isLoading,
     String? error,
     String? successMessage,
     bool clearExpiresAt = false,
     bool clearPaidExpiresAt = false,
     bool clearWillRenew = false,
+    bool clearPaidPlan = false,
+    bool clearScheduledPlan = false,
     bool clearError = false,
     bool clearSuccess = false,
   }) {
@@ -118,6 +134,12 @@ class SubscriptionState extends Equatable {
       paidExpiresAt:
           clearPaidExpiresAt ? null : (paidExpiresAt ?? this.paidExpiresAt),
       willRenew: clearWillRenew ? null : (willRenew ?? this.willRenew),
+      paidPlan: clearPaidPlan ? null : (paidPlan ?? this.paidPlan),
+      scheduledPlan:
+          clearScheduledPlan ? null : (scheduledPlan ?? this.scheduledPlan),
+      scheduledPlanStartsAt: clearScheduledPlan
+          ? null
+          : (scheduledPlanStartsAt ?? this.scheduledPlanStartsAt),
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
       successMessage:
@@ -132,6 +154,9 @@ class SubscriptionState extends Equatable {
         expiresAt,
         paidExpiresAt,
         willRenew,
+        paidPlan,
+        scheduledPlan,
+        scheduledPlanStartsAt,
         isLoading,
         error,
         successMessage,

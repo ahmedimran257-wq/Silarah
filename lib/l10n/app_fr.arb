@@ -1624,5 +1624,71 @@
   "profile_quality_tip_guardian_benefit": "Les familles apprécient un tuteur associé",
   "profile_quality_done": "Fait",
   "profile_quality_name_fallback": "Votre nom",
-  "profile_quality_subtitle_fallback": "Complétez votre profil ci-dessous"
+  "profile_quality_subtitle_fallback": "Complétez votre profil ci-dessous",
+  "subscription_planMonthlyCurrent": "Votre formule : mensuelle · {price}/mois",
+  "@subscription_planMonthlyCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_planThreeMonthCurrent": "Votre formule : 3 mois · {price}/3 mois",
+  "@subscription_planThreeMonthCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToThreeMonth": "Passer à 3 mois · {price}",
+  "@subscription_switchToThreeMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToMonthly": "Passer au mensuel · {price}/mois",
+  "@subscription_switchToMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchUpgradeNote": "Google Play facture {price} aujourd’hui et votre formule 3 mois commence maintenant. Les jours non utilisés de votre formule mensuelle y sont ajoutés : rien de ce que vous avez payé n’est perdu.",
+  "@subscription_switchUpgradeNote": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchDowngradeNote": "Rien n’est facturé aujourd’hui. Votre formule 3 mois reste active jusqu’au {date}, puis se renouvelle en mensuel à {price}/mois.",
+  "@subscription_switchDowngradeNote": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchScheduled": "La formule mensuelle à {price}/mois commence le {date}. Votre formule 3 mois reste active jusque-là.",
+  "@subscription_switchScheduled": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchConfirmTitle": "Changer de formule ?",
+  "@subscription_switchConfirmTitle": {},
+  "subscription_switchConfirmButton": "Changer de formule",
+  "@subscription_switchConfirmButton": {}
 }

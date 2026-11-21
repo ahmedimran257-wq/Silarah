@@ -5219,6 +5219,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Complete your profile below'**
   String get profile_quality_subtitle_fallback;
+
+  /// No description provided for @subscription_planMonthlyCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan: monthly · {price}/month'**
+  String subscription_planMonthlyCurrent(String price);
+
+  /// No description provided for @subscription_planThreeMonthCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan: 3 months · {price}/3 months'**
+  String subscription_planThreeMonthCurrent(String price);
+
+  /// No description provided for @subscription_switchToThreeMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to 3 months · {price}'**
+  String subscription_switchToThreeMonth(String price);
+
+  /// No description provided for @subscription_switchToMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to monthly · {price}/month'**
+  String subscription_switchToMonthly(String price);
+
+  /// No description provided for @subscription_switchUpgradeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play charges {price} today and your 3-month plan starts now. The unused days of your monthly plan are added to it, so nothing you paid is lost.'**
+  String subscription_switchUpgradeNote(String price);
+
+  /// No description provided for @subscription_switchDowngradeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is charged today. Your 3-month plan stays active until {date}, then renews as monthly at {price}/month.'**
+  String subscription_switchDowngradeNote(String date, String price);
+
+  /// No description provided for @subscription_switchScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly at {price}/month starts on {date}. Your 3-month plan stays active until then.'**
+  String subscription_switchScheduled(String price, String date);
+
+  /// No description provided for @subscription_switchConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch plan?'**
+  String get subscription_switchConfirmTitle;
+
+  /// No description provided for @subscription_switchConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch plan'**
+  String get subscription_switchConfirmButton;
 }
 
 class _AppLocalizationsDelegate

@@ -2877,4 +2877,45 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get profile_quality_subtitle_fallback =>
       'নিচে আপনার প্রোফাইল সম্পূর্ণ করুন';
+
+  @override
+  String subscription_planMonthlyCurrent(String price) {
+    return 'আপনার প্ল্যান: মাসিক · $price/মাস';
+  }
+
+  @override
+  String subscription_planThreeMonthCurrent(String price) {
+    return 'আপনার প্ল্যান: ৩ মাস · $price/৩ মাস';
+  }
+
+  @override
+  String subscription_switchToThreeMonth(String price) {
+    return '৩ মাসের প্ল্যানে যান · $price';
+  }
+
+  @override
+  String subscription_switchToMonthly(String price) {
+    return 'মাসিক প্ল্যানে যান · $price/মাস';
+  }
+
+  @override
+  String subscription_switchUpgradeNote(String price) {
+    return 'Google Play আজ $price চার্জ করবে এবং আপনার ৩ মাসের প্ল্যান এখনই শুরু হবে। মাসিক প্ল্যানের অব্যবহৃত দিনগুলো এতে যোগ হবে, তাই আপনার দেওয়া টাকার কিছুই নষ্ট হবে না।';
+  }
+
+  @override
+  String subscription_switchDowngradeNote(String date, String price) {
+    return 'আজ কোনো চার্জ নেই। আপনার ৩ মাসের প্ল্যান $date পর্যন্ত চালু থাকবে, তারপর $price/মাস দামে মাসিক হিসেবে নবায়ন হবে।';
+  }
+
+  @override
+  String subscription_switchScheduled(String price, String date) {
+    return '$date থেকে $price/মাস দামে মাসিক প্ল্যান শুরু হবে। ততদিন আপনার ৩ মাসের প্ল্যান চালু থাকবে।';
+  }
+
+  @override
+  String get subscription_switchConfirmTitle => 'প্ল্যান বদলাবেন?';
+
+  @override
+  String get subscription_switchConfirmButton => 'প্ল্যান বদলান';
 }

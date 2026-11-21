@@ -2896,4 +2896,45 @@ class AppLocalizationsMs extends AppLocalizations {
   @override
   String get profile_quality_subtitle_fallback =>
       'Lengkapkan profil anda di bawah';
+
+  @override
+  String subscription_planMonthlyCurrent(String price) {
+    return 'Pelan anda: bulanan · $price/bulan';
+  }
+
+  @override
+  String subscription_planThreeMonthCurrent(String price) {
+    return 'Pelan anda: 3 bulan · $price/3 bulan';
+  }
+
+  @override
+  String subscription_switchToThreeMonth(String price) {
+    return 'Tukar ke 3 bulan · $price';
+  }
+
+  @override
+  String subscription_switchToMonthly(String price) {
+    return 'Tukar ke bulanan · $price/bulan';
+  }
+
+  @override
+  String subscription_switchUpgradeNote(String price) {
+    return 'Google Play mengenakan caj $price hari ini dan pelan 3 bulan anda bermula sekarang. Baki hari pelan bulanan anda ditambah kepadanya, jadi tiada bayaran anda yang hilang.';
+  }
+
+  @override
+  String subscription_switchDowngradeNote(String date, String price) {
+    return 'Tiada caj hari ini. Pelan 3 bulan anda kekal aktif sehingga $date, kemudian diperbaharui secara bulanan pada $price/bulan.';
+  }
+
+  @override
+  String subscription_switchScheduled(String price, String date) {
+    return 'Pelan bulanan pada $price/bulan bermula pada $date. Pelan 3 bulan anda kekal aktif sehingga itu.';
+  }
+
+  @override
+  String get subscription_switchConfirmTitle => 'Tukar pelan?';
+
+  @override
+  String get subscription_switchConfirmButton => 'Tukar pelan';
 }

@@ -2846,4 +2846,45 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profile_quality_subtitle_fallback => 'أكمل ملفك الشخصي أدناه';
+
+  @override
+  String subscription_planMonthlyCurrent(String price) {
+    return 'خطتكم: شهرية · $price/شهر';
+  }
+
+  @override
+  String subscription_planThreeMonthCurrent(String price) {
+    return 'خطتكم: 3 أشهر · $price/3 أشهر';
+  }
+
+  @override
+  String subscription_switchToThreeMonth(String price) {
+    return 'التحويل إلى 3 أشهر · $price';
+  }
+
+  @override
+  String subscription_switchToMonthly(String price) {
+    return 'التحويل إلى الخطة الشهرية · $price/شهر';
+  }
+
+  @override
+  String subscription_switchUpgradeNote(String price) {
+    return 'يحصّل Google Play مبلغ $price اليوم وتبدأ خطة الأشهر الثلاثة الآن. تُضاف الأيام غير المستخدمة من خطتكم الشهرية إليها، فلا يضيع شيء مما دفعتموه.';
+  }
+
+  @override
+  String subscription_switchDowngradeNote(String date, String price) {
+    return 'لا يُحصَّل أي مبلغ اليوم. تبقى خطة الأشهر الثلاثة نشطة حتى $date، ثم تتجدد شهريًا بسعر $price/شهر.';
+  }
+
+  @override
+  String subscription_switchScheduled(String price, String date) {
+    return 'تبدأ الخطة الشهرية بسعر $price/شهر في $date. تبقى خطة الأشهر الثلاثة نشطة حتى ذلك الحين.';
+  }
+
+  @override
+  String get subscription_switchConfirmTitle => 'تغيير الخطة؟';
+
+  @override
+  String get subscription_switchConfirmButton => 'تغيير الخطة';
 }

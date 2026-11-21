@@ -1624,5 +1624,71 @@
   "profile_quality_tip_guardian_benefit": "تقدّر العائلات وجود وليّ مرتبط",
   "profile_quality_done": "تم",
   "profile_quality_name_fallback": "اسمك",
-  "profile_quality_subtitle_fallback": "أكمل ملفك الشخصي أدناه"
+  "profile_quality_subtitle_fallback": "أكمل ملفك الشخصي أدناه",
+  "subscription_planMonthlyCurrent": "خطتكم: شهرية · {price}/شهر",
+  "@subscription_planMonthlyCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_planThreeMonthCurrent": "خطتكم: 3 أشهر · {price}/3 أشهر",
+  "@subscription_planThreeMonthCurrent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToThreeMonth": "التحويل إلى 3 أشهر · {price}",
+  "@subscription_switchToThreeMonth": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchToMonthly": "التحويل إلى الخطة الشهرية · {price}/شهر",
+  "@subscription_switchToMonthly": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchUpgradeNote": "يحصّل Google Play مبلغ {price} اليوم وتبدأ خطة الأشهر الثلاثة الآن. تُضاف الأيام غير المستخدمة من خطتكم الشهرية إليها، فلا يضيع شيء مما دفعتموه.",
+  "@subscription_switchUpgradeNote": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchDowngradeNote": "لا يُحصَّل أي مبلغ اليوم. تبقى خطة الأشهر الثلاثة نشطة حتى {date}، ثم تتجدد شهريًا بسعر {price}/شهر.",
+  "@subscription_switchDowngradeNote": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchScheduled": "تبدأ الخطة الشهرية بسعر {price}/شهر في {date}. تبقى خطة الأشهر الثلاثة نشطة حتى ذلك الحين.",
+  "@subscription_switchScheduled": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "subscription_switchConfirmTitle": "تغيير الخطة؟",
+  "@subscription_switchConfirmTitle": {},
+  "subscription_switchConfirmButton": "تغيير الخطة",
+  "@subscription_switchConfirmButton": {}
 }
