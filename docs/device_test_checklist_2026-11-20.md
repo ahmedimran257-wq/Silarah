@@ -216,3 +216,23 @@ twice on this PC's RAM). Evidence in `release/device-qa-2026-11-21/` (local only
 | 26 | Daily limits reset at UTC midnight, 05:30 in India | migration 321: `private.member_today` / `member_day_start` from `users.timezone` (validated, UTC fallback) in all 8 limit functions; a member's timezone may change once every 7 days so it cannot be hopped for extra resets | production boundary test (rolled back), app API |
 
 Staging note: staging has a trigger `enforce_member_timezone` that is in no migration and not on production (it rejects invalid zone names and sets Asia/Kolkata for India). Worth reconciling.
+
+## Release candidate 1.0.0+46060 — 21 Nov 2026 (evening)
+
+`release/42045` with the SafetyNet removal, in-app plan switch and edge-to-edge
+branches merged (7f22f1e). Analyzer clean, 1,047 tests pass. Server: webhook
+and migration 322 on staging and production (19/19 checks, rolled back on
+production); migration 309 on production (free member cannot save an unviewed
+profile, can after viewing). Phone build: arm64 release APK, versionCode 48060,
+installed over 46059 on both phones.
+
+| # | Check | Result | Notes |
+|---|---|---|---|
+| RC1 | Dark theme (OLED Night), Redmi Android 10 | PASS | light status-bar icons; Settings, Discover, tab bar clear of the bars |
+| RC2 | Onboarding signed out, Redmi, dark | PASS | welcome, consent, email, code, and all five profile steps clear the status bar; Continue sits above the bottom edge; mother-tongue sheet clears the status bar. Test account `ahmedimran257+qa1121onb` deleted in-app afterwards (pending_deletion, out of Discover) |
+| RC3 | Chat composer, OnePlus 3-button navigation, light | PASS | composer above the transparent nav bar; with the keyboard open it sits directly above the keyboard |
+| RC4 | Dark theme, OnePlus 3-button navigation | PASS | light status and nav icons, transparent nav bar, nothing covered |
+| RC5 | Android 15+ | NOT TESTED | no device; emulator run planned 22 Nov |
+
+Minor, not new: on the location step with the keyboard open, the city results
+box opens above the field and covers the "City" label while results load.
