@@ -25,11 +25,11 @@ dependencies:
 
   # Backend
   supabase_flutter: ^2.9.0
-  firebase_core: ^3.8.0           # Firebase initialization
-  firebase_app_check: ^0.3.2+10   # Play Integrity abuse protection (debug provider in debug builds)
-  firebase_crashlytics: ^4.3.2   # Production crash reporting (free)
+  firebase_core: ^4.15.2          # Firebase initialization
+  firebase_app_check: ^0.4.9      # Play Integrity abuse protection (debug provider in debug builds)
+  firebase_crashlytics: ^5.4.1   # Production crash reporting (free)
   purchases_flutter: ^10.8.0    # RevenueCat subscriptions and Test Store support
-  firebase_messaging: ^15.2.0    # Push notifications via FCM (free & unlimited)
+  firebase_messaging: ^16.7.1    # Push notifications via FCM (free & unlimited)
   uuid: ^4.5.1                   # Device ID generation
 
   # Localization

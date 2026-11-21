@@ -89,10 +89,14 @@ Future<void> silarahFirebaseMessagingBackgroundHandler(
 Future<void> _activateFirebaseAppCheck() async {
   try {
     await FirebaseAppCheck.instance.activate(
-      androidProvider:
-          kReleaseMode ? AndroidProvider.playIntegrity : AndroidProvider.debug,
-      appleProvider:
-          kReleaseMode ? AppleProvider.appAttest : AppleProvider.debug,
+      // Play Integrity only: firebase_app_check 0.4+ no longer bundles the
+      // deprecated attestation provider that Play Console flags.
+      providerAndroid: kReleaseMode
+          ? const AndroidPlayIntegrityProvider()
+          : const AndroidDebugProvider(),
+      providerApple: kReleaseMode
+          ? const AppleAppAttestProvider()
+          : const AppleDebugProvider(),
     );
     await FirebaseAppCheck.instance.setTokenAutoRefreshEnabled(true);
   } catch (error, stack) {

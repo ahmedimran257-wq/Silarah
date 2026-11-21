@@ -56,8 +56,18 @@ void main() {
     expect(pubspec, contains('firebase_app_check:'));
     expect(pubspec, isNot(contains('firebase_auth:')));
     expect(main, contains('FirebaseAppCheck.instance.activate'));
-    expect(main, contains('AndroidProvider.playIntegrity'));
-    expect(main, contains('AndroidProvider.debug'));
+    expect(main, contains('const AndroidPlayIntegrityProvider()'));
+    expect(main, contains('const AndroidDebugProvider()'));
+    // SafetyNet is deprecated; Play Console flags any build that ships it.
+    final lock = File('pubspec.lock').readAsStringSync();
+    final appCheck = RegExp(
+      r'^  firebase_app_check:\r?\n(?:    .*\r?\n)*?    version: "0\.(\d+)\.',
+      multiLine: true,
+    ).firstMatch(lock);
+    expect(appCheck, isNotNull);
+    expect(int.parse(appCheck!.group(1)!), greaterThanOrEqualTo(4),
+        reason: 'firebase_app_check 0.3.x pulls in SafetyNet');
+    expect(main.toLowerCase(), isNot(contains('safetynet')));
     expect(main, contains('setTokenAutoRefreshEnabled(true)'));
   });
 
