@@ -11,6 +11,7 @@ import { isAuthorizedCronRequest } from "../_shared/cron_auth.ts";
 import { json } from "../_shared/call_ops.ts";
 import {
   CALL_TYPE,
+  unreadableClientSettings,
   webhookSignature,
   createCall,
   deleteUser,
@@ -107,6 +108,15 @@ Deno.serve(async (req) => {
       { create: true, location: "auto", video: false });
     await probe("stranger cannot join with create=true either", false, tokenC, "POST",
       `${path}/join`, { create: true, location: "auto" });
+    const joinedSettings = ((joined?.call as Record<string, unknown> | undefined)?.settings ??
+      {}) as Record<string, unknown>;
+    const unreadable = unreadableClientSettings(joinedSettings);
+    results.push({
+      name: "the Flutter client can read the call settings in the join reply",
+      expected: "every fixed-choice setting set",
+      unreadable,
+      pass: unreadable.length === 0,
+    });
     const capabilities = (joined?.own_capabilities ?? []) as string[];
     results.push({
       name: "member's own capabilities are only join/send-audio/end-call",

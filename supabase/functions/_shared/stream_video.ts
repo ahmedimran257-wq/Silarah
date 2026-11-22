@@ -229,21 +229,25 @@ export async function getCall(
 ): Promise<StreamCallSnapshot> {
   const response = await streamRequest<{
     call?: {
-      ended_at?: string | null;
+      ended_at?: string | number | null;
+      current_session_id?: string | null;
       session?: {
         id?: string;
-        started_at?: string | null;
-        ended_at?: string | null;
+        started_at?: string | number | null;
+        ended_at?: string | number | null;
         participants?: { user?: { id?: string } }[];
       } | null;
     };
   }>(config, "GET", `/video/call/${CALL_TYPE}/${callId}`);
   const session = response.call?.session ?? null;
+  // After a call ends Stream drops the live `session` block; the session ID
+  // stays on the call as current_session_id (seen on staging, 22 Nov).
+  const sessionId = (session?.id || response.call?.current_session_id) ?? null;
   return {
-    sessionId: session?.id ?? null,
-    startedAt: session?.started_at ?? null,
-    endedAt: session?.ended_at ?? null,
-    callEndedAt: response.call?.ended_at ?? null,
+    sessionId: sessionId || null,
+    startedAt: toIso(session?.started_at),
+    endedAt: toIso(session?.ended_at),
+    callEndedAt: toIso(response.call?.ended_at),
     liveUserIds: (session?.participants ?? [])
       .map((participant) => participant.user?.id)
       .filter((id): id is string => typeof id === "string"),
@@ -252,9 +256,36 @@ export async function getCall(
 
 export interface ParticipantSession {
   user_id: string;
-  joined_at?: string | null;
-  left_at?: string | null;
+  // Stream's server API returns these as nanoseconds since 1970 (numbers);
+  // other endpoints and webhooks use RFC 3339 strings. Both are accepted.
+  joined_at?: string | number | null;
+  left_at?: string | number | null;
   duration_in_seconds?: number | null;
+}
+
+/**
+ * Milliseconds since 1970 from a Stream time: an RFC 3339 string, or a
+ * number (or numeric string) in seconds, ms, microseconds or nanoseconds.
+ */
+export function streamTimeMs(value: unknown): number {
+  if (value == null || value === "") return NaN;
+  const numeric = typeof value === "number"
+    ? value
+    : /^\d+(\.\d+)?$/.test(String(value))
+    ? Number(value)
+    : NaN;
+  if (Number.isFinite(numeric)) {
+    if (numeric > 1e17) return numeric / 1e6; // nanoseconds
+    if (numeric > 1e14) return numeric / 1e3; // microseconds
+    if (numeric > 1e11) return numeric; // milliseconds
+    return numeric * 1000; // seconds
+  }
+  return Date.parse(String(value));
+}
+
+function toIso(value: unknown): string | null {
+  const ms = streamTimeMs(value);
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : null;
 }
 
 /** Every join/leave of a finished session (QueryCallParticipantSessions). */
@@ -330,6 +361,36 @@ export const FORBIDDEN_CAPABILITIES = [
   "send-closed-captions-call",
 ];
 
+/**
+ * Settings the Flutter client (stream_video 1.6.0) must find set to one of
+ * these values in every join reply, or it cannot read the call and the
+ * join fails. Checked against the live call type by the staging probe.
+ */
+export const CLIENT_REQUIRED_CHOICES: Record<string, string[]> = {
+  "audio.default_device": ["speaker", "earpiece"],
+  "audio.noise_cancellation.mode": ["available", "disabled", "auto-on"],
+  "encryption.mode": ["available", "disabled", "auto-on"],
+  "frame_recording.mode": ["disabled", "auto-on"],
+  "individual_recording.mode": ["available", "disabled", "auto-on"],
+  "raw_recording.mode": ["available", "disabled", "auto-on"],
+  "transcription.mode": ["disabled", "auto-on"],
+  "transcription.closed_caption_mode": ["auto", "disabled", "auto-on"],
+  "video.camera_facing": ["front", "back", "external"],
+};
+
+/** Paths in [settings] that the Flutter client could not read. */
+export function unreadableClientSettings(settings: Record<string, unknown>): string[] {
+  const bad: string[] = [];
+  for (const [path, allowed] of Object.entries(CLIENT_REQUIRED_CHOICES)) {
+    let value: unknown = settings;
+    for (const key of path.split(".")) {
+      value = value && typeof value === "object" ? (value as Record<string, unknown>)[key] : undefined;
+    }
+    if (typeof value !== "string" || !allowed.includes(value)) bad.push(`${path}=${JSON.stringify(value)}`);
+  }
+  return bad;
+}
+
 export function voiceCallTypeBody() {
   return {
     grants: {
@@ -355,6 +416,9 @@ export function voiceCallTypeBody() {
         camera_default_on: false,
         access_request_enabled: false,
         target_resolution: { width: 240, height: 240 },
+        // The Flutter client refuses a join whose settings leave this empty
+        // (seen on device 22 Nov), even with video off.
+        camera_facing: "front",
       },
       screensharing: {
         enabled: false,
@@ -516,10 +580,11 @@ export function connectedSecondsFromSessions(
   const byUser = new Map<string, Interval[]>();
   for (const session of sessions) {
     if (session.user_id !== callerId && session.user_id !== calleeId) continue;
-    const joined = session.joined_at ? Date.parse(session.joined_at) : NaN;
+    const joined = streamTimeMs(session.joined_at);
     if (!Number.isFinite(joined)) continue;
-    if (!session.left_at) return null;
-    const left = Date.parse(session.left_at);
+    if (session.left_at == null || session.left_at === "") return null;
+    const left = streamTimeMs(session.left_at);
+    if (!Number.isFinite(left)) return null;
     const list = byUser.get(session.user_id) ?? [];
     list.push([joined, left]);
     byUser.set(session.user_id, list);
@@ -543,9 +608,9 @@ export function connectedSecondsFromEvents(
 ): number | null {
   const intervals = new Map<string, Interval[]>();
   const open = new Map<string, number>();
-  const end = endedAt ? Date.parse(endedAt) : NaN;
+  const end = streamTimeMs(endedAt);
   for (const event of events) {
-    const at = Date.parse(event.at);
+    const at = streamTimeMs(event.at);
     if (!Number.isFinite(at)) continue;
     if (event.kind === "joined") {
       if (!open.has(event.user_id)) open.set(event.user_id, at);

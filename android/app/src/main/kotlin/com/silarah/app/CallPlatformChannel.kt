@@ -7,11 +7,11 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.AudioAttributes
-import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import android.view.WindowManager
@@ -19,13 +19,14 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
+import org.json.JSONObject
 
 /**
  * Native pieces of in-app calling that Flutter cannot do itself
  * (voice_calling_spec.md 8): microphone permission, the microphone
  * foreground service, showing the call over the lock screen only while a
- * call is ringing or on, proximity screen-off at the ear, audio focus so a
- * regular phone call puts the Silarah call on hold, the full-screen-intent
+ * call is ringing or on, proximity screen-off at the ear, a regular phone
+ * call putting the Silarah call on hold, the full-screen-intent
  * setting (Android 14+) and the auto-start screen of some phone makers.
  */
 class CallPlatformChannel(
@@ -35,22 +36,31 @@ class CallPlatformChannel(
     private val channel = MethodChannel(messenger, NAME)
     private var pendingPermission: MethodChannel.Result? = null
     private var proximityLock: PowerManager.WakeLock? = null
-    private var focusRequest: AudioFocusRequest? = null
     private val audioManager =
         activity.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-    private val focusListener = AudioManager.OnAudioFocusChangeListener { change ->
-        val state = when (change) {
-            AudioManager.AUDIOFOCUS_LOSS,
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> "loss"
-            AudioManager.AUDIOFOCUS_GAIN -> "gain"
-            else -> null
+    // A regular phone call is seen through the audio mode, never through
+    // phone-state access: the phone app switches to MODE_IN_CALL while a
+    // cellular call is connected, whereas a Silarah call runs in
+    // MODE_IN_COMMUNICATION. (Audio focus cannot be used: the call's own
+    // audio engine takes focus inside this app.)
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var watchingPhoneCalls = false
+    private var phoneCallActive = false
+    private var modeListener: Any? = null
+    private val modePoll = object : Runnable {
+        override fun run() {
+            if (!watchingPhoneCalls) return
+            onAudioMode(audioManager.mode)
+            mainHandler.postDelayed(this, 1000)
         }
-        if (state != null) {
-            activity.runOnUiThread {
-                channel.invokeMethod("audioFocusChanged", mapOf("state" to state))
-            }
-        }
+    }
+
+    private fun onAudioMode(mode: Int) {
+        val active = mode == AudioManager.MODE_IN_CALL
+        if (active == phoneCallActive) return
+        phoneCallActive = active
+        channel.invokeMethod("phoneCallChanged", mapOf("active" to active))
     }
 
     init {
@@ -83,9 +93,12 @@ class CallPlatformChannel(
                     CallForegroundService.stop(activity.applicationContext)
                     result.success(null)
                 }
-                "requestAudioFocus" -> result.success(requestAudioFocus())
-                "abandonAudioFocus" -> {
-                    abandonAudioFocus()
+                "startPhoneCallWatch" -> {
+                    startPhoneCallWatch()
+                    result.success(null)
+                }
+                "stopPhoneCallWatch" -> {
+                    stopPhoneCallWatch()
                     result.success(null)
                 }
                 "canUseFullScreenIntent" -> result.success(canUseFullScreenIntent())
@@ -141,22 +154,7 @@ class CallPlatformChannel(
         return true
     }
 
-    private fun setCallWindow(active: Boolean) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            activity.setShowWhenLocked(active)
-            activity.setTurnScreenOn(active)
-        } else {
-            @Suppress("DEPRECATION")
-            val flags = WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-            if (active) activity.window.addFlags(flags) else activity.window.clearFlags(flags)
-        }
-        if (active) {
-            activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        } else {
-            activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        }
-    }
+    private fun setCallWindow(active: Boolean) = applyCallWindow(activity, active)
 
     private fun setProximity(enabled: Boolean) {
         val power = activity.getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -179,36 +177,30 @@ class CallPlatformChannel(
         }
     }
 
-    private fun requestAudioFocus(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-                .setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                        .build(),
-                )
-                .setOnAudioFocusChangeListener(focusListener)
-                .build()
-            focusRequest = request
-            audioManager.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+    private fun startPhoneCallWatch() {
+        if (watchingPhoneCalls) return
+        watchingPhoneCalls = true
+        phoneCallActive = audioManager.mode == AudioManager.MODE_IN_CALL
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val listener = AudioManager.OnModeChangedListener { mode -> onAudioMode(mode) }
+            audioManager.addOnModeChangedListener(ContextCompat.getMainExecutor(activity), listener)
+            modeListener = listener
         } else {
-            @Suppress("DEPRECATION")
-            audioManager.requestAudioFocus(
-                focusListener,
-                AudioManager.STREAM_VOICE_CALL,
-                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT,
-            ) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+            mainHandler.post(modePoll)
         }
     }
 
-    private fun abandonAudioFocus() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            focusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
-            focusRequest = null
+    private fun stopPhoneCallWatch() {
+        if (!watchingPhoneCalls) return
+        watchingPhoneCalls = false
+        phoneCallActive = false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (modeListener as? AudioManager.OnModeChangedListener)?.let {
+                audioManager.removeOnModeChangedListener(it)
+            }
+            modeListener = null
         } else {
-            @Suppress("DEPRECATION")
-            audioManager.abandonAudioFocus(focusListener)
+            mainHandler.removeCallbacks(modePoll)
         }
     }
 
@@ -257,7 +249,7 @@ class CallPlatformChannel(
 
     fun dispose() {
         setProximity(false)
-        abandonAudioFocus()
+        stopPhoneCallWatch()
         channel.setMethodCallHandler(null)
     }
 
@@ -266,5 +258,47 @@ class CallPlatformChannel(
         private const val REQUEST_CODE = 41_010
         private const val PREFS = "silarah_call_permissions"
         private const val KEY_ASKED = "microphone_asked"
+    }
+}
+
+/**
+ * Shows Silarah over the lock screen, turns the screen on and keeps it on,
+ * only while a call is ringing or live. Android applies "turn the screen on"
+ * when the activity is next resumed, so a ring must set it before Silarah is
+ * shown (see [isIncomingRingLaunch]), not once Flutter has started.
+ */
+internal fun applyCallWindow(activity: Activity, active: Boolean) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+        activity.setShowWhenLocked(active)
+        activity.setTurnScreenOn(active)
+    } else {
+        @Suppress("DEPRECATION")
+        val flags = WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+            WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        if (active) activity.window.addFlags(flags) else activity.window.clearFlags(flags)
+    }
+    if (active) {
+        activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    } else {
+        activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+}
+
+/**
+ * True when Android opened Silarah for the incoming-call notification (its
+ * full-screen ring on a locked or sleeping phone, a tap, or Answer). The
+ * notification plugin launches with this action and the ring's payload, the
+ * same JSON the Dart side reads (call_notifications.dart, IncomingCallPush).
+ * Flutter then owns the window: it keeps it for the ring or releases it when
+ * the ring is no longer for this phone.
+ */
+internal fun isIncomingRingLaunch(intent: Intent?): Boolean {
+    if (intent?.action != "SELECT_NOTIFICATION") return false
+    val payload = intent.getStringExtra("payload") ?: return false
+    return try {
+        val ring = JSONObject(payload)
+        listOf("request_id", "for_user", "expires_at").all { ring.optString(it).isNotEmpty() }
+    } catch (_: org.json.JSONException) {
+        false
     }
 }

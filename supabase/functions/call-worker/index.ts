@@ -20,6 +20,7 @@ import {
   deleteUser,
   getCall,
   isNotFound,
+  participantSessions,
   streamConfigFromEnv,
   streamRequest,
   type StreamConfig,
@@ -60,6 +61,9 @@ Deno.serve(async (req) => {
 
   if (body.action === "setup") return json(await setup(config));
   if (body.action === "inspect") return json(await inspect(config, String(body.call_id ?? "")));
+  if (body.action === "sessions") {
+    return json(await inspectSessions(config, String(body.call_id ?? ""), String(body.session_id ?? "")));
+  }
 
   const started = Date.now();
   let processed = 0;
@@ -238,6 +242,18 @@ async function setup(config: StreamConfig): Promise<Record<string, unknown>> {
     compression: after.app?.enable_hook_payload_compression ?? null,
     guest_user_creation_disabled: after.app?.guest_user_creation_disabled ?? null,
   };
+}
+
+/** Stream's own record of who was connected when (staging gates). */
+async function inspectSessions(
+  config: StreamConfig,
+  callId: string,
+  sessionId: string,
+): Promise<Record<string, unknown>> {
+  if (!/^[a-z0-9]{32}$/.test(callId) || !sessionId) return { error: "bad_ids" };
+  const snapshot = await getCall(config, callId);
+  const sessions = await participantSessions(config, callId, sessionId);
+  return { snapshot, sessions };
 }
 
 /** Read-only view of one call for the staging gates (no secrets). */

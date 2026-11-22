@@ -15,8 +15,8 @@ class CallPlatform {
 
   static const _channel = MethodChannel('com.silarah.app/calls');
 
-  /// `true` when another app (a regular phone call) took the audio, `false`
-  /// when it came back.
+  /// `true` while a regular phone call is connected (the call goes on
+  /// hold), `false` when it is over.
   final StreamController<bool> _audioInterrupted =
       StreamController<bool>.broadcast();
   Stream<bool> get audioInterrupted => _audioInterrupted.stream;
@@ -24,10 +24,8 @@ class CallPlatform {
   bool get _supported => !kIsWeb && Platform.isAndroid;
 
   Future<dynamic> _onNativeCall(MethodCall call) async {
-    if (call.method == 'audioFocusChanged') {
-      final state = (call.arguments as Map?)?['state'];
-      if (state == 'loss') _audioInterrupted.add(true);
-      if (state == 'gain') _audioInterrupted.add(false);
+    if (call.method == 'phoneCallChanged') {
+      _audioInterrupted.add((call.arguments as Map?)?['active'] == true);
     }
     return null;
   }
@@ -71,10 +69,10 @@ class CallPlatform {
 
   Future<void> stopCallService() => _invoke<void>('stopCallService');
 
-  Future<bool> requestAudioFocus() async =>
-      await _invoke<bool>('requestAudioFocus') ?? false;
+  /// Starts / stops watching for a regular phone call during a Silarah call.
+  Future<void> startPhoneCallWatch() => _invoke<void>('startPhoneCallWatch');
 
-  Future<void> abandonAudioFocus() => _invoke<void>('abandonAudioFocus');
+  Future<void> stopPhoneCallWatch() => _invoke<void>('stopPhoneCallWatch');
 
   Future<bool> canUseFullScreenIntent() async =>
       await _invoke<bool>('canUseFullScreenIntent') ?? true;

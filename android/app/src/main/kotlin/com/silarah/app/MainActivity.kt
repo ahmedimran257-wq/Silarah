@@ -24,6 +24,7 @@ class MainActivity : FlutterActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         createNotificationChannels()
+        wakeForIncomingRing(intent)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // Android 12 otherwise inserts its own icon fade between the
             // native surface and Flutter's reveal. Remove the system layer
@@ -32,6 +33,17 @@ class MainActivity : FlutterActivity() {
                 splashView.remove()
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        wakeForIncomingRing(intent)
+    }
+
+    /** A ring opening Silarah on a sleeping or locked phone must light the
+     *  screen and show over the lock before Silarah is resumed. */
+    private fun wakeForIncomingRing(intent: Intent?) {
+        if (isIncomingRingLaunch(intent)) applyCallWindow(this, true)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

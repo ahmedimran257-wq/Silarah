@@ -251,6 +251,14 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     });
   }
 
+  /// Android lit the screen and showed Silarah over the lock screen as the
+  /// ring opened it (MainActivity.wakeForIncomingRing). When that ring is not
+  /// shown here (over, or for another account), give the lock screen back,
+  /// unless a call is under way and still needs the window.
+  void releaseRingWindow() {
+    if (!busy) unawaited(_platform.setCallWindow(false));
+  }
+
   /// The ring was cancelled (caller hung up, answered elsewhere, timeout).
   void onRingCancelled(String forRequestId) {
     if (forRequestId == requestId && phase == CallPhase.incoming) {
@@ -331,7 +339,7 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     phase = CallPhase.connecting;
     notifyListeners();
 
-    await _platform.requestAudioFocus();
+    await _platform.startPhoneCallWatch();
     _wantService(true);
     try {
       await sv.StreamVideo.reset(disconnect: true);
@@ -357,6 +365,10 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
           keepConnectionsAliveWhenInBackground: true,
           muteAudioWhenInBackground: false,
           muteVideoWhenInBackground: true,
+          // Stream's warnings and errors reach the device log (never its
+          // verbose lines, which can contain request details).
+          logPriority: sv.Priority.warning,
+          logHandlerFunction: _streamLog,
         ),
         failIfSingletonExists: false,
       );
@@ -383,8 +395,8 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
         unawaited(_leave(call, client));
         return;
       }
-      if (joined.isFailure) {
-        debugPrint('[CallController] join failed');
+      if (joined is sv.Failure) {
+        debugPrint('[CallController] join failed: ${joined.error.message}');
         await hangUp(copy: CallEndCopy.failed);
         return;
       }
@@ -616,7 +628,7 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     if (id != null) await CallNotifications.cancel(id);
     _wantService(false);
     await _platform.setProximity(false);
-    await _platform.abandonAudioFocus();
+    await _platform.stopPhoneCallWatch();
     await _platform.setCallWindow(false);
     historyChanged();
     _resetTimer = Timer(const Duration(seconds: 2), () {
@@ -652,6 +664,16 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     incoming = null;
     ringEndsAt = null;
     endedCopy = CallEndCopy.ended;
+  }
+
+  static void _streamLog(
+    sv.Priority priority,
+    String tag,
+    sv.MessageBuilder message, [
+    Object? error,
+    StackTrace? stk,
+  ]) {
+    debugPrint('[Stream/$tag] ${message()}${error == null ? '' : ' :: $error'}');
   }
 
   /// Sign-out: end any call of the departing account at once.

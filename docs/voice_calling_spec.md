@@ -137,6 +137,20 @@ privacy-safe names and missed calls.
    purchases still work.
 8. Two phones: audio both ways, earpiece/speaker/Bluetooth, incoming phone call mid-call, background
    and locked screen, Android 7 (minSdk 24) device.
+9. Status bar: the OnePlus shows the system call chip (Android 12+) with the caller's first name and a
+   running timer; Mute / Hang up work from the notification; tapping it returns to the call.
+10. Rings with the app swiped away, with the screen locked and asleep (the screen lights), and after
+    10+ minutes idle (Doze). A ring that reaches the phone after its 30 s is shown as a missed call and
+    never rings. Cancel and answered-elsewhere clear the ring on every device.
+11. Notifications denied (or the incoming-call channel off) on every device of the callee: the caller
+    gets the neutral "isn't taking calls right now", the callee sees the missed call and the Calls tab
+    shows the "turn on call notifications" prompt.
+12. Free man and free woman see the notification texts of section 12.5; several missed calls from one
+    person collapse into one notification.
+13. Calls tab: tab-name audit tests pass; 360 dp and largest font size screenshots in the longest
+    locales; Arabic and Urdu (RTL) screenshots; every theme (Rose & Marigold, Ivory & Emerald, Pure
+    OLED, Automatic light and dark).
+14. Scheduled call: propose, accept, reminder 5 min before on both phones, Call now, expiry.
 
 ## 10. Worst cases accepted
 
@@ -148,7 +162,176 @@ privacy-safe names and missed calls.
 
 - Stream: create account, apply for Maker plan, add a card before launch, share API key/secret.
 - RevenueCat: Google refund notifications (RTDN) connected.
-- Play Console: 4 consumable packs (section 3), microphone/calling declarations.
+- Play Console: 4 consumable packs (section 3), microphone/calling declarations, foreground service
+  type `phoneCall` (self-managed calls) with its demo video.
+
+## 12. Notifications, status bar and Calls tab rules
+
+Added 22 Nov 2026 at the owner's request. Same principles as above: the server decides who may call,
+who is rung, what each person is told and what is charged; the app only shows the server's answer.
+
+### 12.1 One native call module
+
+All call notifications, the call foreground service and the system call integration live in one small
+local Flutter plugin (`packages/silarah_calls`, Kotlin). A plugin is registered in every Flutter engine,
+so the same code runs from the FCM background isolate when Silarah is closed. It replaces the
+`flutter_local_notifications` package and the `MainActivity` call channel.
+
+- Notification channels, created once at first launch (Android cannot change a channel's importance
+  later): **Incoming calls** (high, system ringtone, vibration, shows on the lock screen), **Missed
+  calls** (default), **Ongoing call** (low, silent).
+- Incoming ring: `Notification.CallStyle.forIncomingCall` (Android 12+; a heads-up with Answer and
+  Decline below that), full-screen on a locked or sleeping phone (the screen lights), caller's first name
+  and photo only under the caller's photo privacy. Decline is sent to the server from native code with
+  the one-time decline token, without opening Silarah.
+- Ongoing call: Jetpack Core-Telecom (`androidx.core:core-telecom`, self-managed call,
+  `MANAGE_OWN_CALLS`, foreground service type `phoneCall`) on Android 8+, which gives the system call
+  chip in the status bar (Android 12+), headset / car buttons, Bluetooth routing and correct hold when a
+  regular phone call arrives. The notification is `CallStyle.forOngoingCall`: first name, a running
+  timer, minutes left, Mute and Hang up, tap returns to the call. Android 7 (API 24–25): a microphone
+  foreground service with the same ongoing notification.
+- In the app: a slim "Tap to return to call · 04:12" bar above every screen while a call is live and the
+  member is not on the call screen.
+- Not used: `stream_video_push_notification` (forces `singleInstance`; the app keeps `singleTop`).
+
+### 12.2 Ring delivery
+
+1. Ring, cancel and answered pushes are data-only, high priority, and live only as long as the ring
+   (TTL = ring time, 30 s). A phone that comes online later never rings for an old call.
+2. Before ringing, the phone checks the ring is for the signed-in account and has not expired (on this
+   phone's clock, from arrival). After a tap the server is asked again; a cancelled, answered or expired
+   call shows the missed call instead of the call screen.
+3. Cancel or answer on another device sends a cancel push to every device of the callee; each clears its
+   ring. Every ring push ends in a visible notification (incoming, then missed or cleared), so Android
+   does not lower Silarah's push priority.
+4. Each device reports with its push registration whether it can ring: notifications allowed and the
+   Incoming calls channel not blocked (`user_fcm_tokens.can_ring`, refreshed at every app start and
+   resume). If no device of the callee can ring, the server treats the callee as unavailable: the caller
+   gets the neutral "isn't taking calls right now", the callee gets the missed call in the app and the
+   Calls tab shows "Turn on call notifications".
+5. Shared phone: sign-out cancels every call notification, stops any call service and ends a live call
+   before the push token is removed (on top of the existing token clean-up). The phone also stores which
+   account it rings for and drops rings for anyone else.
+6. Auto-start tip (OnePlus, Xiaomi / Redmi / POCO, Oppo, Vivo, Realme, iQOO only) in Calls settings.
+
+### 12.3 What the callee is told
+
+Names in every push are the **first name only**, never a surname or initial. Photos only under the
+member's photo privacy (blurred or initials where the member requires it).
+
+| Situation | Callee notification | In chat and the Calls tab |
+|---|---|---|
+| Premium caller → free woman or any Premium member, call setting Ring | Incoming call "Abdul · Silarah voice call", Answer / Decline | Call log row; chat call tile |
+| Callee is a free man | No ring. "Khatun tried to call you" · "Get Premium to talk with your matches". Tap opens the Calls tab with the paywall | Missed row with the paywall. The locked chat's inbox preview shows "📞 Missed voice call" (call metadata, shown deliberately as the upsell); the chat itself stays locked |
+| Free woman misses a call | "Missed call from Abdul". Tap opens the Calls tab | Missed row with "Ask him to call back" (free templated message under normal messaging rules) and "Call back" (Premium paywall) |
+| Callee on Silent, or in quiet hours | Silent missed-call notification (Missed calls channel) | Missed row |
+| Callee on Calls off | No push at all | Missed row and badge only |
+| Missed-call notifications switched off (`notification_prefs.missed_call`) | No missed-call push | Missed row and badge |
+
+- Several missed calls from the same person collapse into one notification ("3 missed calls from
+  Abdul"); the count comes from the server.
+- Ring / Silent / Calls off is the only control for ringing. `notification_prefs` gets one new toggle,
+  `missed_call`, for missed-call pushes only.
+- Guardian: time and length in the mirror log, no push per call.
+- Already in Silarah: the full-screen in-app incoming screen instead of the heads-up.
+
+### 12.4 What the caller is told
+
+- Busy, declined, timeout, Silent, Calls off, quiet hours, or no device can ring: always the same
+  neutral "isn't taking calls right now" in the app, never which; no push to the caller. In the caller's
+  history and chat: "No answer".
+- A call that connected: both sides see "Voice call · 12 min" (talk time).
+
+### 12.5 Calls tab
+
+**Placement.** A fifth bottom tab, between Chats and Profile: Discover · Interests · Chats · **Calls** ·
+Profile. Tabs are identified by name, never by position: `/home?tab=calls`, `/calls`, `/calls/<peerId>`.
+Stored notifications and old links that still carry `/home?tab=0..3` keep their old meaning (3 =
+Profile). The tab is shown only while the server switch is on (`calls_enabled`); with the switch off the
+app looks exactly as before. Guardian-only accounts never reach the home tabs, so never see it.
+Five labels fit at 360 dp in all 10 languages; the bar ignores system font scaling like the other tabs.
+
+**Screen, top to bottom**
+
+1. *Minutes card.* Premium: included minutes left this Premium month and the renewal date, pack minutes,
+   **Top up** (opens the packs sheet). Free members: a card explaining that Premium unlocks calling
+   (women: "you can always answer for free"). If this phone cannot ring (12.2.4): "Turn on call
+   notifications" with a button to the right system screen.
+2. *Monthly insight.* "You talked 2 h 15 m this month" (talk time of connected calls in the member's
+   current calendar month, local time). Hidden when zero.
+3. *Planned calls* (section 13), pinned above the history: name, time, countdown, Call now / Accept /
+   Cancel.
+4. *Filter chips* All · Missed · Incoming · Outgoing · Planned, and search by name.
+5. *History grouped by day* (Today / Yesterday / weekday / date in the member's language). Each row:
+   avatar (photo privacy), name (first name + surname initial until matched, as everywhere), direction
+   icon (outgoing, incoming, missed in the theme's error colour), talk time and minutes used, time of
+   day. Consecutive calls with the same person on the same day collapse into one row with a count
+   ("Abdul (3)").
+6. *Row tap* → call details sheet: every attempt with that person (time, direction, result, talk time,
+   minutes used), totals, Call back · Message · View profile, Mute calls · Block calls · Report (with
+   the "Harassing calls" reason).
+7. *Swipe* → Call back, or Remove from history. Remove hides the rows for this member only (it never
+   changes harassment limits, safety logs, the Guardian log or the data export; the export includes
+   hidden rows).
+8. *Badge.* The tab shows the server's count of unseen missed calls; opening the tab marks them seen on
+   every device (`mark_calls_seen`). Updated live by the missed-call push and on resume.
+9. *Paywall routing.* Free woman's missed row: "Ask him to call back" and "Call back" (paywall). Free
+   man: missed rows open the paywall. Caller: "No answer" for any call that did not connect.
+10. *Unavailable members* (blocked either way, deleted, banned, deactivated): "Member unavailable", no
+    photo, no name, no actions except Remove.
+11. *Empty state and loading skeletons* in the Silarah style, motion from `silarah_motion`; all
+    themes; TalkBack labels on every row and action; RTL for Arabic and Urdu; large fonts wrap, never
+    clip.
+
+**Server.** One RPC `get_my_call_log(p_filter, p_query, p_before, p_before_id, p_limit)` returns a page of
+the member's own attempts (cursor = `created_at, id`, indexes on caller and callee by time), with the
+other member's id, display name, availability and photo eligibility decided in the same query (same
+rules as the chat inbox: no N+1). `get_my_call_overview()` returns minutes, renewal date, the monthly
+insight, unseen count, ring capability and planned calls in one call. `hide_my_call_log_rows(peer,
+up_to)` and `mark_calls_seen()` write only the member's own rows. Free tier: no new paid services; all
+reads are bounded pages.
+
+## 13. Planned calls ("Request a call at 8 pm")
+
+1. Either member of an active match who can open the chat proposes a time from the chat or the call
+   details sheet: at least 10 minutes and at most 7 days ahead. One open plan per match; at most 5 open
+   plans per member. Refused, neutrally, where a call could not happen (block, calls blocked for this
+   chat, callee on Calls off, switch off).
+2. The other member accepts or declines (push "Abdul suggested a time to talk", first name only, opens
+   the plan). Either member can cancel at any time. Nobody is told why a plan was declined.
+3. Accepted plans are pinned in both Calls tabs with a countdown. 5 minutes before, both get a reminder
+   (respects Calls off; not sent if the plan was cancelled). From 5 minutes before until 30 minutes
+   after, the member who can start calls sees **Call now**; the call itself follows every rule of
+   sections 2–5 (minutes, Premium, harassment limit, ringing). A free man sees the paywall instead.
+4. A plan ends as done when the two connect within that window, otherwise expired 30 minutes after the
+   time. Plans are part of the call history, the Guardian log (time only) and the data export.
+
+## 14. Rule → proof
+
+Every rule above has a proof before the switch is turned on: R = server rollback test
+(`supabase/tests/voice_calling_rules_test.sql`, `supabase/tests/calls_tab_rules_test.sql`),
+D = Deno test, W = Dart unit / widget test, P = phone evidence (`docs/voice_calling_staging_evidence.md`).
+
+| Rule | Proof |
+|---|---|
+| 2 Access (free man / free woman / Premium, man must be Premium, caller pays) | R |
+| 3 Packs credited once, refunds claw back | R, D, P (gate 6) |
+| 4 Ringing owned by the server; first device wins; cancel / timeout refuse a late answer | R, P |
+| 4 Hold = min(balance, 60); max duration = hold + 30 s; ends on block / report / ban / pause / Premium loss / switch | R, P (gate 3) |
+| 5 Charge = connected time, per started minute, capped; Stream record first, webhook log fallback | R, D, P |
+| 5 Webhook signature incl. gzip, dedupe | D, P (gate 4) |
+| 7 Stream lockdown | P (gates 1–2, 29 probes) |
+| 8 Ring / Silent / Off, quiet hours, per-chat mute and block, harassment limit | R, P |
+| 12.1 CallStyle ongoing + status-bar chip, Mute / Hang up | W, P (gate 9) |
+| 12.2 TTL, late-ring suppression, cancel everywhere, screen lights on a locked phone | D, W, P (gate 10) |
+| 12.2.4 No device can ring → unavailable + prompt | R, W, P (gate 11) |
+| 12.2.5 Shared phone sign-out | W, P (gate 7) |
+| 12.3 Texts per situation, first name only, collapse count, `missed_call` toggle | R, D, W, P (gate 12) |
+| 12.4 Caller always neutral, "No answer" | R, W |
+| 12.5 Tab by name, old links keep meaning, hidden when switch off | W, P (gate 13) |
+| 12.5 Log privacy (names, photos, unavailable members), pagination, filters, search | R, W |
+| 12.5 Remove hides for the member only; export keeps hidden rows; badge and seen | R, W |
+| 13 Planned calls: window, one per match, limits, accept / cancel / reminder / expiry | R, W, P (gate 14) |
 
 Sources: getstream.io/video/pricing, /video/docs/flutter/pricing-guide, /video/docs/api/ring-calls,
 /video/docs/api/calls, /video/docs/api/call-types/settings, /video/docs/api/webhooks/overview,

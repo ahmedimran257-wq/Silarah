@@ -1,6 +1,8 @@
 import { assert, assertEquals } from "@std/assert";
 import {
   CALL_MEMBER_GRANTS,
+  streamTimeMs,
+  unreadableClientSettings,
   connectedSecondsFromEvents,
   connectedSecondsFromSessions,
   FORBIDDEN_CAPABILITIES,
@@ -114,6 +116,7 @@ Deno.test("call type lockdown matches spec 7", () => {
     "update-call-settings", "join-ended-call", "start-record-call", "start-transcription-call",
   ]) assert(FORBIDDEN_CAPABILITIES.includes(required), required);
   assertEquals(body.settings.video.enabled, false);
+  assertEquals(body.settings.video.camera_facing, "front");
   assertEquals(body.settings.screensharing.enabled, false);
   assertEquals(body.settings.recording.mode, "disabled");
   assertEquals(body.settings.transcription.mode, "disabled");
@@ -127,4 +130,35 @@ Deno.test("call type lockdown matches spec 7", () => {
   assertEquals(body.settings.lifecycle.mode, "single_use");
   assertEquals(body.settings.limits.max_duration_seconds, 3630);
   assertEquals(body.notification_settings.enabled, false);
+});
+
+Deno.test("the Flutter client can read every fixed-choice setting", () => {
+  // The live call type as Stream returned it on 22 Nov, with the fix.
+  const live = {
+    audio: { default_device: "earpiece", noise_cancellation: { mode: "auto-on" } },
+    encryption: { mode: "available" },
+    frame_recording: { mode: "disabled" },
+    individual_recording: { mode: "disabled" },
+    raw_recording: { mode: "disabled" },
+    transcription: { mode: "disabled", closed_caption_mode: "disabled" },
+    video: { camera_facing: "front" },
+  };
+  assertEquals(unreadableClientSettings(live), []);
+  // The empty value that broke the first device join.
+  assertEquals(
+    unreadableClientSettings({ ...live, video: { camera_facing: "" } }),
+    ['video.camera_facing=""'],
+  );
+});
+
+Deno.test("Stream's nanosecond times are read correctly (live call, 22 Nov)", () => {
+  // Exactly what Stream returned for the first connected device call.
+  const sessions = [
+    { user_id: "aisha", joined_at: 1795344199412329000, left_at: 1795344253764013000, duration_in_seconds: 54 },
+    { user_id: "imran", joined_at: 1795344203036013800, left_at: 1795344253764013000, duration_in_seconds: 50 },
+  ];
+  assertEquals(connectedSecondsFromSessions(sessions, "imran", "aisha"), 51);
+  assertEquals(streamTimeMs("2026-11-22T10:43:23.044Z"), Date.parse("2026-11-22T10:43:23.044Z"));
+  assertEquals(streamTimeMs("1795344203036013800"), 1795344203036.0138);
+  assertEquals(Number.isNaN(streamTimeMs(null)), true);
 });

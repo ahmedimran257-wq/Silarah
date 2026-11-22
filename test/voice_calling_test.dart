@@ -413,5 +413,34 @@ void main() {
       expect(calls, contains('notify: false'));
       expect(File('pubspec.yaml').readAsStringSync(), isNot(contains('stream_video_push_notification')));
     });
+
+    test('a ring lights a sleeping screen: the window is set as Android opens Silarah', () {
+      // Android only turns the screen on when the activity is next resumed,
+      // so waiting for Flutter left a sleeping phone dark while it rang.
+      final activity = File('android/app/src/main/kotlin/com/silarah/app/MainActivity.kt')
+          .readAsStringSync();
+      final channel = File('android/app/src/main/kotlin/com/silarah/app/CallPlatformChannel.kt')
+          .readAsStringSync();
+      final onCreate = activity.substring(activity.indexOf('override fun onCreate('),
+          activity.indexOf('override fun configureFlutterEngine('));
+      expect(onCreate, contains('wakeForIncomingRing(intent)'));
+      expect(activity, contains('override fun onNewIntent(intent: Intent)'));
+      expect(activity, contains('if (isIncomingRingLaunch(intent)) applyCallWindow(this, true)'));
+      // The native check reads the same payload the Dart side writes.
+      final payload = IncomingCallPush(
+        requestId: 'r', matchId: 'm', callerName: 'A', declineToken: 't',
+        expiresAt: DateTime(2030), forUser: 'u',
+      ).toPayload();
+      for (final key in ['request_id', 'for_user', 'expires_at']) {
+        expect(channel, contains('"$key"'));
+        expect(payload, contains('"$key"'));
+      }
+      expect(channel, contains('"SELECT_NOTIFICATION"'));
+      // A ring that is not shown gives the lock screen back.
+      final main = File('lib/main.dart').readAsStringSync();
+      final handler = main.substring(main.indexOf('void _onCallNotification('),
+          main.indexOf('void _openCallScreen('));
+      expect('releaseRingWindow()'.allMatches(handler).length, 3);
+    });
   });
 }

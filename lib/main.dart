@@ -672,10 +672,17 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
   /// before the session has loaded.
   void _onCallNotification(NotificationResponse response) {
     final push = IncomingCallPush.fromPayload(response.payload);
-    if (push == null) return;
+    if (push == null) {
+      CallController.instance.releaseRingWindow();
+      return;
+    }
     unawaited(() async {
-      if (!await CallNotifications.isForSignedInUser(push)) return;
+      if (!await CallNotifications.isForSignedInUser(push)) {
+        CallController.instance.releaseRingWindow();
+        return;
+      }
       if (!push.expiresAt.isAfter(DateTime.now())) {
+        CallController.instance.releaseRingWindow();
         // The ring is over; the missed call is in the chat.
         if (push.matchId.isNotEmpty) {
           navigateFromPushNotification(_router, '/chat/${push.matchId}');
