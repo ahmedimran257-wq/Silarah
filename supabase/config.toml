@@ -166,3 +166,29 @@ import_map = "./functions/deno.json"
 # Private pg_cron request authenticated by the Vault-backed cron credential.
 verify_jwt = false
 import_map = "./functions/deno.json"
+
+# Voice calling (docs/voice_calling_spec.md). `calls` checks the member's
+# access token itself because the notification's Decline button has none.
+[functions.calls]
+enabled = true
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+# Stream Video webhooks are HMAC-signed, not JWT-authenticated.
+[functions.stream-webhook]
+enabled = true
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+# Woken by the call watchdog with the private cron secret.
+[functions.call-worker]
+enabled = true
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+# STAGING ONLY: proves the Stream lockdown (spec 9 gates 1-2). The function
+# itself refuses to run on any other project. Never deploy it to production.
+[functions.call-gate-probe]
+enabled = true
+verify_jwt = false
+import_map = "./functions/deno.json"

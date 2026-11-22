@@ -1,0 +1,203 @@
+// Shared steps for the `calls`, `stream-webhook` and `call-worker` functions.
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { sendDataPush } from "./fcm_push.ts";
+import {
+  connectedSecondsFromEvents,
+  connectedSecondsFromSessions,
+  getCall,
+  isNotFound,
+  markEnded,
+  participantSessions,
+  type RecordedEvent,
+  type StreamConfig,
+} from "./stream_video.ts";
+
+export function adminClient(): SupabaseClient {
+  return createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    { auth: { autoRefreshToken: false, persistSession: false } },
+  );
+}
+
+export async function rpc<T = Record<string, unknown>>(
+  supabase: SupabaseClient,
+  name: string,
+  args: Record<string, unknown>,
+): Promise<T> {
+  const { data, error } = await supabase.rpc(name, args);
+  if (error) throw new Error(`${name}: ${error.message}`);
+  return data as T;
+}
+
+/**
+ * Pushes a call signal to every device of p_user (at most 5). Returns how
+ * many devices accepted it. Dead tokens are removed.
+ */
+export async function pushToUser(
+  supabase: SupabaseClient,
+  userId: string,
+  data: Record<string, string>,
+  ttlSeconds: number,
+  excludeDeviceId?: string | null,
+): Promise<number> {
+  const tokens = await rpc<{ fcm_token: string; device_id: string }[]>(
+    supabase,
+    "call_service_device_tokens",
+    { p_user: userId },
+  );
+  let sent = 0;
+  await Promise.all((tokens ?? []).map(async (row) => {
+    if (excludeDeviceId && row.device_id === excludeDeviceId) return;
+    const result = await sendDataPush(row.fcm_token, { ...data, for_user: userId }, ttlSeconds);
+    if (result === "sent") sent++;
+    if (result === "invalid_token") {
+      await supabase.from("user_fcm_tokens").delete().eq("fcm_token", row.fcm_token);
+    }
+  }));
+  return sent;
+}
+
+export async function deviceCount(supabase: SupabaseClient, userId: string): Promise<number> {
+  const tokens = await rpc<unknown[]>(supabase, "call_service_device_tokens", { p_user: userId });
+  return (tokens ?? []).length;
+}
+
+/** Stream mark_ended, then record it. A call Stream no longer has counts as ended. */
+export async function endOnStream(
+  supabase: SupabaseClient,
+  config: StreamConfig,
+  requestId: string,
+  streamCallId: string,
+): Promise<void> {
+  try {
+    await markEnded(config, streamCallId);
+  } catch (error) {
+    if (!isNotFound(error) && !/already.*ended|has ended/i.test(String((error as Error).message))) {
+      throw error;
+    }
+  }
+  await rpc(supabase, "call_service_stream_end_confirmed", { p_request_id: requestId });
+}
+
+interface SessionInfo {
+  request_id: string;
+  stream_call_id: string;
+  caller_id: string;
+  callee_id: string;
+  status: string;
+  ended_at: string | null;
+  stream_session_id: string | null;
+  events: RecordedEvent[];
+}
+
+export type SettleOutcome =
+  | { done: true; charged?: number; connected?: number }
+  | { done: false; retrySeconds: number; error: string };
+
+/**
+ * Settles one ended call from Stream's own record of who was connected when.
+ * Our webhook log is used only if Stream's record stays unreadable.
+ */
+export async function settleCall(
+  supabase: SupabaseClient,
+  config: StreamConfig,
+  requestId: string,
+  attempt: number,
+): Promise<SettleOutcome> {
+  const info = await rpc<SessionInfo | null>(supabase, "call_service_session_info", {
+    p_request_id: requestId,
+  });
+  if (!info) return { done: true };
+  if (info.status === "settled" || info.status === "failed") return { done: true };
+  if (info.status !== "ended") {
+    return { done: false, retrySeconds: 15, error: `not_ended:${info.status}` };
+  }
+
+  let connected: number | null = null;
+  let source = "stream_participant_sessions";
+  let sessionId = info.stream_session_id;
+  try {
+    const snapshot = await getCall(config, info.stream_call_id);
+    sessionId = snapshot.sessionId ?? sessionId;
+    if (!sessionId) {
+      // Nobody ever joined, so Stream never opened a session.
+      connected = 0;
+      source = "stream_no_session";
+    } else {
+      const sessions = await participantSessions(config, info.stream_call_id, sessionId);
+      connected = connectedSecondsFromSessions(sessions, info.caller_id, info.callee_id);
+      if (connected === null) {
+        return { done: false, retrySeconds: 10, error: "participant_still_connected" };
+      }
+    }
+  } catch (error) {
+    if (isNotFound(error)) {
+      connected = 0;
+      source = "stream_call_missing";
+    } else if (attempt >= 12) {
+      connected = connectedSecondsFromEvents(
+        info.events,
+        info.caller_id,
+        info.callee_id,
+        info.ended_at,
+      );
+      source = "webhook_log";
+      if (connected === null) {
+        return { done: false, retrySeconds: 120, error: String((error as Error).message) };
+      }
+    } else {
+      return { done: false, retrySeconds: 15, error: String((error as Error).message) };
+    }
+  }
+
+  const result = await rpc<{ outcome: string; charged_minutes?: number }>(
+    supabase,
+    "call_service_settle",
+    {
+      p_request_id: requestId,
+      p_connected_seconds: connected,
+      p_source: source,
+      p_stream_session_id: sessionId,
+    },
+  );
+  if (result.outcome === "not_ended") {
+    return { done: false, retrySeconds: 15, error: "not_ended" };
+  }
+  return { done: true, charged: result.charged_minutes, connected: connected ?? 0 };
+}
+
+/** A member left: end the call unless Stream shows them connected again. */
+export async function endIfMemberGone(
+  supabase: SupabaseClient,
+  config: StreamConfig,
+  requestId: string,
+): Promise<void> {
+  const info = await rpc<SessionInfo | null>(supabase, "call_service_session_info", {
+    p_request_id: requestId,
+  });
+  if (!info || !["creating", "active"].includes(info.status)) return;
+  let bothLive = false;
+  try {
+    const snapshot = await getCall(config, info.stream_call_id);
+    bothLive = snapshot.liveUserIds.includes(info.caller_id) &&
+      snapshot.liveUserIds.includes(info.callee_id);
+  } catch (error) {
+    if (!isNotFound(error)) throw error;
+  }
+  if (bothLive) return;
+  const ended = await rpc<{ stream_call_id: string | null }>(
+    supabase,
+    "call_service_system_end",
+    { p_request_id: requestId, p_reason: "member_left" },
+  );
+  if (ended.stream_call_id) {
+    await endOnStream(supabase, config, requestId, ended.stream_call_id);
+  }
+}
+
+export const jsonHeaders = { "Content-Type": "application/json" };
+
+export function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status, headers: jsonHeaders });
+}

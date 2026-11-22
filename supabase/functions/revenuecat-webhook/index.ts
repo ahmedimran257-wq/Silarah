@@ -80,6 +80,13 @@ Deno.serve(async (req: Request) => {
     console.error("[revenuecat-webhook] Production allowlist is incomplete.");
     return new Response("Service Unavailable", { status: 503 });
   }
+  // Call-minute packs are consumables with NO entitlement (an entitlement
+  // would grant Premium forever), so they never reach the subscription path
+  // below. Minutes are granted only here, never from the app.
+  if (typeof event.product_id === "string" && isCallPackProduct(event.product_id)) {
+    return await handleCallPackEvent(event);
+  }
+
   const productionValidation = validateProductionRevenueCatEvent(event);
   if (productionValidation != null) {
     console.warn(
@@ -222,6 +229,25 @@ Deno.serve(async (req: Request) => {
       applyError.message,
     );
     return new Response("Internal Server Error", { status: 500 });
+  }
+
+  // A refunded Premium payment also removes that period's included call
+  // minutes (spec 6). Idempotent on the RevenueCat event id.
+  if (
+    applyResult?.applied &&
+    (eventType === "REFUND" || eventType === "REVOCATION")
+  ) {
+    const { error: forfeitError } = await supabase.rpc(
+      "call_service_forfeit_included",
+      { p_user: supabaseUserId, p_event_id: `${event.id}:included` },
+    );
+    if (forfeitError) {
+      console.error(
+        `[revenuecat-webhook] Included call minutes not removed for ${supabaseUserId}:`,
+        forfeitError.message,
+      );
+      return new Response("Internal Server Error", { status: 500 });
+    }
   }
 
   // A plan change is noted, not applied: the new plan's own event starts it
@@ -558,6 +584,98 @@ async function queueSubscriptionNotification(
       error.message,
     );
   }
+}
+
+// Google Play one-time products for call minutes (spec 3). The database
+// table private.call_pack_products decides the minutes for each.
+export const CALL_PACK_PRODUCT_IDS = new Set([
+  "silarah_calls_20",
+  "silarah_calls_60",
+  "silarah_calls_150",
+  "silarah_calls_350",
+]);
+
+// Play one-time products with purchase options may be reported as
+// "<product>:<purchase option>" (ours is "buy"); the product decides minutes.
+export function callPackProductId(productId: string): string {
+  return productId.split(":")[0];
+}
+
+export function isCallPackProduct(productId: string): boolean {
+  return CALL_PACK_PRODUCT_IDS.has(callPackProductId(productId));
+}
+
+async function handleCallPackEvent(event: RevenueCatEvent): Promise<Response> {
+  if (event.app_id !== REVENUECAT_EXPECTED_APP_ID) {
+    return new Response("Bad Request: event is outside the production app", { status: 400 });
+  }
+  const allowedSandboxTester = event.environment === "SANDBOX" &&
+    REVENUECAT_SANDBOX_TESTER_IDS.has(event.app_user_id);
+  if (event.environment !== REVENUECAT_EXPECTED_ENVIRONMENT && !allowedSandboxTester) {
+    return new Response("Bad Request: event is outside the production app", { status: 400 });
+  }
+  if (typeof event.store !== "string" || !REVENUECAT_ALLOWED_STORES.has(event.store)) {
+    return new Response("Bad Request: event is outside the production app", { status: 400 });
+  }
+  if (
+    event.original_app_user_id != null &&
+    event.original_app_user_id !== event.app_user_id &&
+    !event.aliases?.includes(event.app_user_id)
+  ) {
+    return new Response("Bad Request: event is outside the production app", { status: 400 });
+  }
+  if (!isUuid(event.app_user_id)) {
+    console.error("[revenuecat-webhook] Call pack event without a Silarah user.");
+    return new Response("OK", { status: 200 });
+  }
+  if (Array.isArray(event.entitlement_ids) && event.entitlement_ids.length > 0) {
+    // A pack must never carry an entitlement. Minutes are still credited
+    // (the member paid), but staff must remove the attachment in RevenueCat.
+    console.error(
+      `[revenuecat-webhook] Call pack ${event.product_id} arrived WITH entitlements; detach them in RevenueCat.`,
+    );
+  }
+  const transactionId = event.transaction_id ?? event.original_transaction_id ?? "";
+  let rpcName: string;
+  if (event.type === "NON_RENEWING_PURCHASE") rpcName = "call_service_credit_pack";
+  else if (event.type === "CANCELLATION") rpcName = "call_service_refund_pack";
+  else {
+    console.log(`[revenuecat-webhook] Ignored ${event.type} for call pack.`);
+    return new Response("OK", { status: 200 });
+  }
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc(rpcName, {
+    p_user: event.app_user_id,
+    p_event_id: event.id,
+    p_transaction_id: transactionId,
+    p_product_id: callPackProductId(event.product_id!),
+  });
+  if (error) {
+    console.error(`[revenuecat-webhook] ${rpcName} failed:`, error.message);
+    return new Response("Internal Server Error", { status: 500 });
+  }
+  if (data?.applied) {
+    const minutes = Math.abs(Number(data.minutes ?? 0));
+    const refund = rpcName === "call_service_refund_pack";
+    const { error: notifyError } = await supabase.rpc("queue_notification", {
+      p_user_id: event.app_user_id,
+      p_type: refund ? "call_minutes_refunded" : "call_minutes_added",
+      p_title: refund ? "Call minutes removed" : "Call minutes added",
+      p_body: refund
+        ? `${minutes} call minutes were removed after a refund.`
+        : `${minutes} minutes were added to your Silarah call balance.`,
+      p_deep_link: null,
+    });
+    if (notifyError) {
+      console.error("[revenuecat-webhook] Pack notice not queued:", notifyError.message);
+    }
+  }
+  console.log(
+    `[revenuecat-webhook] Call pack ${event.type} for ${event.app_user_id}: ${
+      data?.applied ? "applied" : data?.reason ?? "not applied"
+    }`,
+  );
+  return new Response("OK", { status: 200 });
 }
 
 function isUuid(value: string): boolean {
