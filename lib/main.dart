@@ -17,6 +17,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'
+    show NotificationResponse;
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/config/app_config.dart';
@@ -32,6 +34,9 @@ import 'core/services/connectivity_service.dart';
 import 'core/services/subscription_service.dart';
 import 'core/services/wali_mode_service.dart';
 import 'core/services/fcm_service.dart';
+import 'features/calls/call_controller.dart';
+import 'features/calls/call_notifications.dart';
+import 'features/calls/screens/call_screen.dart';
 import 'core/services/presence_service.dart';
 import 'core/services/bookmark_service.dart';
 import 'core/services/compatibility_service.dart';
@@ -79,12 +84,20 @@ bool _bootstrapFollowSystemTheme = false;
 
 /// Firebase launches this callback in a separate Dart isolate for background
 /// data messages. Android renders notification payloads itself, so the handler
-/// intentionally performs no UI work and cannot create duplicate banners.
+/// performs no UI work for them and cannot create duplicate banners. The only
+/// exception is calling: ring pushes are data-only and the incoming-call
+/// notification is drawn here (only for the account signed in on this phone).
 @pragma('vm:entry-point')
 Future<void> silarahFirebaseMessagingBackgroundHandler(
   RemoteMessage message,
 ) async {
   await Firebase.initializeApp();
+  final type = message.data['type']?.toString() ?? '';
+  if (type.startsWith('call_')) {
+    await CallNotifications.handlePushData(
+      Map<String, dynamic>.from(message.data),
+    );
+  }
 }
 
 Future<void> _activateFirebaseAppCheck() async {
@@ -590,6 +603,12 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
       navigateFromPushNotification(_router, path);
     };
     FcmService.instance.onForegroundMessage = (message) {
+      final callType = message.data['type']?.toString() ?? '';
+      if (callType.startsWith('call_')) {
+        unawaited(_handleCallPush(Map<String, dynamic>.from(message.data)));
+        return;
+      }
+      if (callType == 'missed_call') CallController.historyChanged();
       final deepLink = message.data['deep_link']?.toString();
       // The open chat already shows the new message live; skip the banner.
       if (_chatCubit.isViewingConversationLink(deepLink)) {
@@ -609,6 +628,78 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startPostFirstFrameWork();
     });
+    if (!Platform.environment.containsKey('FLUTTER_TEST')) {
+      unawaited(_wireCallNotifications());
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Voice calls (docs/voice_calling_spec.md)
+  // ---------------------------------------------------------------------------
+
+  Future<void> _wireCallNotifications() async {
+    try {
+      await CallNotifications.initialize(onResponse: _onCallNotification);
+      final launch = await CallNotifications.launchResponse();
+      if (launch != null) _onCallNotification(launch);
+    } catch (error) {
+      debugPrint('[main] call notifications unavailable: $error');
+    }
+  }
+
+  /// A ring push while Silarah is open: ring and show the call screen.
+  Future<void> _handleCallPush(Map<String, dynamic> data) async {
+    final type = data['type']?.toString();
+    final requestId = data['request_id']?.toString() ?? '';
+    switch (type) {
+      case 'call_incoming':
+        final push = await CallNotifications.handlePushData(data);
+        if (push == null) return;
+        CallController.instance.presentIncoming(push);
+        _openCallScreen(AppRoutes.call);
+      case 'call_cancel':
+      case 'call_ended':
+        await CallNotifications.handlePushData(data);
+        CallController.instance.onRingCancelled(requestId);
+      case 'call_answered':
+        CallController.instance.nudge(requestId);
+    }
+  }
+
+  /// Tap or Answer on the incoming-call notification (Decline is handled
+  /// in the background without opening Silarah). The account check is the
+  /// same stored one that decided to ring, so it holds on a cold start too,
+  /// before the session has loaded.
+  void _onCallNotification(NotificationResponse response) {
+    final push = IncomingCallPush.fromPayload(response.payload);
+    if (push == null) return;
+    unawaited(() async {
+      if (!await CallNotifications.isForSignedInUser(push)) return;
+      if (!push.expiresAt.isAfter(DateTime.now())) {
+        // The ring is over; the missed call is in the chat.
+        if (push.matchId.isNotEmpty) {
+          navigateFromPushNotification(_router, '/chat/${push.matchId}');
+        }
+        return;
+      }
+      CallController.instance.presentIncoming(push);
+      final answer = response.actionId == answerActionId;
+      _openCallScreen(answer
+          ? '${AppRoutes.call}?answer=${Uri.encodeQueryComponent(push.requestId)}'
+          : AppRoutes.call);
+    }());
+  }
+
+  /// Opens the call screen over whatever the member is doing. Only a cold
+  /// start (still on the start-up gate) goes through Home first.
+  void _openCallScreen(String path) {
+    if (CallScreen.isOpen) return;
+    final shown = _router.routerDelegate.currentConfiguration.uri.path;
+    if (shown.isEmpty || shown == AppRoutes.boot || shown == AppRoutes.splash) {
+      navigateFromPushNotification(_router, path);
+    } else {
+      unawaited(_router.push(path));
+    }
   }
 
   void _startPostFirstFrameWork() {
@@ -984,7 +1075,11 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
                 // Every sign-out reaches here, including remote ones (session
                 // revoked, ban, deletion on another device), so this phone's
                 // push token is always retired for the departing account.
-                unawaited(FcmService.instance.onUserLogout());
+                // Calls first: a late ring for the departing account must
+                // never show on this phone (spec 9 gate 7).
+                unawaited(CallController.instance.onSignedOut());
+                unawaited(CallNotifications.forgetSignedInUser()
+                    .whenComplete(FcmService.instance.onUserLogout));
                 _clearUserScopedState(
                   departingUserId: departingUserId,
                   logoutStoreIdentity: true,
@@ -1024,7 +1119,8 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
                   if (!state.isGuardianOnly) {
                     unawaited(_loginSubscriptionUser(state.userId));
                   }
-                  unawaited(FcmService.instance.onUserLogin());
+                  unawaited(CallNotifications.rememberSignedInUser(state.userId)
+                      .whenComplete(FcmService.instance.onUserLogin));
                   unawaited(
                     _localeCubit.syncToServer(countryCode: state.countryCode),
                   );

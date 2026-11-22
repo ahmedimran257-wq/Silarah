@@ -4,4 +4,10 @@
     <string name="notification_channel_alerts_description">रुचियाँ, संदेश, मैच और महत्वपूर्ण खाता अपडेट</string>
     <string name="notification_channel_activity">प्रोफ़ाइल गतिविधि</string>
     <string name="notification_channel_activity_description">प्रोफ़ाइल दृश्य और अन्य गैर-ज़रूरी गतिविधि</string>
+    <string name="notification_channel_calls">कॉल</string>
+    <string name="notification_channel_calls_description">Silarah इनकमिंग कॉल</string>
+    <string name="notification_channel_call_ongoing">कॉल जारी है</string>
+    <string name="notification_channel_call_ongoing_description">Silarah कॉल के दौरान दिखता है</string>
+    <string name="call_ongoing_title">Silarah कॉल</string>
+    <string name="call_ongoing_text">कॉल जारी है। वापस जाने के लिए टैप करें।</string>
 </resources>

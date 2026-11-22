@@ -9,6 +9,7 @@
 //   • Read-only or interactive chat access
 //
 // This is SILARAH's biggest competitive moat against Muzz/Salams.
+import '../../calls/widgets/guardian_call_log.dart';
 import 'dart:async';
 
 import 'package:silarah/l10n/ui_copy.dart';
@@ -668,6 +669,9 @@ class _GuardianTranscriptScreenState extends State<_GuardianTranscriptScreen>
       appBar: AppBar(
         backgroundColor: AppColors.obsidianNight,
         titleSpacing: 0,
+        actions: [
+          if (_accessVerified) GuardianCallLogButton(matchId: _chat.matchId),
+        ],
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

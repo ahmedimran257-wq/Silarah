@@ -4,4 +4,10 @@
     <string name="notification_channel_alerts_description">আগ্রহ, বার্তা, ম্যাচ এবং গুরুত্বপূর্ণ অ্যাকাউন্ট আপডেট</string>
     <string name="notification_channel_activity">প্রোফাইল কার্যকলাপ</string>
     <string name="notification_channel_activity_description">প্রোফাইল দেখা এবং অন্যান্য অ-জরুরি কার্যকলাপ</string>
+    <string name="notification_channel_calls">কল</string>
+    <string name="notification_channel_calls_description">Silarah ইনকামিং কল</string>
+    <string name="notification_channel_call_ongoing">কল চলছে</string>
+    <string name="notification_channel_call_ongoing_description">Silarah কল চলাকালীন দেখায়</string>
+    <string name="call_ongoing_title">Silarah কল</string>
+    <string name="call_ongoing_text">কল চলছে। ফিরে যেতে ট্যাপ করুন।</string>
 </resources>

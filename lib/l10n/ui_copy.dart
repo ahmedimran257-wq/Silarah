@@ -3,6 +3,7 @@ import 'package:silarah/l10n/privacy_requests_ui_copy.dart';
 import 'package:silarah/l10n/generated/app_localizations.dart';
 import 'package:silarah/l10n/generated/app_localizations_en.dart';
 import 'package:silarah/l10n/billing_legal_ui_copy.dart';
+import 'package:silarah/l10n/calling_ui_copy.dart';
 import 'package:silarah/l10n/discover_rank_ui_copy.dart';
 import 'package:silarah/l10n/legal_access_ui_copy.dart';
 import 'package:silarah/l10n/photo_guide_ui_copy.dart';
@@ -46,6 +47,7 @@ class UiCopy {
         guardianUiCopy[languageCode]?[source] ??
         supplementalUiCopy[languageCode]?[source] ??
         _translations[languageCode]?[source] ??
+        callingUiCopy[languageCode]?[source] ??
         source;
   }
 
@@ -67,7 +69,8 @@ class UiCopy {
       emailGuardianUiCopy[languageCode]?.containsKey(source) == true ||
       guardianUiCopy[languageCode]?.containsKey(source) == true ||
       supplementalUiCopy[languageCode]?.containsKey(source) == true ||
-      _translations[languageCode]?.containsKey(source) == true;
+      _translations[languageCode]?.containsKey(source) == true ||
+      callingUiCopy[languageCode]?.containsKey(source) == true;
 
   static const Map<String, Map<String, String>> _translations = {
     'ar': {

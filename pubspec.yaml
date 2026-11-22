@@ -50,7 +50,7 @@ dependencies:
 
   # Networking
   http: ^1.2.2                    # Photon + Wikidata requests
-  connectivity_plus: ^6.1.5      # Local link-state events; no metered backend polling
+  connectivity_plus: 7.0.0       # Local link-state events (7.x required by stream_video 1.6)
 
   # Media and motion
   flutter_animate: ^4.5.2         # City search dropdown animations
@@ -63,6 +63,8 @@ dependencies:
   package_info_plus: 10.2.0
   archive: ^4.0.9
   share_plus: ^13.3.0
+  stream_video: 1.6.0            # Stream Video core client (audio calls only); no UI kit, push or services
+  flutter_local_notifications: 22.3.3  # Incoming-call notification with Answer/Decline
 
 dev_dependencies:
   fake_async: ^1.3.3

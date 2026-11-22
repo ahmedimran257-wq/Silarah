@@ -11,6 +11,7 @@
 import 'dart:async';
 
 import 'package:silarah/l10n/ui_copy.dart';
+import '../../calls/widgets/call_settings_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -330,6 +331,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ]),
             ),
+
+            // Calls (shown once calling is switched on)
+            const CallSettingsSection(),
 
             // 3. GUARDIAN
             _SectionHeader(l10n.settings_section_guardian, key: _guardianKey),

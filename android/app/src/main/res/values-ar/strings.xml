@@ -4,4 +4,10 @@
     <string name="notification_channel_alerts_description">الاهتمامات والرسائل والمطابقات وتحديثات الحساب المهمة</string>
     <string name="notification_channel_activity">نشاط الملف الشخصي</string>
     <string name="notification_channel_activity_description">مشاهدات الملف الشخصي والأنشطة الأخرى غير العاجلة</string>
+    <string name="notification_channel_calls">المكالمات</string>
+    <string name="notification_channel_calls_description">مكالمات Silarah الواردة</string>
+    <string name="notification_channel_call_ongoing">مكالمة جارية</string>
+    <string name="notification_channel_call_ongoing_description">يظهر أثناء مكالمة Silarah</string>
+    <string name="call_ongoing_title">مكالمة Silarah</string>
+    <string name="call_ongoing_text">مكالمة جارية. انقر للعودة.</string>
 </resources>

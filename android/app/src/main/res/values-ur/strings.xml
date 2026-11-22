@@ -4,4 +4,10 @@
     <string name="notification_channel_alerts_description">دلچسپیاں، پیغامات، میچز اور اہم اکاؤنٹ اپ ڈیٹس</string>
     <string name="notification_channel_activity">پروفائل سرگرمی</string>
     <string name="notification_channel_activity_description">پروفائل دیکھے جانے اور دیگر غیر فوری سرگرمیاں</string>
+    <string name="notification_channel_calls">کالز</string>
+    <string name="notification_channel_calls_description">Silarah کی آنے والی کالز</string>
+    <string name="notification_channel_call_ongoing">کال جاری ہے</string>
+    <string name="notification_channel_call_ongoing_description">Silarah کال کے دوران دکھائی دیتا ہے</string>
+    <string name="call_ongoing_title">Silarah کال</string>
+    <string name="call_ongoing_text">کال جاری ہے۔ واپس جانے کے لیے ٹیپ کریں۔</string>
 </resources>

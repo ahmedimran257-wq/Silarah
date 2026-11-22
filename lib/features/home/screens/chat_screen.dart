@@ -31,6 +31,8 @@ import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
 import '../../../core/widgets/overlays/silarah_dialog.dart';
 import '../../../core/widgets/silarah_empty_state.dart';
+import '../../calls/call_models.dart';
+import '../../calls/widgets/chat_call_widgets.dart';
 import 'paywall_gate_screen.dart';
 import 'profile_route_screen.dart';
 
@@ -105,6 +107,8 @@ class _ChatScreenState extends State<ChatScreen>
   bool get _activationSlow => _activationAttempts >= _maxActivationAttempts;
 
   bool _showSuggestedOpeners = true;
+  late final ChatCallControls _callControls =
+      ChatCallControls(widget.conversationId);
   late final AnimationController _openersAnim;
   late final Animation<double> _openersSize;
 
@@ -128,6 +132,7 @@ class _ChatScreenState extends State<ChatScreen>
     _watchNotifications();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _authorizeAndOpen();
+      unawaited(_callControls.refresh());
     });
   }
 
@@ -284,7 +289,29 @@ class _ChatScreenState extends State<ChatScreen>
     _inputCtrl.dispose();
     _scrollCtrl.dispose();
     _openersAnim.dispose();
+    _callControls.dispose();
     super.dispose();
+  }
+
+  void _startCall(Conversation conv) {
+    unawaited(startCallFromChat(
+      context,
+      controls: _callControls,
+      name: conv.matchName,
+      photoUrl: conv.photoUrl,
+      otherUserId: conv.otherUserId,
+    ));
+  }
+
+  /// Messages and calls, oldest first, in one timeline.
+  List<Object> _timeline(
+      List<ChatMessage> messages, List<ChatCallEvent> calls) {
+    if (calls.isEmpty) return messages;
+    final items = <Object>[...messages, ...calls];
+    DateTime at(Object item) =>
+        item is ChatMessage ? item.sentAt : (item as ChatCallEvent).createdAt;
+    items.sort((a, b) => at(a).compareTo(at(b)));
+    return items;
   }
 
   void _scrollToBottom({bool animated = false}) {
@@ -724,6 +751,19 @@ class _ChatScreenState extends State<ChatScreen>
             onBlock: () => _showBlockDialog(context, conv.matchName),
             onDelete: _showDeleteChatDialog,
             onBack: _close,
+            callButton: isClosed
+                ? null
+                : ChatCallButton(
+                    controls: _callControls,
+                    onTap: () => _startCall(conv),
+                  ),
+            onCallSettings: isClosed
+                ? null
+                : () => showChatCallPrefsSheet(
+                      context,
+                      controls: _callControls,
+                      name: conv.matchName,
+                    ),
           ),
           body: SafeArea(
             top: false,
@@ -748,18 +788,38 @@ class _ChatScreenState extends State<ChatScreen>
                   child: Column(
                     children: [
                       Expanded(
-                        child: hasMessages
+                        child: ValueListenableBuilder<ChatCallState>(
+                          valueListenable: _callControls,
+                          builder: (context, callState, _) {
+                            final timeline =
+                                _timeline(conv.messages, callState.events);
+                            return timeline.isNotEmpty
                             ? ListView.builder(
                                 controller: _scrollCtrl,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: AppDimensions.space16,
                                   vertical: AppDimensions.space12,
                                 ),
-                                itemCount: conv.messages.length,
+                                itemCount: timeline.length,
                                 itemBuilder: (_, i) {
-                                  final msg = conv.messages[i];
+                                  final item = timeline[i];
+                                  if (item is ChatCallEvent) {
+                                    return ChatCallTile(
+                                      key: ValueKey('call_${item.id}'),
+                                      event: item,
+                                      name: conv.matchName,
+                                      iAmFemale: callState.iAmFemale,
+                                      iAmPremium: callState.iAmPremium,
+                                      onCallBack: () => _startCall(conv),
+                                      onAskToCallBack: () => _useOpener(
+                                          context.uiCopy(askToCallBackMessage)),
+                                    );
+                                  }
+                                  final msg = item as ChatMessage;
+                                  final prevItem =
+                                      i > 0 ? timeline[i - 1] : null;
                                   final prev =
-                                      i > 0 ? conv.messages[i - 1] : null;
+                                      prevItem is ChatMessage ? prevItem : null;
                                   final sameAsPrev =
                                       prev != null && prev.isMe == msg.isMe;
                                   return _MessageArrival(
@@ -790,7 +850,9 @@ class _ChatScreenState extends State<ChatScreen>
                                 sizeAnim: _openersSize,
                                 onSelect: _useOpener,
                                 matchName: conv.matchName,
-                              ),
+                              );
+                          },
+                        ),
                       ),
                       _TypingPresenceBar(
                         visible: isTyping,
@@ -1438,7 +1500,11 @@ class _ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onBlock,
     required this.onDelete,
     required this.onBack,
+    this.callButton,
+    this.onCallSettings,
   });
+  final Widget? callButton;
+  final VoidCallback? onCallSettings;
   final String displayName;
   final String firstName;
   final String? photoUrl;
@@ -1570,6 +1636,7 @@ class _ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
         ),
+        if (callButton != null) callButton!,
         PopupMenuButton<String>(
           tooltip: context.uiCopy('Chat options'),
           icon: Container(
@@ -1602,6 +1669,17 @@ class _ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ]),
               )
             else ...[
+              if (onCallSettings != null)
+                PopupMenuItem<String>(
+                  value: 'calls',
+                  child: Row(children: [
+                    Icon(Icons.phone_disabled_outlined,
+                        color: AppColors.pearlWhite, size: 18),
+                    const SizedBox(width: AppDimensions.space8),
+                    UiText(context.uiCopy('Call settings'),
+                        style: AppTypography.body),
+                  ]),
+                ),
               PopupMenuItem<String>(
                 value: 'block',
                 child: Row(children: [
@@ -1630,6 +1708,7 @@ class _ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             if (v == 'block') onBlock();
             if (v == 'end') onEndMatch();
             if (v == 'delete') onDelete();
+            if (v == 'calls') onCallSettings?.call();
           },
         )
       ]),

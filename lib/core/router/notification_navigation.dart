@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 /// somewhere sensible.
 String notificationHomeFallback(String path) {
   final route = Uri.parse(path).path;
-  if (route.startsWith('/chat')) return '/home?tab=2';
+  if (route.startsWith('/chat') || route == '/call') return '/home?tab=2';
   if (route.startsWith('/profile/')) return '/home?tab=1';
   if (route == '/notifications') return '/home?tab=0';
   return '/home?tab=3';
