@@ -11,6 +11,7 @@ import { isAuthorizedCronRequest } from "../_shared/cron_auth.ts";
 import { json } from "../_shared/call_ops.ts";
 import {
   CALL_TYPE,
+  webhookSignature,
   createCall,
   deleteUser,
   markEnded,
@@ -32,6 +33,13 @@ Deno.serve(async (req) => {
   }
   const config = streamConfigFromEnv();
   if (!config) return json({ error: "stream_not_configured" }, 503);
+  let body: Record<string, unknown> = {};
+  try {
+    body = await req.json();
+  } catch {
+    body = {};
+  }
+  if (body.action === "webhook") return json(await webhookGate(config));
 
   const run = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
   const a = crypto.randomUUID();
@@ -92,6 +100,13 @@ Deno.serve(async (req) => {
     await probe("anyone with only the API key cannot become a guest", false, null, "POST",
       "/video/guest", { user: { id: `guest-${run}` } });
     const joined = await probe("call member can join their own call", true, tokenA, "POST", `${path}/join`, join);
+    // The Flutter SDK always joins with create=true: that must work for an
+    // existing call the member belongs to, without any create-call right.
+    await probe("member joins own call the SDK way (create=true)", true,
+      (await userToken(config, b, 600)).token, "POST", `${path}/join`,
+      { create: true, location: "auto", video: false });
+    await probe("stranger cannot join with create=true either", false, tokenC, "POST",
+      `${path}/join`, { create: true, location: "auto" });
     const capabilities = (joined?.own_capabilities ?? []) as string[];
     results.push({
       name: "member's own capabilities are only join/send-audio/end-call",
@@ -168,3 +183,54 @@ Deno.serve(async (req) => {
     results,
   });
 });
+
+/**
+ * Spec 9 gate 4 against the deployed stream-webhook: correct signatures are
+ * accepted plain and gzipped, wrong ones refused, and a duplicate delivery
+ * (same X-Webhook-Id) is answered but recorded once (checked in SQL).
+ */
+async function webhookGate(config: { apiKey: string; apiSecret: string }) {
+  const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/stream-webhook`;
+  const run = crypto.randomUUID().slice(0, 8);
+  const event = (pad: number) =>
+    new TextEncoder().encode(JSON.stringify({
+      type: "call.session_ended",
+      call_cid: `${CALL_TYPE}:${"0".repeat(24)}${run}`,
+      session_id: `gate-${run}`,
+      created_at: new Date().toISOString(),
+      pad: "x".repeat(pad),
+    }));
+  const gzip = async (bytes: Uint8Array<ArrayBuffer>) =>
+    new Uint8Array(
+      await new Response(new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip")))
+        .arrayBuffer(),
+    );
+  const send = async (raw: Uint8Array<ArrayBuffer>, signature: string, id: string, gz = false, key = config.apiKey) => {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "X-Signature": signature,
+      "X-Webhook-Id": id,
+      "X-Api-Key": key,
+    };
+    if (gz) headers["Content-Encoding"] = "gzip";
+    const response = await fetch(url, { method: "POST", headers, body: raw });
+    await response.body?.cancel();
+    return response.status;
+  };
+  const plain = event(10);
+  const big = event(2000);
+  const sigPlain = await webhookSignature(plain, config.apiSecret);
+  const sigBig = await webhookSignature(big, config.apiSecret);
+  const zipped = await gzip(big);
+  const results = [
+    { name: "signed plain body accepted", expect: 200, got: await send(plain, sigPlain, `gate-${run}-1`) },
+    { name: "same delivery again answered (counted once in SQL)", expect: 200, got: await send(plain, sigPlain, `gate-${run}-1`) },
+    { name: "signed gzip body accepted (signature over uncompressed)", expect: 200, got: await send(zipped, sigBig, `gate-${run}-2`, true) },
+    { name: "gzip signed over the compressed bytes refused", expect: 401, got: await send(zipped, await webhookSignature(zipped, config.apiSecret), `gate-${run}-3`, true) },
+    { name: "wrong signature refused", expect: 401, got: await send(plain, "0".repeat(64), `gate-${run}-4`) },
+    { name: "missing signature refused", expect: 401, got: await send(plain, "", `gate-${run}-5`) },
+    { name: "tampered body refused", expect: 401, got: await send(event(11), sigPlain, `gate-${run}-6`) },
+    { name: "another app's key refused", expect: 401, got: await send(plain, sigPlain, `gate-${run}-7`, false, "someoneelse") },
+  ].map((r) => ({ ...r, pass: r.expect === r.got }));
+  return { run, all_pass: results.every((r) => r.pass), results };
+}

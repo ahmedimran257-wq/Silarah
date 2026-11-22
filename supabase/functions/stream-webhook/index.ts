@@ -41,8 +41,11 @@ Deno.serve(async (req) => {
   const config = streamConfigFromEnv();
   if (!config) return new Response("Service Unavailable", { status: 503 });
 
-  const apiKey = req.headers.get("X-Api-Key") ?? req.headers.get("x-api-key") ?? "";
-  if (!constantTimeEqual(apiKey, config.apiKey)) {
+  // The HMAC signature (below) is what proves Stream sent this. The API key
+  // header only says which app it is for: a different key is refused, a
+  // missing one is not a reason to drop a correctly signed event.
+  const apiKey = req.headers.get("X-Api-Key");
+  if (apiKey != null && !constantTimeEqual(apiKey, config.apiKey)) {
     return new Response("Unauthorized", { status: 401 });
   }
   const length = Number(req.headers.get("Content-Length") ?? "0");

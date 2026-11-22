@@ -166,7 +166,9 @@ async function start(supabase: Admin, userId: string, matchId: string): Promise<
   const requestIdValue = String(result.request_id);
   const calleeId = String(result.callee_id);
   const expiresAt = String(result.ring_expires_at);
-  const ttl = Math.max(5, Math.round((Date.parse(expiresAt) - Date.now()) / 1000));
+  // Phones time the ring from "seconds left", not from this server's
+  // clock: a phone whose clock is wrong must still ring for the full time.
+  const ringSeconds = Math.max(5, Math.round((Date.parse(expiresAt) - Date.now()) / 1000));
   const sent = await pushToUser(supabase, calleeId, {
     type: "call_incoming",
     request_id: requestIdValue,
@@ -174,12 +176,18 @@ async function start(supabase: Admin, userId: string, matchId: string): Promise<
     caller_name: String(result.caller_name),
     decline_token: String(result.decline_token),
     expires_at: expiresAt,
-  }, ttl);
+    ring_seconds: String(ringSeconds),
+  }, ringSeconds);
   if (sent === 0) {
     await rpc(supabase, "call_service_mark_unreachable", { p_request_id: requestIdValue });
     return reply({ outcome: "unavailable", request_id: requestIdValue });
   }
-  return reply({ outcome: "ringing", request_id: requestIdValue, ring_expires_at: expiresAt });
+  return reply({
+    outcome: "ringing",
+    request_id: requestIdValue,
+    ring_expires_at: expiresAt,
+    ring_seconds: ringSeconds,
+  });
 }
 
 async function tokenPayload(config: Config, userId: string, info: Record<string, unknown>) {
@@ -222,6 +230,8 @@ async function join(
     my_name: info.my_name,
     other_name: info.other_name,
     match_id: info.match_id,
+    // Needed to report the other member from the call screen.
+    other_user_id: info.role === "caller" ? info.callee_id : info.caller_id,
     hold_minutes: info.hold_minutes,
     max_duration_seconds: info.max_duration_seconds,
     accepted_at: info.accepted_at,
@@ -287,6 +297,7 @@ async function accept(
     other_name: info.caller_name,
     my_name: info.callee_name,
     match_id: info.match_id,
+    other_user_id: callerId,
     hold_minutes: info.hold_minutes,
     max_duration_seconds: info.max_duration_seconds,
     stream: await tokenPayload(config, userId, info),

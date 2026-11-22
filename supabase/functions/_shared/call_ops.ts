@@ -81,6 +81,7 @@ export async function endOnStream(
 }
 
 interface SessionInfo {
+  both_joined_at: string | null;
   request_id: string;
   stream_call_id: string;
   caller_id: string;
@@ -114,34 +115,48 @@ export async function settleCall(
     return { done: false, retrySeconds: 15, error: `not_ended:${info.status}` };
   }
 
+  // Charging 0 is only ever right when nobody joined. Any sign that a
+  // member joined (our webhook log or Stream's own join time) means the
+  // call is charged from a real record, never waved through as free.
+  const someoneJoined = info.events.some((event) => event.kind === "joined") ||
+    info.both_joined_at != null;
+  const fromWebhookLog = () =>
+    connectedSecondsFromEvents(info.events, info.caller_id, info.callee_id, info.ended_at);
+
   let connected: number | null = null;
   let source = "stream_participant_sessions";
   let sessionId = info.stream_session_id;
   try {
     const snapshot = await getCall(config, info.stream_call_id);
     sessionId = snapshot.sessionId ?? sessionId;
-    if (!sessionId) {
-      // Nobody ever joined, so Stream never opened a session.
-      connected = 0;
-      source = "stream_no_session";
-    } else {
+    if (sessionId) {
       const sessions = await participantSessions(config, info.stream_call_id, sessionId);
       connected = connectedSecondsFromSessions(sessions, info.caller_id, info.callee_id);
       if (connected === null) {
         return { done: false, retrySeconds: 10, error: "participant_still_connected" };
       }
+      // Stream's record and ours should agree; if Stream lists no shared
+      // time while our log shows both joined, charge from the log.
+      const logged = someoneJoined ? fromWebhookLog() : 0;
+      if (connected === 0 && logged != null && logged > 0) {
+        connected = logged;
+        source = "webhook_log";
+      }
+    } else if (!someoneJoined) {
+      // Stream never opened a session and no member ever joined.
+      connected = 0;
+      source = "stream_no_session";
+    } else {
+      throw new Error("stream_session_unknown");
     }
   } catch (error) {
-    if (isNotFound(error)) {
+    if (!someoneJoined && isNotFound(error)) {
       connected = 0;
       source = "stream_call_missing";
     } else if (attempt >= 12) {
-      connected = connectedSecondsFromEvents(
-        info.events,
-        info.caller_id,
-        info.callee_id,
-        info.ended_at,
-      );
+      // Stream's record stays unreadable: use our own signed webhook log.
+      // Held minutes stay held until it can settle (never under-charged).
+      connected = someoneJoined ? fromWebhookLog() : 0;
       source = "webhook_log";
       if (connected === null) {
         return { done: false, retrySeconds: 120, error: String((error as Error).message) };
@@ -167,6 +182,8 @@ export async function settleCall(
   return { done: true, charged: result.charged_minutes, connected: connected ?? 0 };
 }
 
+const REJOIN_GRACE_MS = 8_000;
+
 /** A member left: end the call unless Stream shows them connected again. */
 export async function endIfMemberGone(
   supabase: SupabaseClient,
@@ -177,6 +194,9 @@ export async function endIfMemberGone(
     p_request_id: requestId,
   });
   if (!info || !["creating", "active"].includes(info.status)) return;
+  // A phone that drops off Wi-Fi rejoins with a new Stream session within
+  // seconds. Decide only after it has had the chance to come back.
+  await new Promise((resolve) => setTimeout(resolve, REJOIN_GRACE_MS));
   let bothLive = false;
   try {
     const snapshot = await getCall(config, info.stream_call_id);
