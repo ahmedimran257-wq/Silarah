@@ -3,7 +3,10 @@
 // Woken by the 10-second database watchdog (private.call_watchdog) only when
 // calling has work: end calls on Stream, check that both members joined,
 // settle ended calls from Stream's record, stop ringing, delete the Stream
-// user of a deleted account. Also `{ "action": "setup" }` creates/updates
+// user of a deleted account, send missed-call pushes (one notification per
+// caller, rendered on the phone in its language), clear them on a member's
+// other phones once the Calls tab was opened, and send planned-call
+// reminders (docs/voice_calling_spec.md 12.3, 13). Also `{ "action": "setup" }` creates/updates
 // the locked-down silarah_voice call type and our webhook on the Stream app.
 // Authorized by the private cron secret (x-cron-secret), like other workers.
 import { isAuthorizedCronRequest } from "../_shared/cron_auth.ts";
@@ -15,6 +18,12 @@ import {
   rpc,
   settleCall,
 } from "../_shared/call_ops.ts";
+import {
+  MISSED_PUSH_TTL_SECONDS,
+  missedCallPush,
+  planReminderPush,
+  SEEN_PUSH_TTL_SECONDS,
+} from "../_shared/call_push.ts";
 import {
   CALL_TYPE,
   deleteUser,
@@ -40,6 +49,7 @@ interface Job {
   kind: string;
   request_id: string | null;
   user_id: string | null;
+  plan_id: string | null;
   attempts: number;
   lease_token: string;
 }
@@ -158,6 +168,34 @@ async function runJob(
           request_id: job.request_id ?? "",
         }, 30);
       }
+      return { success: true };
+    }
+    case "missed_push": {
+      const info = await rpc<Record<string, unknown>>(supabase, "call_service_missed_push", {
+        p_request_id: job.request_id,
+      });
+      if (info.send !== true) return { success: true };
+      // Kept a day: a phone that was off still learns it missed a call.
+      await pushToUser(supabase, String(info.callee_id), missedCallPush(info), MISSED_PUSH_TTL_SECONDS);
+      return { success: true };
+    }
+    case "seen_push": {
+      if (job.user_id) {
+        await pushToUser(supabase, job.user_id, { type: "call_missed_seen" }, SEEN_PUSH_TTL_SECONDS);
+      }
+      return { success: true };
+    }
+    case "plan_reminder": {
+      const info = await rpc<{ send: boolean; to: Record<string, unknown>[] }>(
+        supabase,
+        "call_service_plan_reminder",
+        { p_plan_id: job.plan_id },
+      );
+      if (info.send !== true) return { success: true };
+      await Promise.all(info.to.map((row) => {
+        const push = planReminderPush(row);
+        return pushToUser(supabase, String(row.user_id), push.data, push.ttlSeconds);
+      }));
       return { success: true };
     }
     case "delete_stream_user": {

@@ -4,10 +4,4 @@
     <string name="notification_channel_alerts_description">Interessen, Nachrichten, Matches und wichtige Kontoaktualisierungen</string>
     <string name="notification_channel_activity">Profilaktivität</string>
     <string name="notification_channel_activity_description">Profilaufrufe und andere nicht dringende Aktivitäten</string>
-    <string name="notification_channel_calls">Anrufe</string>
-    <string name="notification_channel_calls_description">Eingehende Silarah-Anrufe</string>
-    <string name="notification_channel_call_ongoing">Laufender Anruf</string>
-    <string name="notification_channel_call_ongoing_description">Wird während eines Silarah-Anrufs angezeigt</string>
-    <string name="call_ongoing_title">Silarah-Anruf</string>
-    <string name="call_ongoing_text">Anruf läuft. Tippe, um zurückzukehren.</string>
 </resources>

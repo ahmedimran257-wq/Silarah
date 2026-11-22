@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="silarah_calls_notification_channel_calls">کالز</string>
+    <string name="silarah_calls_notification_channel_calls_description">Silarah کی آنے والی کالز</string>
+    <string name="silarah_calls_notification_channel_call_ongoing">کال جاری ہے</string>
+    <string name="silarah_calls_notification_channel_call_ongoing_description">Silarah کال کے دوران دکھائی دیتا ہے</string>
+    <string name="silarah_calls_call_ongoing_title">Silarah کال</string>
+    <string name="silarah_calls_call_ongoing_text">کال جاری ہے۔ واپس جانے کے لیے ٹیپ کریں۔</string>
+    <string name="silarah_calls_notification_channel_missed">مسڈ کالز</string>
+    <string name="silarah_calls_notification_channel_missed_description">Silarah کی مسڈ کالز اور کال یاد دہانیاں</string>
+</resources>

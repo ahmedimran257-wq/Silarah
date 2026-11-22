@@ -188,12 +188,66 @@ void main() {
       expect(IncomingCallPush.fromPayload('not json'), isNull);
     });
 
-    test('one stable notification id per call, away from other notifications', () {
-      const id = '0f7c2d3e-4b5a-4c6d-8e7f-9a0b1c2d3e4f';
-      expect(callNotificationId(id), callNotificationId(id));
-      expect(callNotificationId(id), greaterThanOrEqualTo(900000000));
-      expect(callNotificationId(id), lessThan(1000000000));
-      expect(callNotificationId(id), isNot(callNotificationId('1f7c2d3e-4b5a-4c6d-8e7f-9a0b1c2d3e4f')));
+  });
+
+  group('missed-call notifications (spec 12.3)', () {
+    MissedCallPush? missed(Map<String, dynamic> extra) => MissedCallPush.fromData({
+          'type': 'call_missed',
+          'request_id': 'r1',
+          'match_id': 'm1',
+          'caller_id': 'u1',
+          'caller_name': 'Abdul',
+          'count': '1',
+          'variant': 'missed',
+          'silent': '0',
+          'for_user': 'me',
+          ...extra,
+        });
+
+    test('one missed call: "Missed call from Abdul"', () {
+      final text = missedCallText('en', missed({})!);
+      expect(text.title, 'Missed call from Abdul');
+      expect(text.body, 'Tap to see your calls');
+    });
+
+    test('several collapse into one notification with the server count', () {
+      final text = missedCallText('en', missed({'count': '3'})!);
+      expect(text.title, '3 missed calls from Abdul');
+    });
+
+    test('a free man is told who called and that Premium lets him talk', () {
+      final text = missedCallText('en', missed({'variant': 'premium'})!);
+      expect(text.title, 'Abdul tried to call you');
+      expect(text.body, 'Get Premium to talk with your matches');
+    });
+
+    test('silent flag, bounded count, and pushes for nobody are dropped', () {
+      expect(missed({'silent': '1'})!.silent, isTrue);
+      expect(missed({'count': '500'})!.count, 99);
+      expect(missed({'count': 'x'})!.count, 1);
+      expect(missed({'for_user': ''}), isNull);
+      expect(missed({'type': 'call_incoming'}), isNull);
+    });
+
+    test('every language has the missed-call lines', () {
+      for (final code in callingUiCopy.keys) {
+        for (final key in [
+          'Missed call from {name}',
+          '{count} missed calls from {name}',
+          '{name} tried to call you',
+          'Get Premium to talk with your matches',
+          'Tap to see your calls',
+          '{name} · Silarah voice call',
+          'Your call with {name} is soon',
+          'Tap to open your calls',
+          '{minutes} min left',
+          'Silarah voice call',
+          'Mute',
+          'Unmute',
+        ]) {
+          expect(callingUiCopy[code]![key], isNotNull, reason: '$code: $key');
+        }
+      }
     });
   });
 
@@ -416,31 +470,50 @@ void main() {
 
     test('a ring lights a sleeping screen: the window is set as Android opens Silarah', () {
       // Android only turns the screen on when the activity is next resumed,
-      // so waiting for Flutter left a sleeping phone dark while it rang.
-      final activity = File('android/app/src/main/kotlin/com/silarah/app/MainActivity.kt')
-          .readAsStringSync();
-      final channel = File('android/app/src/main/kotlin/com/silarah/app/CallPlatformChannel.kt')
-          .readAsStringSync();
-      final onCreate = activity.substring(activity.indexOf('override fun onCreate('),
-          activity.indexOf('override fun configureFlutterEngine('));
-      expect(onCreate, contains('wakeForIncomingRing(intent)'));
-      expect(activity, contains('override fun onNewIntent(intent: Intent)'));
-      expect(activity, contains('if (isIncomingRingLaunch(intent)) applyCallWindow(this, true)'));
-      // The native check reads the same payload the Dart side writes.
-      final payload = IncomingCallPush(
-        requestId: 'r', matchId: 'm', callerName: 'A', declineToken: 't',
-        expiresAt: DateTime(2030), forUser: 'u',
-      ).toPayload();
-      for (final key in ['request_id', 'for_user', 'expires_at']) {
-        expect(channel, contains('"$key"'));
-        expect(payload, contains('"$key"'));
-      }
-      expect(channel, contains('"SELECT_NOTIFICATION"'));
+      // so waiting for Flutter left a sleeping phone dark while it rang. The
+      // call module attaches during the activity's onCreate and sees new
+      // intents before the activity resumes.
+      const kotlin = 'packages/silarah_calls/android/src/main/kotlin/com/silarah/calls';
+      final plugin = File('$kotlin/SilarahCallsPlugin.kt').readAsStringSync();
+      final window = File('$kotlin/CallWindow.kt').readAsStringSync();
+      final attach = plugin.substring(plugin.indexOf('override fun onAttachedToActivity('),
+          plugin.indexOf('override fun onReattachedToActivityForConfigChanges('));
+      expect(attach, contains('consumeLaunch(binding.activity.intent, initial = true)'));
+      expect(plugin, contains('override fun onNewIntent(intent: Intent): Boolean'));
+      expect(plugin, contains('if (CallWindow.isRingLaunch(intent)) activity?.let { CallWindow.apply(it, true) }'));
+      expect(window, contains('setTurnScreenOn(active)'));
+      expect(window, contains('setShowWhenLocked(active)'));
       // A ring that is not shown gives the lock screen back.
       final main = File('lib/main.dart').readAsStringSync();
-      final handler = main.substring(main.indexOf('void _onCallNotification('),
+      final handler = main.substring(main.indexOf('void _onRingLaunch('),
           main.indexOf('void _openCallScreen('));
       expect('releaseRingWindow()'.allMatches(handler).length, 3);
+    });
+
+    test('one native call module: CallStyle, Telecom, three channels, no old plugin', () {
+      const kotlin = 'packages/silarah_calls/android/src/main/kotlin/com/silarah/calls';
+      final notifier = File('$kotlin/CallNotifier.kt').readAsStringSync();
+      final service = File('$kotlin/CallService.kt').readAsStringSync();
+      final telecom = File('$kotlin/CallTelecom.kt').readAsStringSync();
+      expect(notifier, contains('CallStyle.forIncomingCall('));
+      expect(service, contains('CallStyle.forOngoingCall('));
+      expect(service, contains('setUsesChronometer(true)'));
+      for (final channel in ['"silarah_calls"', '"silarah_calls_missed"', '"silarah_call_ongoing"']) {
+        expect(notifier, contains(channel));
+      }
+      expect(notifier, contains('NotificationManager.IMPORTANCE_HIGH'));
+      expect(notifier, contains('NotificationManager.IMPORTANCE_DEFAULT'));
+      expect(notifier, contains('NotificationManager.IMPORTANCE_LOW'));
+      expect(telecom, contains('CallsManager.CAPABILITY_BASELINE'));
+      expect(telecom, contains('onSetInactive'));
+      expect(service, contains('FOREGROUND_SERVICE_TYPE_PHONE_CALL'));
+      final pubspec = File('pubspec.yaml').readAsStringSync();
+      expect(pubspec, isNot(contains('flutter_local_notifications')));
+      expect(pubspec, contains('path: packages/silarah_calls'));
+      final manifest = File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
+      expect(manifest, contains('android:launchMode="singleTop"'));
+      expect(manifest, isNot(contains('flutterlocalnotifications')));
+      expect(manifest, contains('android.permission.MANAGE_OWN_CALLS'));
     });
   });
 }

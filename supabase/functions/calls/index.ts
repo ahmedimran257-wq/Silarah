@@ -177,7 +177,7 @@ async function start(supabase: Admin, userId: string, matchId: string): Promise<
     decline_token: String(result.decline_token),
     expires_at: expiresAt,
     ring_seconds: String(ringSeconds),
-  }, ringSeconds);
+  }, ringSeconds, { ringOnly: true });
   if (sent === 0) {
     await rpc(supabase, "call_service_mark_unreachable", { p_request_id: requestIdValue });
     return reply({ outcome: "unavailable", request_id: requestIdValue });
@@ -287,7 +287,9 @@ async function accept(
 
   // Stop the ring on the callee's other phones; wake the caller's app.
   await Promise.all([
-    pushToUser(supabase, calleeId, { type: "call_cancel", request_id: requestId }, 30, deviceId),
+    pushToUser(supabase, calleeId, { type: "call_cancel", request_id: requestId }, 30, {
+      excludeDeviceId: deviceId,
+    }),
     pushToUser(supabase, callerId, { type: "call_answered", request_id: requestId }, 30),
   ]);
 

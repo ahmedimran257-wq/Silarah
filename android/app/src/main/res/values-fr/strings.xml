@@ -4,10 +4,4 @@
     <string name="notification_channel_alerts_description">Intérêts, messages, mises en relation et mises à jour importantes du compte</string>
     <string name="notification_channel_activity">Activité du profil</string>
     <string name="notification_channel_activity_description">Vues du profil et autres activités non urgentes</string>
-    <string name="notification_channel_calls">Appels</string>
-    <string name="notification_channel_calls_description">Appels Silarah entrants</string>
-    <string name="notification_channel_call_ongoing">Appel en cours</string>
-    <string name="notification_channel_call_ongoing_description">Affiché pendant un appel Silarah</string>
-    <string name="call_ongoing_title">Appel Silarah</string>
-    <string name="call_ongoing_text">Appel en cours. Touchez pour revenir.</string>
 </resources>

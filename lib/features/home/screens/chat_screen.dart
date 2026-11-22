@@ -18,7 +18,6 @@ import '../../../core/cubits/block_report/block_report_cubit.dart';
 import '../../../core/cubits/interests/interests_cubit.dart';
 import '../../../core/cubits/notifications/notifications_cubit.dart';
 import '../../../core/cubits/subscription/subscription_cubit.dart';
-import '../../../core/router/app_router.dart';
 import '../../../core/router/notification_navigation.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_curves.dart';
@@ -35,6 +34,7 @@ import '../../calls/call_models.dart';
 import '../../calls/widgets/chat_call_widgets.dart';
 import 'paywall_gate_screen.dart';
 import 'profile_route_screen.dart';
+import '../../../core/router/home_tab.dart';
 
 /// G12: Profile-aware openers — include the match's name.
 List<String> _buildOpeners(BuildContext context, String name) => [
@@ -113,7 +113,7 @@ class _ChatScreenState extends State<ChatScreen>
   late final Animation<double> _openersSize;
 
   void _close() {
-    popOrGoToFallback(GoRouter.of(context), '${AppRoutes.home}?tab=2');
+    popOrGoToFallback(GoRouter.of(context), HomeTab.chats.path);
   }
 
   @override

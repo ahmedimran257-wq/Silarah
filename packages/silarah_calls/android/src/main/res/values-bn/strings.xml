@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="silarah_calls_notification_channel_calls">কল</string>
+    <string name="silarah_calls_notification_channel_calls_description">Silarah ইনকামিং কল</string>
+    <string name="silarah_calls_notification_channel_call_ongoing">কল চলছে</string>
+    <string name="silarah_calls_notification_channel_call_ongoing_description">Silarah কল চলাকালীন দেখায়</string>
+    <string name="silarah_calls_call_ongoing_title">Silarah কল</string>
+    <string name="silarah_calls_call_ongoing_text">কল চলছে। ফিরে যেতে ট্যাপ করুন।</string>
+    <string name="silarah_calls_notification_channel_missed">মিসড কল</string>
+    <string name="silarah_calls_notification_channel_missed_description">Silarah-এর মিসড কল ও কলের রিমাইন্ডার</string>
+</resources>

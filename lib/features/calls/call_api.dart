@@ -1,9 +1,11 @@
 // Talks to the server side of calling: the `calls` edge function and the
-// member RPCs from migration 323. Minutes are never changed from the app.
+// member RPCs from migrations 323 and 324. Minutes are never changed from
+// the app.
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/services/supabase_service.dart';
+import 'call_log.dart';
 import 'call_models.dart';
 
 typedef CallFunctionInvoker = Future<Map<String, dynamic>> Function(
@@ -171,6 +173,107 @@ class CallApi {
       return true;
     } catch (error) {
       debugPrint('[CallApi] set mode failed: $error');
+      return false;
+    }
+  }
+  // ---------------------------------------------------------------------------
+  // Calls tab (spec 12.5) and planned calls (spec 13)
+  // ---------------------------------------------------------------------------
+
+  Future<CallOverview?> overview() async {
+    try {
+      final data = await _rpc('get_my_call_overview', const {});
+      return data is Map ? CallOverview.fromJson(Map<String, dynamic>.from(data)) : null;
+    } catch (error) {
+      debugPrint('[CallApi] overview failed: $error');
+      return null;
+    }
+  }
+
+  /// One page, newest first. Throws so the screen can offer a retry.
+  Future<List<CallLogEntry>> log({
+    CallLogFilter filter = CallLogFilter.all,
+    String? query,
+    CallLogEntry? after,
+    int limit = 40,
+    String? otherUserId,
+  }) async {
+    final data = await _rpc('get_my_call_log', {
+      if (otherUserId != null) 'p_other_user_id': otherUserId,
+      'p_filter': filter == CallLogFilter.planned ? 'all' : filter.serverName,
+      'p_query': (query?.trim().isEmpty ?? true) ? null : query!.trim(),
+      'p_before': after?.createdAt.toUtc().toIso8601String(),
+      'p_before_id': after?.requestId,
+      'p_limit': limit,
+    });
+    return (data as List? ?? const [])
+        .whereType<Map>()
+        .map((row) => CallLogEntry.fromJson(Map<String, dynamic>.from(row)))
+        .whereType<CallLogEntry>()
+        .toList(growable: false);
+  }
+
+  Future<List<CallPlan>> plans() async {
+    try {
+      return CallPlan.listFrom(await _rpc('get_my_call_plans', const {}));
+    } catch (error) {
+      debugPrint('[CallApi] plans failed: $error');
+      return const [];
+    }
+  }
+
+  /// Clears the badge here and on the member's other phones.
+  Future<bool> markSeen() async {
+    try {
+      await _rpc('mark_calls_seen', const {});
+      return true;
+    } catch (error) {
+      debugPrint('[CallApi] mark seen failed: $error');
+      return false;
+    }
+  }
+
+  /// Remove from history (this member only).
+  Future<bool> hide(List<String> requestIds) async {
+    if (requestIds.isEmpty) return true;
+    try {
+      await _rpc('hide_my_calls', {'p_request_ids': requestIds.take(200).toList()});
+      return true;
+    } catch (error) {
+      debugPrint('[CallApi] hide failed: $error');
+      return false;
+    }
+  }
+
+  /// `proposed`, `already_planned`, `invalid_time`, `limit_reached`,
+  /// `premium_required`, `unavailable`, `not_allowed`, `calls_disabled`,
+  /// `account_restricted`, or `failed`.
+  Future<String> proposePlan(String matchId, DateTime at) =>
+      _planCall('propose_call_plan', {'p_match_id': matchId, 'p_planned_for': at.toUtc().toIso8601String()});
+
+  Future<String> respondPlan(String planId, {required bool accept}) =>
+      _planCall('respond_call_plan', {'p_plan_id': planId, 'p_accept': accept});
+
+  Future<String> cancelPlan(String planId) => _planCall('cancel_call_plan', {'p_plan_id': planId});
+
+  Future<String> _planCall(String name, Map<String, Object?> params) async {
+    try {
+      final data = await _rpc(name, params);
+      return data is Map ? data['outcome']?.toString() ?? 'failed' : 'failed';
+    } catch (error) {
+      debugPrint('[CallApi] $name failed: $error');
+      return 'failed';
+    }
+  }
+
+  /// Whether this phone can ring (notifications on, incoming-call channel
+  /// not blocked). The server rings only phones that said yes.
+  Future<bool> reportRingCapability({required String deviceId, required bool canRing}) async {
+    try {
+      await _rpc('set_my_call_ring_capability', {'p_device_id': deviceId, 'p_can_ring': canRing});
+      return true;
+    } catch (error) {
+      debugPrint('[CallApi] ring capability failed: $error');
       return false;
     }
   }

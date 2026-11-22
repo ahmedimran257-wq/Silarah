@@ -1,5 +1,7 @@
 // SILARAH — Home Screen Shell
-// IndexedStack with 4 tabs + SilarahBottomNav.
+// IndexedStack with the Home tabs + SilarahBottomNav. Tabs are identified by
+// name (HomeTab); Calls is shown only while calling is switched on
+// (docs/voice_calling_spec.md 12.5), so positions are never stored.
 // Preserves scroll state across tab switches.
 import 'package:silarah/l10n/ui_copy.dart';
 import 'dart:async';
@@ -17,6 +19,7 @@ import '../../core/cubits/notifications/notifications_cubit.dart';
 import '../../core/cubits/subscription/subscription_cubit.dart';
 import '../../core/cubits/subscription/subscription_state.dart';
 import '../../core/router/app_router.dart';
+import '../../core/router/home_tab.dart';
 import '../../core/router/notification_navigation.dart';
 import '../../core/services/connectivity_service.dart';
 import '../../core/services/coach_mark_service.dart';
@@ -28,6 +31,8 @@ import '../../core/theme/app_typography.dart';
 import '../../core/widgets/buttons/silarah_pressable.dart';
 import '../../core/widgets/loaders/silarah_shimmer.dart';
 import '../../core/widgets/silarah_coach_mark.dart';
+import '../calls/calls_hub.dart';
+import '../calls/screens/calls_tab_screen.dart';
 import 'screens/discovery_feed_screen.dart';
 import 'screens/interests_screen.dart';
 import 'screens/chat_list_screen.dart';
@@ -37,22 +42,36 @@ import 'widgets/interest_quota_sheet.dart';
 import 'widgets/policy_reminder_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.initialTab});
-  final int? initialTab;
+  const HomeScreen({super.key, this.initialTab, this.callsPeerId});
+  final HomeTab? initialTab;
+
+  /// Opens this member's call details on the Calls tab (/calls/<peerId>).
+  final String? callsPeerId;
 
   @override
   State<HomeScreen> createState() => HomeScreenState();
 }
 
 class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
-  int _currentTab = 0;
-  late final List<Widget?> _tabCache;
+  HomeTab _currentTab = HomeTab.discover;
+  final Map<HomeTab, Widget> _tabCache = {};
   int _profileRefreshToken = 0;
   bool _policyReminderChecked = false;
   late final CoachMarkService _coachMarks;
-  int? _coachTab;
+  HomeTab? _coachTab;
   bool _coachCheckInFlight = false;
-  static const _tabCount = 4;
+
+  /// The tabs shown now, in bar order.
+  List<HomeTab> get _tabs => [
+        HomeTab.discover,
+        HomeTab.interests,
+        HomeTab.chats,
+        if (CallsHub.instance.tabVisible.value) HomeTab.calls,
+        HomeTab.profile,
+      ];
+
+  /// A link to the Calls tab while calling is off lands on Chats.
+  HomeTab _shown(HomeTab tab) => _tabs.contains(tab) ? tab : HomeTab.chats;
 
   @override
   void initState() {
@@ -60,13 +79,15 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _coachMarks = CoachMarkService();
     CoachMarkService.replayRevision.addListener(_replayCoachMarks);
+    CallsHub.instance.tabVisible.addListener(_onCallsTabChanged);
     if (widget.initialTab != null) {
       _currentTab = widget.initialTab!;
     }
-    _tabCache = List<Widget?>.filled(_tabCount, null);
     _ensureTabBuilt(_currentTab);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _showPolicyReminderIfDue();
+      // Opened straight on the Calls tab (a missed-call notification).
+      if (mounted && _shown(_currentTab) == HomeTab.calls) _refreshTabData(HomeTab.calls);
     });
   }
 
@@ -81,17 +102,17 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (mounted) await _showCoachMarkIfNeeded(_currentTab);
   }
 
-  Future<void> _showCoachMarkIfNeeded(int tab) async {
+  Future<void> _showCoachMarkIfNeeded(HomeTab tab) async {
     if (_coachCheckInFlight || _coachTab != null) return;
     _coachCheckInFlight = true;
     final interests = context.read<InterestsCubit>().state;
     final alreadyUsed = switch (tab) {
-      1 => interests.sent.isNotEmpty || interests.respondedReceived.isNotEmpty,
-      2 => context.read<ChatCubit>().state.conversations.isNotEmpty,
+      HomeTab.interests => interests.sent.isNotEmpty || interests.respondedReceived.isNotEmpty,
+      HomeTab.chats => context.read<ChatCubit>().state.conversations.isNotEmpty,
       _ => false,
     };
     final shouldShow = await _coachMarks.shouldShow(
-      _coachTips[tab].id,
+      _coachTips[tab]!.id,
       alreadyUsed: alreadyUsed,
     );
     if (!mounted) return;
@@ -104,7 +125,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     // Marking on presentation prevents a tip from repeatedly returning when a
     // member navigates away without pressing a button.
-    await _coachMarks.markSeen(_coachTips[tab].id);
+    await _coachMarks.markSeen(_coachTips[tab]!.id);
     if (mounted && tab == _currentTab) setState(() => _coachTab = tab);
   }
 
@@ -129,6 +150,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       timer.cancel();
     }
     CoachMarkService.replayRevision.removeListener(_replayCoachMarks);
+    CallsHub.instance.tabVisible.removeListener(_onCallsTabChanged);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -144,50 +166,66 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void didUpdateWidget(HomeScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialTab != null &&
-        widget.initialTab != oldWidget.initialTab) {
-      _ensureTabBuilt(widget.initialTab!);
-      _currentTab = widget.initialTab!;
+        (widget.initialTab != oldWidget.initialTab ||
+            widget.callsPeerId != oldWidget.callsPeerId)) {
+      if (widget.callsPeerId != oldWidget.callsPeerId) _tabCache.remove(HomeTab.calls);
+      final tab = _shown(widget.initialTab!);
+      _ensureTabBuilt(tab);
+      _currentTab = tab;
+      if (tab == HomeTab.calls) _refreshTabData(tab);
     }
+  }
+
+  /// The server switch turned calling on or off: the bar gains or loses
+  /// the Calls tab. A member on it moves to Chats.
+  void _onCallsTabChanged() {
+    if (!mounted) return;
+    // A link to the Calls tab waited for the switch: open it now.
+    if (CallsHub.instance.tabVisible.value && _currentTab == HomeTab.calls) {
+      _refreshTabData(HomeTab.calls);
+    }
+    setState(() {
+      if (!CallsHub.instance.tabVisible.value) {
+        _tabCache.remove(HomeTab.calls);
+        if (_currentTab == HomeTab.calls) {
+          _currentTab = HomeTab.chats;
+          _ensureTabBuilt(HomeTab.chats);
+        }
+        if (_coachTab == HomeTab.calls) _coachTab = null;
+      }
+    });
   }
 
   /// Allows child widgets (e.g. DiscoveryFeedScreen) to switch tabs programmatically.
-  void switchToTab(int index) {
-    if (index < 0 || index >= _tabCount || index == _currentTab) return;
-    setState(() {
-      _ensureTabBuilt(index);
-      if (index == 3) {
-        _tabCache[3] = MyProfileScreen(refreshToken: ++_profileRefreshToken);
-      }
-      _coachTab = null;
-      _currentTab = index;
-    });
-    _refreshTabData(index);
-    _showCoachMarkIfNeeded(index);
+  void switchToTab(HomeTab tab) {
+    final target = _shown(tab);
+    if (target == _currentTab) return;
+    _selectTab(target);
   }
 
-  void _selectTab(int index) {
-    if (index == _currentTab) {
-      _refreshTabData(index);
-      _showCoachMarkIfNeeded(index);
+  void _selectTab(HomeTab tab) {
+    if (tab == _currentTab) {
+      _refreshTabData(tab);
+      _showCoachMarkIfNeeded(tab);
       return;
     }
     setState(() {
-      _ensureTabBuilt(index);
-      if (index == 3) {
-        _tabCache[3] = MyProfileScreen(refreshToken: ++_profileRefreshToken);
+      _ensureTabBuilt(tab);
+      if (tab == HomeTab.profile) {
+        _tabCache[HomeTab.profile] = MyProfileScreen(refreshToken: ++_profileRefreshToken);
       }
       _coachTab = null;
-      _currentTab = index;
+      _currentTab = tab;
     });
-    _refreshTabData(index);
-    _showCoachMarkIfNeeded(index);
+    _refreshTabData(tab);
+    _showCoachMarkIfNeeded(tab);
   }
 
-  void _refreshTabData(int index) {
-    switch (index) {
-      case 0:
+  void _refreshTabData(HomeTab tab) {
+    switch (tab) {
+      case HomeTab.discover:
         context.read<DiscoveryFeedCubit>().refreshIfChanged();
-      case 1:
+      case HomeTab.interests:
         // Selecting Interests is an explicit freshness boundary. This performs
         // one tiny revision check and reloads the bounded lists only on change.
         context.read<InterestsCubit>().refreshIfChanged(forceCheck: true);
@@ -197,17 +235,24 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   n.type == 'interest_received' ||
                   n.type == 'interest_accepted',
             );
-      case 2:
+      case HomeTab.chats:
         context.read<ChatCubit>().refreshIfChanged();
+      case HomeTab.calls:
+        // Opening the tab clears the missed-call badge on every phone.
+        unawaited(CallsHub.instance.refresh());
+        unawaited(CallsHub.instance.markSeen());
+      case HomeTab.profile:
+        break;
     }
   }
 
-  void _ensureTabBuilt(int index) {
-    _tabCache[index] ??= switch (index) {
-      0 => DiscoveryFeedScreen(onOpenTab: switchToTab),
-      1 => const InterestsScreen(),
-      2 => const ChatListScreen(),
-      _ => MyProfileScreen(refreshToken: _profileRefreshToken),
+  void _ensureTabBuilt(HomeTab tab) {
+    _tabCache[tab] ??= switch (tab) {
+      HomeTab.discover => DiscoveryFeedScreen(onOpenTab: switchToTab),
+      HomeTab.interests => const InterestsScreen(),
+      HomeTab.chats => const ChatListScreen(),
+      HomeTab.calls => CallsTabScreen(initialPeerId: widget.callsPeerId),
+      HomeTab.profile => MyProfileScreen(refreshToken: _profileRefreshToken),
     };
   }
 
@@ -237,9 +282,12 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final tabs = _tabs;
+    final current = _shown(_currentTab);
+    _ensureTabBuilt(current);
     return HomeTabBackScope(
-      currentTab: _currentTab,
-      onReturnToPrimaryTab: () => _selectTab(0),
+      currentTab: current,
+      onReturnToPrimaryTab: () => _selectTab(HomeTab.discover),
       child: BlocListener<SubscriptionCubit, SubscriptionState>(
         listenWhen: (previous, current) =>
             previous.isSubscribed != current.isSubscribed,
@@ -286,9 +334,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           : AppDimensions.durationReveal,
                       switchInCurve: AppCurves.reveal,
                       switchOutCurve: AppCurves.dismiss,
-                      // The Profile tab (index 3) shows the same standing in its
-                      // own card with a Resume action, so the banner would repeat.
-                      child: standing.showsPersistentNotice && _currentTab != 3
+                      // The Profile tab shows the same standing in its own
+                      // card with a Resume action, so the banner would repeat.
+                      child: standing.showsPersistentNotice && current != HomeTab.profile
                           ? _PersistentStandingBanner(
                               key: ValueKey(standing.kind),
                               standing: standing,
@@ -299,20 +347,20 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                   Expanded(
                     child: IndexedStack(
-                      index: _currentTab,
-                      children: List.generate(
-                        _tabCount,
-                        (index) => TickerMode(
-                          enabled: index == _currentTab,
-                          child: ExcludeSemantics(
-                            excluding: index != _currentTab,
-                            child: RepaintBoundary(
-                              child:
-                                  _tabCache[index] ?? const SizedBox.shrink(),
+                      index: tabs.indexOf(current),
+                      children: [
+                        for (final tab in tabs)
+                          TickerMode(
+                            key: ValueKey(tab),
+                            enabled: tab == current,
+                            child: ExcludeSemantics(
+                              excluding: tab != current,
+                              child: RepaintBoundary(
+                                child: _tabCache[tab] ?? const SizedBox.shrink(),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
+                      ],
                     ),
                   ),
                 ],
@@ -323,7 +371,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               children: [
                 // A dedicated dock cannot obscure bookmark, interest, or chat
                 // actions. Large-text tips scroll independently above navigation.
-                if (_coachTab case final int tab)
+                if (_coachTab case final HomeTab tab)
                   ConstrainedBox(
                     constraints: BoxConstraints(
                       maxWidth: 560,
@@ -332,16 +380,17 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
                       child: SilarahCoachMark(
-                        icon: _coachTips[tab].icon,
-                        title: context.uiCopy(_coachTips[tab].title),
-                        message: context.uiCopy(_coachTips[tab].message),
+                        icon: _coachTips[tab]!.icon,
+                        title: context.uiCopy(_coachTips[tab]!.title),
+                        message: context.uiCopy(_coachTips[tab]!.message),
                         onDismiss: _dismissCoachMark,
                         onDisableAll: _disableCoachMarks,
                       ),
                     ),
                   ),
                 SilarahBottomNav(
-                  currentIndex: _currentTab,
+                  tabs: tabs,
+                  current: current,
                   onTabSelected: _selectTab,
                 ),
               ],
@@ -368,36 +417,43 @@ class _CoachTip {
   final String message;
 }
 
-const _coachTips = <_CoachTip>[
-  _CoachTip(
+const _coachTips = <HomeTab, _CoachTip>{
+  HomeTab.discover: _CoachTip(
     id: 'discover',
     icon: Icons.tune_rounded,
     title: 'Shape your discovery',
     message:
         'Use filters to focus on age, location, practice, and trust signals. Save a profile when you want time to consider it.',
   ),
-  _CoachTip(
+  HomeTab.interests: _CoachTip(
     id: 'interests',
     icon: Icons.favorite_outline_rounded,
     title: 'Keep every interest clear',
     message:
         'Every interest keeps a clear status. Open Sent to review, withdraw, or follow its progress without losing the profile.',
   ),
-  _CoachTip(
+  HomeTab.chats: _CoachTip(
     id: 'chat',
     icon: Icons.forum_outlined,
     title: 'Conversations begin after acceptance',
     message:
         'A conversation opens after an interest is accepted. Women message free; men use Premium to send.',
   ),
-  _CoachTip(
+  HomeTab.calls: _CoachTip(
+    id: 'calls',
+    icon: Icons.call_outlined,
+    title: 'Every call in one place',
+    message:
+        'Missed calls, call times you planned and your call minutes live here. Calls are never recorded.',
+  ),
+  HomeTab.profile: _CoachTip(
     id: 'profile',
     icon: Icons.visibility_outlined,
     title: 'Build trust at your pace',
     message:
         'The activity eye shows profile visits. Your profile, photo controls, and optional trust checks stay together here.',
   ),
-];
+};
 
 class _ConnectivityStatusBanner extends StatelessWidget {
   const _ConnectivityStatusBanner();

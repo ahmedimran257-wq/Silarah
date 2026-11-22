@@ -1,14 +1,15 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'home_tab.dart';
 
 /// The Home tab a screen opened from a notification sits on, so Back lands
 /// somewhere sensible.
 String notificationHomeFallback(String path) {
   final route = Uri.parse(path).path;
-  if (route.startsWith('/chat') || route == '/call') return '/home?tab=2';
-  if (route.startsWith('/profile/')) return '/home?tab=1';
-  if (route == '/notifications') return '/home?tab=0';
-  return '/home?tab=3';
+  if (route.startsWith('/chat') || route == '/call') return HomeTab.chats.path;
+  if (route.startsWith('/profile/')) return HomeTab.interests.path;
+  if (route == '/notifications') return HomeTab.discover.path;
+  return HomeTab.profile.path;
 }
 
 /// Opens an external push destination above a real Home tab.
@@ -108,16 +109,16 @@ class HomeTabBackScope extends StatelessWidget {
     required this.child,
   });
 
-  final int currentTab;
+  final HomeTab currentTab;
   final VoidCallback onReturnToPrimaryTab;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: currentTab == 0,
+      canPop: currentTab == HomeTab.discover,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && currentTab != 0) onReturnToPrimaryTab();
+        if (!didPop && currentTab != HomeTab.discover) onReturnToPrimaryTab();
       },
       child: child,
     );

@@ -36,11 +36,11 @@ void main() {
       );
       expect(
         notificationPathFromDeepLink('silarah://discover'),
-        '/home?tab=0',
+        '/home?tab=discover',
       );
       expect(
         notificationPathFromDeepLink('silarah://interests'),
-        '/home?tab=1',
+        '/home?tab=interests',
       );
     });
 

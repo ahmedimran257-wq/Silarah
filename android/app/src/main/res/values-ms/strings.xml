@@ -4,10 +4,4 @@
     <string name="notification_channel_alerts_description">Minat, mesej, padanan dan kemas kini akaun penting</string>
     <string name="notification_channel_activity">Aktiviti profil</string>
     <string name="notification_channel_activity_description">Paparan profil dan aktiviti tidak mendesak yang lain</string>
-    <string name="notification_channel_calls">Panggilan</string>
-    <string name="notification_channel_calls_description">Panggilan masuk Silarah</string>
-    <string name="notification_channel_call_ongoing">Panggilan sedang berlangsung</string>
-    <string name="notification_channel_call_ongoing_description">Dipaparkan semasa panggilan Silarah</string>
-    <string name="call_ongoing_title">Panggilan Silarah</string>
-    <string name="call_ongoing_text">Panggilan sedang berlangsung. Ketik untuk kembali.</string>
 </resources>

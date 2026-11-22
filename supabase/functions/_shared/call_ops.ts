@@ -30,8 +30,16 @@ export async function rpc<T = Record<string, unknown>>(
   return data as T;
 }
 
+/** Options for {@link pushToUser}. */
+export interface PushOptions {
+  /** Skip this device (the one that just answered). */
+  excludeDeviceId?: string | null;
+  /** Only phones that reported they can ring (incoming-call pushes). */
+  ringOnly?: boolean;
+}
+
 /**
- * Pushes a call signal to every device of p_user (at most 5). Returns how
+ * Pushes a call signal to the devices of p_user (at most 5). Returns how
  * many devices accepted it. Dead tokens are removed.
  */
 export async function pushToUser(
@@ -39,16 +47,17 @@ export async function pushToUser(
   userId: string,
   data: Record<string, string>,
   ttlSeconds: number,
-  excludeDeviceId?: string | null,
+  options: PushOptions = {},
 ): Promise<number> {
-  const tokens = await rpc<{ fcm_token: string; device_id: string }[]>(
+  const tokens = await rpc<{ fcm_token: string; device_id: string; can_ring: boolean }[]>(
     supabase,
     "call_service_device_tokens",
     { p_user: userId },
   );
   let sent = 0;
   await Promise.all((tokens ?? []).map(async (row) => {
-    if (excludeDeviceId && row.device_id === excludeDeviceId) return;
+    if (options.excludeDeviceId && row.device_id === options.excludeDeviceId) return;
+    if (options.ringOnly && row.can_ring !== true) return;
     const result = await sendDataPush(row.fcm_token, { ...data, for_user: userId }, ttlSeconds);
     if (result === "sent") sent++;
     if (result === "invalid_token") {
@@ -56,11 +65,6 @@ export async function pushToUser(
     }
   }));
   return sent;
-}
-
-export async function deviceCount(supabase: SupabaseClient, userId: string): Promise<number> {
-  const tokens = await rpc<unknown[]>(supabase, "call_service_device_tokens", { p_user: userId });
-  return (tokens ?? []).length;
 }
 
 /** Stream mark_ended, then record it. A call Stream no longer has counts as ended. */

@@ -1,100 +1,79 @@
-// Native calling helpers (android/app/src/main/kotlin/.../CallPlatformChannel.kt).
+// The app's view of the native call module (packages/silarah_calls,
+// docs/voice_calling_spec.md 12.1). CallController talks to this class so a
+// test can swap it.
 import 'dart:async';
-import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import 'package:silarah_calls/silarah_calls.dart';
 
-enum MicrophoneStatus { granted, denied, permanentlyDenied }
+export 'package:silarah_calls/silarah_calls.dart' show CallEvent, MicrophoneStatus, needsAutoStartTip;
 
 class CallPlatform {
-  CallPlatform._() {
-    _channel.setMethodCallHandler(_onNativeCall);
-  }
-  static final CallPlatform instance = CallPlatform._();
+  CallPlatform();
 
-  static const _channel = MethodChannel('com.silarah.app/calls');
+  static final CallPlatform instance = CallPlatform();
 
-  /// `true` while a regular phone call is connected (the call goes on
-  /// hold), `false` when it is over.
-  final StreamController<bool> _audioInterrupted =
-      StreamController<bool>.broadcast();
-  Stream<bool> get audioInterrupted => _audioInterrupted.stream;
+  SilarahCalls get _native => SilarahCalls.instance;
 
-  bool get _supported => !kIsWeb && Platform.isAndroid;
+  /// Notification buttons (Hang up, Mute), Telecom (hold, routes, hang up
+  /// from a headset or the car) and the phone-call watcher.
+  Stream<CallEvent> get events => _native.events;
 
-  Future<dynamic> _onNativeCall(MethodCall call) async {
-    if (call.method == 'phoneCallChanged') {
-      _audioInterrupted.add((call.arguments as Map?)?['active'] == true);
-    }
-    return null;
-  }
+  /// The call notification that opened Silarah from closed, once.
+  Future<CallEvent?> takeLaunchAction() => _native.takeLaunchAction();
 
-  Future<T?> _invoke<T>(String method, [Map<String, Object?>? args]) async {
-    if (!_supported) return null;
-    try {
-      return await _channel.invokeMethod<T>(method, args);
-    } on PlatformException catch (error) {
-      debugPrint('[CallPlatform] $method failed: ${error.code}');
-      return null;
-    } on MissingPluginException {
-      return null;
-    }
-  }
+  Future<MicrophoneStatus> microphoneStatus() => _native.microphoneStatus();
 
-  MicrophoneStatus _status(String? value) => switch (value) {
-        'granted' => MicrophoneStatus.granted,
-        'permanentlyDenied' => MicrophoneStatus.permanentlyDenied,
-        _ => _supported ? MicrophoneStatus.denied : MicrophoneStatus.granted,
-      };
+  Future<MicrophoneStatus> requestMicrophone() => _native.requestMicrophone();
 
-  Future<MicrophoneStatus> microphoneStatus() async =>
-      _status(await _invoke<String>('microphoneStatus'));
+  Future<void> setCallWindow(bool active) => _native.setCallWindow(active);
 
-  Future<MicrophoneStatus> requestMicrophone() async =>
-      _status(await _invoke<String>('requestMicrophone'));
+  Future<void> setProximity(bool enabled) => _native.setProximity(enabled);
 
-  /// Shows Silarah over the lock screen and keeps the screen on, only while
-  /// a call is ringing or live.
-  Future<void> setCallWindow(bool active) =>
-      _invoke<void>('setCallWindow', {'active': active});
+  Future<bool> startCall({
+    required String requestId,
+    required String name,
+    required bool outgoing,
+    required String text,
+    required String muteLabel,
+    required String unmuteLabel,
+    DateTime? connectedAt,
+    bool muted = false,
+  }) =>
+      _native.startCall(
+        requestId: requestId,
+        name: name,
+        outgoing: outgoing,
+        text: text,
+        muteLabel: muteLabel,
+        unmuteLabel: unmuteLabel,
+        connectedAt: connectedAt,
+        muted: muted,
+      );
 
-  /// Turns the screen off at the ear (earpiece only).
-  Future<void> setProximity(bool enabled) =>
-      _invoke<void>('setProximity', {'enabled': enabled});
+  Future<void> updateCall({String? text, DateTime? connectedAt, bool? muted}) =>
+      _native.updateCall(text: text, connectedAt: connectedAt, muted: muted);
 
-  Future<bool> startCallService({required String title, required String text}) async =>
-      await _invoke<bool>('startCallService', {'title': title, 'text': text}) ??
-      false;
+  Future<void> stopCall() => _native.stopCall();
 
-  Future<void> stopCallService() => _invoke<void>('stopCallService');
+  Future<bool> telecomActive() => _native.telecomActive();
 
-  /// Starts / stops watching for a regular phone call during a Silarah call.
-  Future<void> startPhoneCallWatch() => _invoke<void>('startPhoneCallWatch');
+  Future<bool> setAudioRoute(String route) => _native.setAudioRoute(route);
 
-  Future<void> stopPhoneCallWatch() => _invoke<void>('stopPhoneCallWatch');
+  Future<void> resumeAfterPhoneCall() => _native.resumeAfterPhoneCall();
 
-  Future<bool> canUseFullScreenIntent() async =>
-      await _invoke<bool>('canUseFullScreenIntent') ?? true;
+  Future<void> startPhoneCallWatch() => _native.startPhoneCallWatch();
 
-  Future<void> openFullScreenIntentSettings() =>
-      _invoke<void>('openFullScreenIntentSettings');
+  Future<void> stopPhoneCallWatch() => _native.stopPhoneCallWatch();
 
-  Future<String> manufacturer() async =>
-      await _invoke<String>('manufacturer') ?? '';
+  Future<bool> canUseFullScreenIntent() => _native.canUseFullScreenIntent();
 
-  Future<void> openAutoStartSettings() => _invoke<bool>('openAutoStartSettings');
+  Future<void> openFullScreenIntentSettings() => _native.openFullScreenIntentSettings();
+
+  Future<void> openNotificationSettings() => _native.openNotificationSettings();
+
+  Future<bool> canRing() => _native.canRing();
+
+  Future<String> manufacturer() => _native.manufacturer();
+
+  Future<void> openAutoStartSettings() => _native.openAutoStartSettings();
 }
-
-/// Phone makers whose battery savers stop background pushes unless Silarah
-/// is allowed to auto-start (spec 8).
-bool needsAutoStartTip(String manufacturer) => const {
-      'xiaomi',
-      'redmi',
-      'poco',
-      'oppo',
-      'vivo',
-      'realme',
-      'oneplus',
-      'iqoo',
-    }.contains(manufacturer.toLowerCase());

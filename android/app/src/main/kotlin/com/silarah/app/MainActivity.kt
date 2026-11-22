@@ -4,8 +4,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.media.AudioAttributes
-import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -18,13 +16,11 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterActivity() {
     private val lifecycleChannel = "com.silarah.app/app_lifecycle"
     private val platformActionsChannel = "com.silarah.app/platform_actions"
-    private var callChannel: CallPlatformChannel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         createNotificationChannels()
-        wakeForIncomingRing(intent)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // Android 12 otherwise inserts its own icon fade between the
             // native surface and Flutter's reveal. Remove the system layer
@@ -35,21 +31,8 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        wakeForIncomingRing(intent)
-    }
-
-    /** A ring opening Silarah on a sleeping or locked phone must light the
-     *  screen and show over the lock before Silarah is resumed. */
-    private fun wakeForIncomingRing(intent: Intent?) {
-        if (isIncomingRingLaunch(intent)) applyCallWindow(this, true)
-    }
-
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        callChannel?.dispose()
-        callChannel = CallPlatformChannel(this, flutterEngine.dartExecutor.binaryMessenger)
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             lifecycleChannel,
@@ -116,21 +99,6 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
-        callChannel?.dispose()
-        callChannel = null
-        super.cleanUpFlutterEngine(flutterEngine)
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray,
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        callChannel?.onPermissionResult(requestCode)
-    }
-
     // Android 15+ always draws apps edge-to-edge when they target SDK 35+.
     // Opting in from Android 8 keeps every phone on the same layout: Flutter
     // reports the bar sizes as MediaQuery padding and each screen insets its
@@ -161,43 +129,13 @@ class MainActivity : FlutterActivity() {
         ).apply {
             description = getString(R.string.notification_channel_activity_description)
         }
-        // Incoming calls ring like a phone call (ringtone, on the alarm-free
-        // ringtone stream). The member can change or silence it in Android
-        // settings; Silarah's own Ring / Silent / Off setting is separate.
-        val ringtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-        val calls = NotificationChannel(
-            CALLS_CHANNEL_ID,
-            getString(R.string.notification_channel_calls),
-            NotificationManager.IMPORTANCE_HIGH,
-        ).apply {
-            description = getString(R.string.notification_channel_calls_description)
-            enableVibration(true)
-            vibrationPattern = longArrayOf(0, 800, 600, 800, 600)
-            setSound(
-                ringtone,
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build(),
-            )
-            lockscreenVisibility = android.app.Notification.VISIBILITY_PRIVATE
-        }
-        val ongoing = NotificationChannel(
-            CALL_ONGOING_CHANNEL_ID,
-            getString(R.string.notification_channel_call_ongoing),
-            NotificationManager.IMPORTANCE_LOW,
-        ).apply {
-            description = getString(R.string.notification_channel_call_ongoing_description)
-            setSound(null, null)
-            enableVibration(false)
-        }
-        manager.createNotificationChannels(listOf(alerts, activity, calls, ongoing))
+        // Call channels (incoming, missed, ongoing) belong to the call
+        // module, packages/silarah_calls (CallNotifier).
+        manager.createNotificationChannels(listOf(alerts, activity))
     }
 
     companion object {
         const val ALERTS_CHANNEL_ID = "silarah_alerts"
         const val ACTIVITY_CHANNEL_ID = "silarah_activity"
-        const val CALLS_CHANNEL_ID = "silarah_calls"
-        const val CALL_ONGOING_CHANNEL_ID = "silarah_call_ongoing"
     }
 }

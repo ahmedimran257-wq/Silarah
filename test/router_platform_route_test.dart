@@ -55,7 +55,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(router.routeInformationProvider.value.uri.path, '/home');
     expect(
-        router.routeInformationProvider.value.uri.queryParameters['tab'], '3');
+        router.routeInformationProvider.value.uri.queryParameters['tab'], 'profile');
     expect(find.text('home'), findsOneWidget);
     expect(find.text('launch'), findsNothing);
   });
@@ -66,7 +66,7 @@ void main() {
     addTearDown(router.dispose);
     await tester.pumpWidget(MaterialApp.router(routerConfig: router));
 
-    navigateFromPushNotification(router, '/home?tab=1');
+    navigateFromPushNotification(router, '/home?tab=interests');
     await tester.pumpAndSettle();
 
     expect(router.routeInformationProvider.value.uri.path, '/home');
@@ -74,12 +74,12 @@ void main() {
   });
 
   test('each notification screen returns to a sensible Home tab', () {
-    expect(notificationHomeFallback('/notifications'), '/home?tab=0');
-    expect(notificationHomeFallback('/profile/x'), '/home?tab=1');
-    expect(notificationHomeFallback('/chat/x'), '/home?tab=2');
-    expect(notificationHomeFallback('/edit-profile'), '/home?tab=3');
+    expect(notificationHomeFallback('/notifications'), '/home?tab=discover');
+    expect(notificationHomeFallback('/profile/x'), '/home?tab=interests');
+    expect(notificationHomeFallback('/chat/x'), '/home?tab=chats');
+    expect(notificationHomeFallback('/edit-profile'), '/home?tab=profile');
     expect(notificationHomeFallback('/edit-profile?section=photos'),
-        '/home?tab=3');
+        '/home?tab=profile');
   });
 
   test('push notification rejects a relative route', () {
@@ -110,11 +110,11 @@ void main() {
     );
     addTearDown(router.dispose);
 
-    popOrGoToFallback(router, '/home?tab=3');
+    popOrGoToFallback(router, '/home?tab=profile');
 
     expect(router.routeInformationProvider.value.uri.path, '/home');
     expect(
-        router.routeInformationProvider.value.uri.queryParameters['tab'], '3');
+        router.routeInformationProvider.value.uri.queryParameters['tab'], 'profile');
   });
 
   testWidgets('ordinary in-app back pops instead of replacing home',
@@ -135,7 +135,7 @@ void main() {
     final popped = router.push<void>('/profile-views');
     await tester.pumpAndSettle();
 
-    popOrGoToFallback(router, '/home?tab=3');
+    popOrGoToFallback(router, '/home?tab=profile');
     await tester.pumpAndSettle();
     await popped;
 

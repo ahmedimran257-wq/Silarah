@@ -68,7 +68,7 @@ Future<void> startCallFromChat(
     return;
   }
   if (state.reason == 'premium_required') {
-    await PaywallGateSheet.show(context, gate: PremiumGate.feature);
+    await PaywallGateSheet.show(context, gate: PremiumGate.calls);
     return;
   }
   if (state.reason == 'limit_reached') {
@@ -79,10 +79,30 @@ Future<void> startCallFromChat(
     _snack(context, context.uiCopy("You can't call in this chat."));
     return;
   }
+  await placeCall(
+    context,
+    matchId: controls.matchId,
+    name: name,
+    photoUrl: photoUrl,
+    otherUserId: otherUserId,
+    onUnavailable: () => unawaited(controls.refresh()),
+  );
+}
+
+/// Places a call and explains every outcome the server can give. Used by
+/// the chat header and the Calls tab; the server decides who may call.
+Future<void> placeCall(
+  BuildContext context, {
+  required String matchId,
+  required String name,
+  String? photoUrl,
+  String? otherUserId,
+  VoidCallback? onUnavailable,
+}) async {
   if (!await ensureCallMicrophone(context) || !context.mounted) return;
   final router = GoRouter.of(context);
   final result = await CallController.instance.startOutgoing(
-    toMatchId: controls.matchId,
+    toMatchId: matchId,
     name: name,
     toUserId: otherUserId,
   );
@@ -95,9 +115,9 @@ Future<void> startCallFromChat(
       }
     case CallStartOutcome.unavailable:
       _snack(context, context.uiCopyWith(neutralUnavailableCopy, {'name': name}));
-      unawaited(controls.refresh());
+      onUnavailable?.call();
     case CallStartOutcome.premiumRequired:
-      await PaywallGateSheet.show(context, gate: PremiumGate.feature);
+      await PaywallGateSheet.show(context, gate: PremiumGate.calls);
     case CallStartOutcome.noMinutes:
     case CallStartOutcome.balanceNegative:
       await showCallMinutesSheet(context);

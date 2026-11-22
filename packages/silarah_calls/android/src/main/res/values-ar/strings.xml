@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="silarah_calls_notification_channel_calls">المكالمات</string>
+    <string name="silarah_calls_notification_channel_calls_description">مكالمات Silarah الواردة</string>
+    <string name="silarah_calls_notification_channel_call_ongoing">مكالمة جارية</string>
+    <string name="silarah_calls_notification_channel_call_ongoing_description">يظهر أثناء مكالمة Silarah</string>
+    <string name="silarah_calls_call_ongoing_title">مكالمة Silarah</string>
+    <string name="silarah_calls_call_ongoing_text">مكالمة جارية. انقر للعودة.</string>
+    <string name="silarah_calls_notification_channel_missed">المكالمات الفائتة</string>
+    <string name="silarah_calls_notification_channel_missed_description">مكالمات Silarah الفائتة وتذكيرات المكالمات</string>
+</resources>

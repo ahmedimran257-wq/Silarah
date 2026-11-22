@@ -16,7 +16,13 @@ void main() {
       notificationPathFromDeepLink('silarah://profile/$profileId'),
       '/profile/$profileId',
     );
-    expect(notificationPathFromDeepLink('/home?tab=2'), '/home?tab=2');
+    // Stored notifications still carry the four-tab numbers (3 = Profile).
+    expect(notificationPathFromDeepLink('/home?tab=2'), '/home?tab=chats');
+    expect(notificationPathFromDeepLink('/home?tab=3'), '/home?tab=profile');
+    expect(notificationPathFromDeepLink('/home?tab=calls'), '/home?tab=calls');
+    expect(notificationPathFromDeepLink('/home?tab=4'), isNull);
+    expect(notificationPathFromDeepLink('silarah://calls'), '/home?tab=calls');
+    expect(notificationPathFromDeepLink('/calls'), '/home?tab=calls');
     expect(notificationPathFromDeepLink('/not-a-real-screen'), isNull);
     expect(notificationPathFromDeepLink('/chat/not-a-uuid'), isNull);
     expect(
@@ -40,29 +46,29 @@ void main() {
     );
     expect(
       notificationDestinationPath(type: 'new_message'),
-      '/home?tab=2',
+      '/home?tab=chats',
     );
     expect(
       notificationDestinationPath(
         type: 'new_message',
         deepLink: 'silarah://chat/not-a-uuid',
       ),
-      '/home?tab=2',
+      '/home?tab=chats',
     );
   });
 
   test('every notification family has a stable fallback', () {
     expect(
       notificationDestinationPath(type: 'interest_expiring'),
-      '/home?tab=1',
+      '/home?tab=interests',
     );
     expect(
       notificationDestinationPath(type: 'interest_expired'),
-      '/home?tab=1',
+      '/home?tab=interests',
     );
     expect(
       notificationDestinationPath(type: 'match_ended'),
-      '/home?tab=0',
+      '/home?tab=discover',
     );
     expect(
       notificationDestinationPath(type: 'account_limited'),
@@ -70,7 +76,7 @@ void main() {
     );
     expect(
       notificationDestinationPath(type: 'referral_reward'),
-      '/home?tab=3',
+      '/home?tab=profile',
     );
     expect(
       notificationDestinationPath(type: 'profile_view'),

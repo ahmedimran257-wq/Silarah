@@ -19,6 +19,7 @@ enum SilarahEmptyVisual {
   conversations,
   savedProfiles,
   connection,
+  calls,
   neutral,
 }
 
@@ -221,6 +222,8 @@ class _EmptyScenePainter extends CustomPainter {
         _paintSavedProfiles(canvas, designSize);
       case SilarahEmptyVisual.connection:
         _paintConnection(canvas, designSize);
+      case SilarahEmptyVisual.calls:
+        _paintCalls(canvas, designSize);
       case SilarahEmptyVisual.neutral:
         _paintNeutral(canvas, designSize);
     }
@@ -355,6 +358,37 @@ class _EmptyScenePainter extends CustomPainter {
     if (active) {
       canvas.drawCircle(center, 25 + (_wave() * 2), _line(0.09));
     }
+  }
+
+  /// Two members joined by a voice line whose bars rise and fall in turn.
+  void _paintCalls(Canvas canvas, Size size) {
+    const left = Offset(40, 66);
+    const right = Offset(168, 66);
+    _paintIdentityNode(canvas, left, active: true);
+    _paintIdentityNode(canvas, right, active: false);
+    const bars = 9;
+    const span = 76.0;
+    const start = 104 - span / 2;
+    for (var i = 0; i < bars; i++) {
+      final phase = _wave(i / bars);
+      final envelope = math.sin((i + 1) / (bars + 1) * math.pi);
+      final height = 6 + 26 * envelope * (0.35 + 0.65 * phase);
+      final x = start + i * (span / (bars - 1));
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(center: Offset(x, 66), width: 3.2, height: height),
+          const Radius.circular(2),
+        ),
+        _fill(0.22 + 0.5 * envelope * phase),
+      );
+    }
+    // A small handset above the line.
+    final handset = Path()
+      ..moveTo(96, 26)
+      ..quadraticBezierTo(104, 18, 112, 26);
+    canvas.drawPath(handset, _line(0.5, 2.2));
+    canvas.drawCircle(const Offset(96, 27), 2.4, _fill(0.5));
+    canvas.drawCircle(const Offset(112, 27), 2.4, _fill(0.5));
   }
 
   void _paintConversation(Canvas canvas, Size size) {

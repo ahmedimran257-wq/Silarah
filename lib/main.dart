@@ -17,8 +17,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'
-    show NotificationResponse;
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/config/app_config.dart';
@@ -36,6 +34,8 @@ import 'core/services/wali_mode_service.dart';
 import 'core/services/fcm_service.dart';
 import 'features/calls/call_controller.dart';
 import 'features/calls/call_notifications.dart';
+import 'features/calls/call_platform.dart';
+import 'features/calls/calls_hub.dart';
 import 'features/calls/screens/call_screen.dart';
 import 'core/services/presence_service.dart';
 import 'core/services/bookmark_service.dart';
@@ -69,6 +69,7 @@ import 'core/widgets/startup_offline_screen.dart';
 import 'core/widgets/silarah_launch_sequence.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'l10n/ui_copy.dart';
+import 'core/router/home_tab.dart';
 
 const _rtlLocales = {'ar', 'ur'};
 
@@ -511,6 +512,7 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
   StreamSubscription<bool>? _connectivitySubscription;
   StreamSubscription<NotificationItem>? _notificationRefreshSubscription;
   StreamSubscription<SubscriptionState>? _entitlementRefreshSubscription;
+  StreamSubscription<CallEvent>? _callEvents;
   ConnectivityService? _connectivityService;
   final _messengerKey = GlobalKey<ScaffoldMessengerState>();
   String? _deferredAccountNotice;
@@ -608,7 +610,6 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
         unawaited(_handleCallPush(Map<String, dynamic>.from(message.data)));
         return;
       }
-      if (callType == 'missed_call') CallController.historyChanged();
       final deepLink = message.data['deep_link']?.toString();
       // The open chat already shows the new message live; skip the banner.
       if (_chatCubit.isViewingConversationLink(deepLink)) {
@@ -639,15 +640,17 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
 
   Future<void> _wireCallNotifications() async {
     try {
-      await CallNotifications.initialize(onResponse: _onCallNotification);
-      final launch = await CallNotifications.launchResponse();
-      if (launch != null) _onCallNotification(launch);
+      _callEvents = CallPlatform.instance.events
+          .where((event) => event.type == 'launch')
+          .listen(_onCallLaunch);
+      final launch = await CallPlatform.instance.takeLaunchAction();
+      if (launch != null) _onCallLaunch(launch);
     } catch (error) {
       debugPrint('[main] call notifications unavailable: $error');
     }
   }
 
-  /// A ring push while Silarah is open: ring and show the call screen.
+  /// A call push while Silarah is open.
   Future<void> _handleCallPush(Map<String, dynamic> data) async {
     final type = data['type']?.toString();
     final requestId = data['request_id']?.toString() ?? '';
@@ -663,15 +666,34 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
         CallController.instance.onRingCancelled(requestId);
       case 'call_answered':
         CallController.instance.nudge(requestId);
+      case 'call_missed':
+      case 'call_missed_seen':
+      case 'call_plan_reminder':
+        await CallNotifications.handlePushData(data);
+        // Chats, the Calls tab and its badge reload.
+        CallController.historyChanged();
     }
   }
 
-  /// Tap or Answer on the incoming-call notification (Decline is handled
-  /// in the background without opening Silarah). The account check is the
-  /// same stored one that decided to ring, so it holds on a cold start too,
-  /// before the session has loaded.
-  void _onCallNotification(NotificationResponse response) {
-    final push = IncomingCallPush.fromPayload(response.payload);
+  /// A call notification opened Silarah (spec 12.1): the ring (full screen,
+  /// tap or Answer; Decline never opens Silarah), the live call, or a
+  /// missed call / reminder (Calls tab). For a ring, the account check is
+  /// the same stored one that decided to ring, so it holds on a cold start
+  /// too, before the session has loaded.
+  void _onCallLaunch(CallEvent event) {
+    switch (event.launchAction) {
+      case 'ring':
+      case 'answer':
+        _onRingLaunch(event.payload, answer: event.launchAction == 'answer');
+      case 'open_call':
+        if (CallController.instance.busy) _openCallScreen(AppRoutes.call);
+      case 'open_calls':
+        navigateFromPushNotification(_router, HomeTab.calls.path);
+    }
+  }
+
+  void _onRingLaunch(String? payload, {required bool answer}) {
+    final push = IncomingCallPush.fromPayload(payload);
     if (push == null) {
       CallController.instance.releaseRingWindow();
       return;
@@ -683,14 +705,11 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
       }
       if (!push.expiresAt.isAfter(DateTime.now())) {
         CallController.instance.releaseRingWindow();
-        // The ring is over; the missed call is in the chat.
-        if (push.matchId.isNotEmpty) {
-          navigateFromPushNotification(_router, '/chat/${push.matchId}');
-        }
+        // The ring is over; the missed call is in the Calls tab.
+        navigateFromPushNotification(_router, HomeTab.calls.path);
         return;
       }
       CallController.instance.presentIncoming(push);
-      final answer = response.actionId == answerActionId;
       _openCallScreen(answer
           ? '${AppRoutes.call}?answer=${Uri.encodeQueryComponent(push.requestId)}'
           : AppRoutes.call);
@@ -1023,6 +1042,7 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
     unawaited(_connectivitySubscription?.cancel());
     unawaited(_notificationRefreshSubscription?.cancel());
     unawaited(_entitlementRefreshSubscription?.cancel());
+    unawaited(_callEvents?.cancel());
     PresenceService.instance.stop();
     // Dispose Cubits
     _authCubit.close();
@@ -1085,6 +1105,7 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
                 // Calls first: a late ring for the departing account must
                 // never show on this phone (spec 9 gate 7).
                 unawaited(CallController.instance.onSignedOut());
+                unawaited(CallsHub.instance.stop());
                 unawaited(CallNotifications.forgetSignedInUser()
                     .whenComplete(FcmService.instance.onUserLogout));
                 _clearUserScopedState(
@@ -1128,6 +1149,13 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
                   }
                   unawaited(CallNotifications.rememberSignedInUser(state.userId)
                       .whenComplete(FcmService.instance.onUserLogin));
+                  // Calls tab, its badge and this phone's ring capability.
+                  // Guardian-only accounts never see calling.
+                  // A new session may follow another account's without a
+                  // sign-out in between: start over for this member.
+                  if (!state.isGuardianOnly) {
+                    unawaited(CallsHub.instance.stop().then((_) => CallsHub.instance.start()));
+                  }
                   unawaited(
                     _localeCubit.syncToServer(countryCode: state.countryCode),
                   );

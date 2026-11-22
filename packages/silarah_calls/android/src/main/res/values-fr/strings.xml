@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="silarah_calls_notification_channel_calls">Appels</string>
+    <string name="silarah_calls_notification_channel_calls_description">Appels Silarah entrants</string>
+    <string name="silarah_calls_notification_channel_call_ongoing">Appel en cours</string>
+    <string name="silarah_calls_notification_channel_call_ongoing_description">Affiché pendant un appel Silarah</string>
+    <string name="silarah_calls_call_ongoing_title">Appel Silarah</string>
+    <string name="silarah_calls_call_ongoing_text">Appel en cours. Touchez pour revenir.</string>
+    <string name="silarah_calls_notification_channel_missed">Appels manqués</string>
+    <string name="silarah_calls_notification_channel_missed_description">Appels Silarah manqués et rappels d\'appel</string>
+</resources>

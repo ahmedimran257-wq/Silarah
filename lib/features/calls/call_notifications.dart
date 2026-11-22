@@ -1,5 +1,6 @@
-// Incoming-call notifications, drawn by Silarah itself from data-only FCM
-// pushes (voice_calling_spec.md 4: our server owns ringing; no Stream push).
+// Call notifications (incoming ring, missed calls, planned-call reminders),
+// drawn by Silarah's native call module from data-only FCM pushes
+// (voice_calling_spec.md 4 and 12: our server owns ringing; no Stream push).
 //
 // Runs in two places:
 //  * the FCM background isolate (app closed or in the background), via
@@ -14,25 +15,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:silarah_calls/silarah_calls.dart';
 
 import '../../core/config/app_config.dart';
 import '../../l10n/calling_ui_copy.dart';
 
-const callNotificationChannelId = 'silarah_calls';
 const _signedInUserKey = 'silarah_call_push_user_v1';
 const _localeKey = 'app_locale';
-const answerActionId = 'call_answer';
-const declineActionId = 'call_decline';
-
-/// One stable Android notification id per call.
-int callNotificationId(String requestId) {
-  final hex = requestId.replaceAll('-', '');
-  final head = hex.length >= 7 ? hex.substring(0, 7) : hex;
-  return 900000000 + (int.tryParse(head, radix: 16) ?? 0) % 99999999;
-}
 
 /// The parts of an incoming-call push the phone needs.
 class IncomingCallPush {
@@ -105,64 +95,73 @@ bool shouldRing(IncomingCallPush push, {required String? signedInUserId, require
     push.forUser == signedInUserId &&
     push.expiresAt.isAfter(now);
 
+/// A missed-call push (call-worker, spec 12.3): one notification per caller
+/// with the server's count. `premium`: the callee is a free man.
+class MissedCallPush {
+  const MissedCallPush({
+    required this.requestId,
+    required this.matchId,
+    required this.callerId,
+    required this.callerName,
+    required this.count,
+    required this.premiumVariant,
+    required this.silent,
+    required this.forUser,
+  });
+
+  final String requestId;
+  final String matchId;
+  final String callerId;
+  final String callerName;
+  final int count;
+  final bool premiumVariant;
+  final bool silent;
+  final String forUser;
+
+  static MissedCallPush? fromData(Map<String, dynamic> data) {
+    if (data['type'] != 'call_missed') return null;
+    final callerId = data['caller_id']?.toString() ?? '';
+    final forUser = data['for_user']?.toString() ?? '';
+    if (callerId.isEmpty || forUser.isEmpty) return null;
+    return MissedCallPush(
+      requestId: data['request_id']?.toString() ?? '',
+      matchId: data['match_id']?.toString() ?? '',
+      callerId: callerId,
+      callerName: (data['caller_name']?.toString() ?? '').trim(),
+      count: (int.tryParse(data['count']?.toString() ?? '') ?? 1).clamp(1, 99),
+      premiumVariant: data['variant'] == 'premium',
+      silent: data['silent'] == '1',
+      forUser: forUser,
+    );
+  }
+}
+
+/// Title and text of a missed-call notification in [code]'s language.
+({String title, String body}) missedCallText(String code, MissedCallPush push) {
+  final name = push.callerName.isEmpty ? callingCopyFor(code, 'A Silarah member') : push.callerName;
+  if (push.premiumVariant) {
+    return (
+      title: callingCopyFor(code, '{name} tried to call you').replaceAll('{name}', name),
+      body: callingCopyFor(code, 'Get Premium to talk with your matches'),
+    );
+  }
+  return (
+    title: push.count > 1
+        ? callingCopyFor(code, '{count} missed calls from {name}')
+            .replaceAll('{count}', '${push.count}')
+            .replaceAll('{name}', name)
+        : callingCopyFor(code, 'Missed call from {name}').replaceAll('{name}', name),
+    body: callingCopyFor(code, 'Tap to see your calls'),
+  );
+}
+
+/// Call notifications on this phone, drawn by the native call module
+/// (packages/silarah_calls) from data-only pushes. Works in the app and in
+/// the FCM background isolate.
 class CallNotifications {
   CallNotifications._();
 
-  static final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
-  static bool _initialized = false;
-  static void Function(NotificationResponse response)? _onForegroundResponse;
-
-  /// Foreground: [onResponse] receives taps and Answer.
-  static Future<void> initialize({
-    void Function(NotificationResponse response)? onResponse,
-  }) async {
-    if (onResponse != null) _onForegroundResponse = onResponse;
-    if (_initialized) return;
-    await _plugin.initialize(
-      settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@drawable/ic_stat_silarah'),
-      ),
-      onDidReceiveNotificationResponse: (response) =>
-          _onForegroundResponse?.call(response),
-      onDidReceiveBackgroundNotificationResponse:
-          silarahCallNotificationBackgroundResponse,
-    );
-    await _ensureRingChannel();
-    _initialized = true;
-  }
-
-  /// MainActivity creates this channel with the phone's ringtone at start.
-  /// A ring can reach a freshly updated app before it was ever opened; the
-  /// same channel is then created here so it still rings like a call.
-  /// Android keeps whichever definition came first.
-  static Future<void> _ensureRingChannel() async {
-    final android = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-    if (android == null) return;
-    final code = await _languageCode();
-    await android.createNotificationChannel(
-      AndroidNotificationChannel(
-        callNotificationChannelId,
-        callingCopyFor(code, 'Calls'),
-        importance: Importance.max,
-        playSound: true,
-        sound: const UriAndroidNotificationSound('content://settings/system/ringtone'),
-        audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
-        enableVibration: true,
-      ),
-    );
-  }
-
-  /// The tap or Answer that launched the app from closed, if any.
-  static Future<NotificationResponse?> launchResponse() async {
-    await initialize();
-    final details = await _plugin.getNotificationAppLaunchDetails();
-    if (details == null || !details.didNotificationLaunchApp) return null;
-    final response = details.notificationResponse;
-    if (response == null) return null;
-    return IncomingCallPush.fromPayload(response.payload) == null ? null : response;
-  }
+  static SilarahCalls get _native => SilarahCalls.instance;
 
   static Future<void> rememberSignedInUser(String userId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -170,7 +169,8 @@ class CallNotifications {
   }
 
   /// Called on every sign-out, before the push token is retired. Never
-  /// throws: sign-out must always go on to retire the token.
+  /// throws: sign-out must always go on to retire the token. Every call
+  /// notification of the departing account goes, and any call service stops.
   static Future<void> forgetSignedInUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -179,12 +179,7 @@ class CallNotifications {
       debugPrint('[CallNotifications] forget account failed: $error');
     }
     try {
-      await initialize();
-      final active = await _plugin.getActiveNotifications();
-      for (final notification in active) {
-        final id = notification.id;
-        if (id != null && id >= 900000000) await _plugin.cancel(id: id);
-      }
+      await _native.clearAll();
     } catch (error) {
       debugPrint('[CallNotifications] clear on sign-out failed: $error');
     }
@@ -200,7 +195,8 @@ class CallNotifications {
     return prefs.getString(_signedInUserKey);
   }
 
-  static Future<String> _languageCode() async {
+  /// The member's app language (the background isolate has no widgets).
+  static Future<String> languageCode() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_localeKey) ?? 'en';
   }
@@ -208,10 +204,22 @@ class CallNotifications {
   /// Handles a call push. Returns the push when this phone should ring.
   static Future<IncomingCallPush?> handlePushData(Map<String, dynamic> data) async {
     final type = data['type']?.toString();
-    if (type == 'call_cancel' || type == 'call_ended') {
-      final requestId = data['request_id']?.toString();
-      if (requestId != null && requestId.isNotEmpty) await cancel(requestId);
-      return null;
+    switch (type) {
+      case 'call_cancel':
+      case 'call_ended':
+        final requestId = data['request_id']?.toString();
+        if (requestId != null && requestId.isNotEmpty) await cancel(requestId);
+        return null;
+      case 'call_missed':
+        await _showMissed(data);
+        return null;
+      case 'call_missed_seen':
+        // The Calls tab was opened on another phone of this member.
+        if (data['for_user']?.toString() == await _signedInUser()) await _native.clearMissed();
+        return null;
+      case 'call_plan_reminder':
+        await _showPlanReminder(data);
+        return null;
     }
     final push = IncomingCallPush.fromData(data);
     if (push == null) return null;
@@ -225,95 +233,67 @@ class CallNotifications {
   }
 
   static Future<void> showIncoming(IncomingCallPush push) async {
-    await initialize();
-    final code = await _languageCode();
-    final remaining = push.expiresAt.difference(DateTime.now());
+    final code = await languageCode();
     final name = push.callerName.isEmpty ? callingCopyFor(code, 'A Silarah member') : push.callerName;
-    await _plugin.show(
-      id: callNotificationId(push.requestId),
-      title: callingCopyFor(code, 'Incoming Silarah call'),
-      body: callingCopyFor(code, '{name} is calling you').replaceAll('{name}', name),
+    await _native.showIncoming(
+      requestId: push.requestId,
       payload: push.toPayload(),
-      notificationDetails: NotificationDetails(
-        android: AndroidNotificationDetails(
-          callNotificationChannelId,
-          callingCopyFor(code, 'Calls'),
-          importance: Importance.max,
-          priority: Priority.max,
-          category: AndroidNotificationCategory.call,
-          // Full screen only where the member allows it (Android 14+).
-          fullScreenIntent: true,
-          ongoing: true,
-          autoCancel: false,
-          // Name only on a locked screen if the member's lock-screen setting
-          // shows private content; otherwise Android hides it.
-          visibility: NotificationVisibility.private,
-          timeoutAfter: remaining.inMilliseconds.clamp(1000, 60000),
-          audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
-          // FLAG_INSISTENT: keep ringing until answered, declined or cancelled.
-          additionalFlags: Int32List.fromList(const [4]),
-          actions: [
-            AndroidNotificationAction(
-              declineActionId,
-              callingCopyFor(code, 'Decline'),
-              showsUserInterface: false,
-              cancelNotification: true,
-            ),
-            AndroidNotificationAction(
-              answerActionId,
-              callingCopyFor(code, 'Answer'),
-              showsUserInterface: true,
-              cancelNotification: true,
-            ),
-          ],
-        ),
-      ),
+      callerName: name,
+      title: callingCopyFor(code, '{name} · Silarah voice call').replaceAll('{name}', name),
+      body: callingCopyFor(code, '{name} is calling you').replaceAll('{name}', name),
+      publicTitle: callingCopyFor(code, 'Incoming Silarah call'),
+      timeout: push.expiresAt.difference(DateTime.now()),
+      declineToken: push.declineToken,
+      declineEndpoint: AppConfig.supabaseUrl.isEmpty ? '' : '${AppConfig.supabaseUrl}/functions/v1/calls',
+      apiKey: AppConfig.supabaseAnonKey,
+    );
+  }
+
+  static Future<void> _showMissed(Map<String, dynamic> data) async {
+    final push = MissedCallPush.fromData(data);
+    if (push == null || push.forUser != await _signedInUser()) return;
+    final code = await languageCode();
+    final text = missedCallText(code, push);
+    await _native.showMissed(
+      callerId: push.callerId,
+      payload: jsonEncode({'match_id': push.matchId, 'variant': push.premiumVariant ? 'premium' : 'missed'}),
+      title: text.title,
+      body: text.body,
+      publicTitle: callingCopyFor(code, 'Missed call'),
+      count: push.count,
+      silent: push.silent,
+    );
+  }
+
+  static Future<void> _showPlanReminder(Map<String, dynamic> data) async {
+    final forUser = data['for_user']?.toString() ?? '';
+    if (forUser.isEmpty || forUser != await _signedInUser()) return;
+    final plannedFor = DateTime.tryParse(data['planned_for']?.toString() ?? '');
+    final planId = data['plan_id']?.toString() ?? '';
+    if (plannedFor == null || planId.isEmpty) return;
+    final windowEnd = plannedFor.add(const Duration(minutes: 30));
+    if (!windowEnd.isAfter(DateTime.now())) return;
+    final code = await languageCode();
+    final name = (data['other_name']?.toString() ?? '').trim();
+    await _native.showPlanReminder(
+      planId: planId,
+      payload: jsonEncode({'plan_id': planId, 'match_id': data['match_id']?.toString() ?? ''}),
+      title: callingCopyFor(code, 'Your call with {name} is soon')
+          .replaceAll('{name}', name.isEmpty ? callingCopyFor(code, 'A Silarah member') : name),
+      body: callingCopyFor(code, 'Tap to open your calls'),
+      timeout: windowEnd.difference(DateTime.now()),
     );
   }
 
   static Future<void> cancel(String requestId) async {
     try {
-      await initialize();
-      await _plugin.cancel(id: callNotificationId(requestId));
+      await _native.cancelIncoming(requestId);
     } catch (error) {
       debugPrint('[CallNotifications] cancel failed: $error');
     }
   }
-}
 
-/// Decline without opening the app: the push's single-use token proves the
-/// decline came from this callee's phone (edge function `calls`).
-Future<bool> declineFromNotification(IncomingCallPush push) async {
-  if (AppConfig.supabaseUrl.isEmpty || push.declineToken.isEmpty) return false;
-  try {
-    final response = await http
-        .post(
-          Uri.parse('${AppConfig.supabaseUrl}/functions/v1/calls'),
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': AppConfig.supabaseAnonKey,
-          },
-          body: jsonEncode({
-            'action': 'decline_token',
-            'request_id': push.requestId,
-            'token': push.declineToken,
-          }),
-        )
-        .timeout(const Duration(seconds: 10));
-    return response.statusCode == 200;
-  } catch (error) {
-    debugPrint('[CallNotifications] decline failed: $error');
-    return false;
-  }
-}
-
-@pragma('vm:entry-point')
-Future<void> silarahCallNotificationBackgroundResponse(
-  NotificationResponse response,
-) async {
-  if (response.actionId != declineActionId) return;
-  final push = IncomingCallPush.fromPayload(response.payload);
-  if (push == null) return;
-  await CallNotifications.cancel(push.requestId);
-  await declineFromNotification(push);
+  /// Opening the Calls tab: missed-call notifications go on this phone
+  /// (the server clears the member's other phones).
+  static Future<void> clearMissed() => _native.clearMissed();
 }

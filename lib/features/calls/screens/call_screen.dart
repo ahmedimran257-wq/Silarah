@@ -6,7 +6,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_router.dart';
 import '../../../core/router/notification_navigation.dart';
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
 import '../../../core/widgets/overlays/silarah_dialog.dart';
@@ -21,6 +20,7 @@ import '../call_controller.dart';
 import '../call_models.dart';
 import '../widgets/call_microphone_gate.dart';
 import '../widgets/call_minutes_sheet.dart';
+import '../../../core/router/home_tab.dart';
 
 class CallScreen extends StatefulWidget {
   const CallScreen({super.key, this.answerRequestId, this.photoUrl, this.otherUserId});
@@ -74,7 +74,7 @@ class _CallScreenState extends State<CallScreen> {
     if (!mounted) return;
     if (_call.phase == CallPhase.idle && !_closing) {
       _closing = true;
-      popOrGoToFallback(GoRouter.of(context), '${AppRoutes.home}?tab=2');
+      popOrGoToFallback(GoRouter.of(context), HomeTab.chats.path);
       return;
     }
     if (_call.warning == CallTimeWarning.stillTalking && _call.isCaller && !_stillTalkingShown) {
@@ -143,7 +143,7 @@ class _CallScreenState extends State<CallScreen> {
     final userId = _otherUserId;
     if (userId == null) return;
     // Reporting ends the call on the server (spec 8).
-    await ReportBottomSheet.show(context, reportedUserId: userId, reportedName: _call.otherName);
+    await ReportBottomSheet.show(context, reportedUserId: userId, reportedName: _call.otherName, fromCall: true);
   }
 
   Future<void> _chooseRoute() async {

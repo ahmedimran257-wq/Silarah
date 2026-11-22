@@ -295,7 +295,7 @@ reads are bounded pages.
 
 1. Either member of an active match who can open the chat proposes a time from the chat or the call
    details sheet: at least 10 minutes and at most 7 days ahead. One open plan per match; at most 5 open
-   plans per member. Refused, neutrally, where a call could not happen (block, calls blocked for this
+   plans per member, and at most 3 proposals per chat in 24 hours (no notification spam). Refused, neutrally, where a call could not happen (block, calls blocked for this
    chat, callee on Calls off, switch off).
 2. The other member accepts or declines (push "Abdul suggested a time to talk", first name only, opens
    the plan). Either member can cancel at any time. Nobody is told why a plan was declined.

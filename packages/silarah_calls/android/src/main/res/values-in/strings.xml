@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="silarah_calls_notification_channel_calls">Panggilan</string>
+    <string name="silarah_calls_notification_channel_calls_description">Panggilan masuk Silarah</string>
+    <string name="silarah_calls_notification_channel_call_ongoing">Panggilan berlangsung</string>
+    <string name="silarah_calls_notification_channel_call_ongoing_description">Tampil selama panggilan Silarah</string>
+    <string name="silarah_calls_call_ongoing_title">Panggilan Silarah</string>
+    <string name="silarah_calls_call_ongoing_text">Panggilan berlangsung. Ketuk untuk kembali.</string>
+    <string name="silarah_calls_notification_channel_missed">Panggilan tak terjawab</string>
+    <string name="silarah_calls_notification_channel_missed_description">Panggilan Silarah tak terjawab dan pengingat panggilan</string>
+</resources>

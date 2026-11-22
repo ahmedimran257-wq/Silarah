@@ -1,5 +1,6 @@
--- Rollback test for migration 323 (voice calling). Run against STAGING only:
---   supabase db query --remote=ykmgkrveucslglxvcyss --file <(BEGIN + 323 if not applied + this) --yes
+-- Rollback test for voice calling (migrations 323 and 324). Run against
+-- STAGING only:
+--   supabase db query --remote=ykmgkrveucslglxvcyss --file <(BEGIN + 323/324 if not applied + this) --yes
 -- Everything happens inside one transaction that ends in ROLLBACK, so no
 -- fixture, call, minute or notification survives. The last SELECT prints
 -- one row per rule with ok = true/false.
@@ -41,6 +42,17 @@ EXCEPTION WHEN OTHERS THEN
   RETURN jsonb_build_object('error', SQLSTATE, 'message', SQLERRM);
 END $$;
 
+-- One phone that can ring (migration 324: only such phones are rung).
+-- Account deletion removes push tokens, so restores call this again.
+CREATE FUNCTION pg_temp.phone(p_id uuid) RETURNS void LANGUAGE sql AS $$
+  INSERT INTO public.user_fcm_tokens(user_id, device_id, fcm_token, platform)
+  VALUES (p_id, 'vcqa-' || replace(p_id::text, '-', ''), 'vcqa-token-' || p_id, 'android')
+  ON CONFLICT (user_id, device_id) DO NOTHING;
+  INSERT INTO private.call_device_capabilities(user_id, device_id, can_ring)
+  VALUES (p_id, 'vcqa-' || replace(p_id::text, '-', ''), true)
+  ON CONFLICT (user_id, device_id) DO UPDATE SET can_ring = true;
+$$;
+
 CREATE FUNCTION pg_temp.member(p_id uuid, p_gender text, p_first text, p_premium boolean)
 RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
@@ -56,6 +68,7 @@ BEGIN
   INSERT INTO public.profiles(user_id, first_name, last_name, date_of_birth, gender,
     country_code, visibility, onboarding_completed)
   VALUES (p_id, p_first, 'Qatest', date '1995-01-01', p_gender, 'IN', 'visible', true);
+  PERFORM pg_temp.phone(p_id);
   -- No quiet hours unless a test sets them.
   INSERT INTO public.notification_prefs(user_id, quiet_start, quiet_end)
   VALUES (p_id, time '00:00', time '00:00')
@@ -80,7 +93,9 @@ CREATE FUNCTION pg_temp.reset_calls() RETURNS void LANGUAGE sql AS $$
   DELETE FROM private.call_usage_months;
   DELETE FROM private.call_member_prefs;
   DELETE FROM private.call_pair_prefs;
-  UPDATE private.call_settings SET calls_enabled = true, monthly_cap_minutes = 100000;
+  -- The hourly entitlement cap (324) is tested on its own; here the floor.
+  UPDATE private.call_settings SET calls_enabled = true, monthly_cap_minutes = 100000,
+    auto_cap_minutes = NULL, auto_cap_at = NULL;
 $$;
 
 DO $$
@@ -124,9 +139,9 @@ BEGIN
 
   r := pg_temp.svc(format('SELECT public.call_service_request(%L, %L)', w2, k_w2m2));
   PERFORM pg_temp.ok('free man is not rung (neutral answer)', r->>'outcome' = 'unavailable', r::text);
-  PERFORM pg_temp.ok('free man gets a missed-call note',
-    EXISTS (SELECT 1 FROM public.notifications WHERE user_id = m2 AND type = 'missed_call'
-            AND deep_link = 'silarah://chat/' || k_w2m2), NULL);
+  PERFORM pg_temp.ok('free man gets a missed-call push job',
+    EXISTS (SELECT 1 FROM private.call_jobs WHERE kind = 'missed_push'
+            AND request_id = (r->>'request_id')::uuid), NULL);
   PERFORM pg_temp.ok('free man reason recorded',
     (SELECT reason FROM private.call_requests WHERE id = (r->>'request_id')::uuid) = 'callee_needs_premium', NULL);
   PERFORM pg_temp.ok('caller response hides the reason', NOT (r ? 'reason'), r::text);
@@ -136,7 +151,7 @@ BEGIN
   r := pg_temp.svc(format('SELECT public.call_service_request(%L, %L)', m1, k_m1w1));
   rid := (r->>'request_id')::uuid; tok := r->>'decline_token';
   PERFORM pg_temp.ok('premium man rings free woman', r->>'outcome' = 'ringing', r::text);
-  PERFORM pg_temp.ok('ring push name is first name + initial', r->>'caller_name' = 'Ahmed Q.', r->>'caller_name');
+  PERFORM pg_temp.ok('ring push name is the first name only', r->>'caller_name' = 'Ahmed', r->>'caller_name');
   PERFORM pg_temp.ok('decline token is 48 hex chars and stored hashed',
     length(tok) = 48 AND (SELECT decline_token_hash FROM private.call_requests WHERE id = rid) <> tok, NULL);
   r2 := pg_temp.svc(format('SELECT public.call_service_request(%L, %L)', m1, k_m1w2));
@@ -324,11 +339,11 @@ BEGIN
   PERFORM pg_temp.ok('muted chat: not rung', (SELECT reason FROM private.call_requests
     WHERE id = (r->>'request_id')::uuid) = 'muted', r::text);
   r := pg_temp.usr(w1, format('SELECT public.set_chat_call_prefs(%L, false, true)', k_m1w1));
-  DELETE FROM public.notifications WHERE user_id = w1;
   r := pg_temp.svc(format('SELECT public.call_service_request(%L, %L)', m1, k_m1w1));
   PERFORM pg_temp.ok('calls blocked from this person: not rung, no note',
     r->>'outcome' = 'unavailable'
-    AND NOT EXISTS (SELECT 1 FROM public.notifications WHERE user_id = w1 AND type = 'missed_call'), r::text);
+    AND NOT EXISTS (SELECT 1 FROM private.call_jobs WHERE kind = 'missed_push'
+                    AND request_id = (r->>'request_id')::uuid), r::text);
   r := pg_temp.usr(w1, format('SELECT public.get_chat_call_state(%L)', k_m1w1));
   PERFORM pg_temp.ok('blocked calls hidden from the blocker''s chat',
     jsonb_array_length(r->'events') = 1 AND r->'events'->0->>'outcome' = 'missed', r::text);
@@ -435,6 +450,8 @@ BEGIN
       subscription_status = 'active', subscription_expires_at = now() + interval '30 days' WHERE id = m1;
     UPDATE public.users SET deleted_at = NULL WHERE id = w1;
     UPDATE public.profiles SET visibility = 'visible' WHERE user_id = w1;
+    PERFORM pg_temp.phone(m1);
+    PERFORM pg_temp.phone(w1);
   END LOOP;
 
   -- Premium lost by the callee man (Premium woman calling him) ends the call;

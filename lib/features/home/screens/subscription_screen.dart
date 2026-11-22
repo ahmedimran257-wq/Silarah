@@ -22,6 +22,7 @@ import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import 'legal_doc_screen.dart';
+import '../../../core/router/home_tab.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -314,7 +315,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     return PopScope(
       canPop: Navigator.of(context).canPop(),
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && context.mounted) context.go('/home?tab=3');
+        if (!didPop && context.mounted) context.go(HomeTab.profile.path);
       },
       child: child,
     );
@@ -324,7 +325,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     } else {
-      context.go('/home?tab=3');
+      context.go(HomeTab.profile.path);
     }
   }
 

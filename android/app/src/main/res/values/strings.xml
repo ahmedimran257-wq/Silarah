@@ -4,10 +4,4 @@
     <string name="notification_channel_alerts_description">Interests, messages, matches, and important account updates</string>
     <string name="notification_channel_activity">Profile activity</string>
     <string name="notification_channel_activity_description">Profile views and other non-urgent activity</string>
-    <string name="notification_channel_calls">Calls</string>
-    <string name="notification_channel_calls_description">Incoming Silarah calls</string>
-    <string name="notification_channel_call_ongoing">Call in progress</string>
-    <string name="notification_channel_call_ongoing_description">Shows while a Silarah call is on</string>
-    <string name="call_ongoing_title">Silarah call</string>
-    <string name="call_ongoing_text">Call in progress. Tap to return.</string>
 </resources>
