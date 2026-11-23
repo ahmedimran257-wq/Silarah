@@ -14,10 +14,26 @@ import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import 'profile_detail_screen.dart';
 
+/// The member cannot see this profile (hidden, blocked, deleted).
+class _ProfileUnavailable implements Exception {
+  const _ProfileUnavailable();
+}
+
 class ProfileRouteScreen extends StatefulWidget {
   const ProfileRouteScreen({super.key, required this.profileIdentifier});
 
   final String profileIdentifier;
+
+  /// What the member is told when the profile cannot be shown: one of two
+  /// plain messages, never an internal error's text.
+  @visibleForTesting
+  static String messageFor(Object error) => error is _ProfileUnavailable
+      ? 'This profile is unavailable.'
+      : 'This profile could not be opened.';
+
+  /// The failure when the server returns no profile this member may see.
+  @visibleForTesting
+  static const Exception unavailable = _ProfileUnavailable();
 
   @override
   State<ProfileRouteScreen> createState() => _ProfileRouteScreenState();
@@ -56,7 +72,7 @@ class _ProfileRouteScreenState extends State<ProfileRouteScreen> {
       final context = results[0] as PhotoAccessContext;
       final authorized = results[1] as List<Map<String, dynamic>>;
       final raw = authorized.isEmpty ? null : authorized.first;
-      if (raw == null) throw StateError('This profile is unavailable.');
+      if (raw == null) throw ProfileRouteScreen.unavailable;
       final row = Map<String, dynamic>.from(raw);
       final relationshipRows = results[2] as List<dynamic>;
       if (relationshipRows.isNotEmpty) {
@@ -89,9 +105,7 @@ class _ProfileRouteScreenState extends State<ProfileRouteScreen> {
       });
     } catch (error) {
       if (!mounted) return;
-      setState(() => _error = error is StateError
-          ? error.message
-          : 'This profile could not be opened.');
+      setState(() => _error = ProfileRouteScreen.messageFor(error));
     }
   }
 

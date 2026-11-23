@@ -883,6 +883,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'This notification will be permanently removed from your account.':
         'ستتم إزالة هذا الإشعار نهائيًا من حسابك.',
     'This profile could not be opened.': 'لا يمكن فتح هذا الملف الشخصي.',
+    'This profile is unavailable.': 'هذا الملف الشخصي غير متاح.',
     'This profile is unavailable right now.':
         'هذا الملف الشخصي غير متوفر الآن.',
     'This removes the conversation only from your inbox. The other person keeps their copy, and safety records are retained.':
@@ -1888,6 +1889,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'This notification will be permanently removed from your account.':
         'এই বিজ্ঞপ্তিটি আপনার অ্যাকাউন্ট থেকে স্থায়ীভাবে মুছে ফেলা হবে।',
     'This profile could not be opened.': 'এই প্রোফাইল খোলা যাবে না.',
+    'This profile is unavailable.': 'এই প্রোফাইলটি উপলব্ধ নেই.',
     'This profile is unavailable right now.': 'এই প্রোফাইল এখন অনুপলব্ধ.',
     'This removes the conversation only from your inbox. The other person keeps their copy, and safety records are retained.':
         'এটি শুধুমাত্র আপনার ইনবক্স থেকে কথোপকথন সরিয়ে দেয়। অন্য ব্যক্তি তাদের কপি রাখে, এবং নিরাপত্তা রেকর্ড রাখা হয়।',
@@ -2919,6 +2921,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
         'Diese Benachrichtigung wird dauerhaft aus Ihrem Konto entfernt.',
     'This profile could not be opened.':
         'Dieses Profil konnte nicht geöffnet werden.',
+    'This profile is unavailable.': 'Dieses Profil ist nicht verfügbar.',
     'This profile is unavailable right now.':
         'Dieses Profil ist derzeit nicht verfügbar.',
     'This removes the conversation only from your inbox. The other person keeps their copy, and safety records are retained.':
@@ -3947,6 +3950,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'This notification will be permanently removed from your account.':
         'Cette notification sera définitivement supprimée de votre compte.',
     'This profile could not be opened.': 'Ce profil n\'a pas pu être ouvert.',
+    'This profile is unavailable.': 'Ce profil n\'est pas disponible.',
     'This profile is unavailable right now.':
         'Ce profil n\'est pas disponible pour le moment.',
     'This removes the conversation only from your inbox. The other person keeps their copy, and safety records are retained.':
@@ -4956,6 +4960,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'This notification will be permanently removed from your account.':
         'यह सूचना आपके खाते से स्थायी रूप से हटा दी जाएगी.',
     'This profile could not be opened.': 'यह प्रोफ़ाइल खोली नहीं जा सकी.',
+    'This profile is unavailable.': 'यह प्रोफ़ाइल उपलब्ध नहीं है.',
     'This profile is unavailable right now.':
         'यह प्रोफ़ाइल अभी उपलब्ध नहीं है.',
     'This removes the conversation only from your inbox. The other person keeps their copy, and safety records are retained.':
@@ -5965,6 +5970,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'This notification will be permanently removed from your account.':
         'Notifikasi ini akan dihapus secara permanen dari akun Anda.',
     'This profile could not be opened.': 'Profil ini tidak dapat dibuka.',
+    'This profile is unavailable.': 'Profil ini tidak tersedia.',
     'This profile is unavailable right now.':
         'Profil ini tidak tersedia saat ini.',
     'This removes the conversation only from your inbox. The other person keeps their copy, and safety records are retained.':
@@ -6980,6 +6986,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'This notification will be permanently removed from your account.':
         'Pemberitahuan ini akan dialih keluar secara kekal daripada akaun anda.',
     'This profile could not be opened.': 'Profil ini tidak dapat dibuka.',
+    'This profile is unavailable.': 'Profil ini tidak tersedia.',
     'This profile is unavailable right now.':
         'Profil ini tidak tersedia sekarang.',
     'This removes the conversation only from your inbox. The other person keeps their copy, and safety records are retained.':
@@ -7990,6 +7997,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'This notification will be permanently removed from your account.':
         'Bu bildirim hesabınızdan kalıcı olarak kaldırılacaktır.',
     'This profile could not be opened.': 'Bu profil açılamadı.',
+    'This profile is unavailable.': 'Bu profil kullanılamıyor.',
     'This profile is unavailable right now.':
         'Bu profil şu anda kullanılamıyor.',
     'This removes the conversation only from your inbox. The other person keeps their copy, and safety records are retained.':
@@ -8996,6 +9004,7 @@ const supplementalUiCopy = <String, Map<String, String>>{
     'This notification will be permanently removed from your account.':
         'یہ اطلاع آپ کے اکاؤنٹ سے مستقل طور پر ہٹا دی جائے گی۔',
     'This profile could not be opened.': 'یہ پروفائل نہیں کھولی جا سکی۔',
+    'This profile is unavailable.': 'یہ پروفائل دستیاب نہیں ہے۔',
     'This profile is unavailable right now.': 'یہ پروفائل ابھی دستیاب نہیں ہے۔',
     'This removes the conversation only from your inbox. The other person keeps their copy, and safety records are retained.':
         'یہ گفتگو کو صرف آپ کے ان باکس سے ہٹاتا ہے۔ دوسرا شخص اپنی کاپی رکھتا ہے، اور حفاظتی ریکارڈ برقرار رہتا ہے۔',
