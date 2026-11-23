@@ -4,15 +4,19 @@
 //     tree was building.
 //  2. Right after a call the Calls tab showed it as "No answer" with its hold
 //     still spent: the app read the call before the server settled it.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:silarah/features/calls/call_api.dart';
 import 'package:silarah/features/calls/call_controller.dart';
+import 'package:silarah/features/calls/call_log.dart';
 import 'package:silarah/features/calls/call_notifications.dart';
 import 'package:silarah/features/calls/calls_hub.dart';
 import 'package:silarah/features/calls/screens/call_screen.dart';
+import 'package:silarah/features/calls/widgets/call_details_sheet.dart';
 import 'package:silarah/features/calls/widgets/call_return_bar.dart';
 import 'package:silarah/l10n/generated/app_localizations.dart';
 
@@ -57,6 +61,7 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   testWidgets('the return bar hides on the call screen and redraws after it', (tester) async {
+    final semantics = tester.ensureSemantics();
     final call = CallController(api: CallApi(invoke: (_) async => const {}, rpc: (_, __) async => null));
     final navigator = GlobalKey<NavigatorState>();
     await tester.pumpWidget(MaterialApp(
@@ -88,6 +93,9 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.textContaining('Aisha · Tap to return to call'), findsOneWidget);
     expect(find.textContaining('Calling…'), findsNothing);
+    // Screen readers find it too (a page route used to hide it from them).
+    expect(find.bySemanticsLabel(RegExp('^Aisha, Tap to return to call')), findsOneWidget);
+    semantics.dispose();
     call.dispose();
   });
 
@@ -187,5 +195,50 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
     expect(requested, ['caller-1'], reason: 'asked once, only for this member');
+  });
+
+  // 4. The call list for one member did not close on a swipe down: its list
+  //    took the gesture. A swipe down from the top of the list closes it.
+  testWidgets('a swipe down closes the call list of a member', (tester) async {
+    final entries = [
+      for (var i = 0; i < 30; i++)
+        CallLogEntry(
+          requestId: 'r$i',
+          createdAt: DateTime(2026, 11, 23, 14).subtract(Duration(hours: i)),
+          outgoing: true,
+          outcome: CallLogOutcome.answered,
+          talkSeconds: 60,
+          minutesUsed: 1,
+          matchId: null,
+          otherUserId: null,
+          firstName: 'Aisha',
+          lastName: 'Testing',
+          memberUnavailable: true,
+          unseen: false,
+        ),
+    ];
+    late BuildContext host;
+    await tester.pumpWidget(MaterialApp(
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        ...AppLocalizations.localizationsDelegates,
+        GlobalMaterialLocalizations.delegate,
+      ],
+      home: Scaffold(body: Builder(builder: (context) {
+        host = context;
+        return const SizedBox.expand();
+      })),
+    ));
+    unawaited(showCallDetailsSheet(
+      host,
+      row: CallLogRow(entries),
+      photoUrl: null,
+      api: CallApi(invoke: (_) async => const {}, rpc: (_, __) async => null),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Calls'), findsOneWidget);
+    await tester.fling(find.text('Calls'), const Offset(0, 500), 1500);
+    await tester.pumpAndSettle();
+    expect(find.text('Calls'), findsNothing, reason: 'the sheet closed');
   });
 }

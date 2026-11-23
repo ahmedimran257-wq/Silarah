@@ -76,9 +76,7 @@ class _CallDetailsSheetState extends State<_CallDetailsSheet> {
     }
     final matchId = _entry.matchId;
     final results = await Future.wait<Object?>([
-      widget.api
-          .log(otherUserId: _entry.otherUserId, limit: 100)
-          .then<Object?>((value) => value, onError: (_) => null),
+      widget.api.log(otherUserId: _entry.otherUserId, limit: 100).then<Object?>((value) => value, onError: (_) => null),
       if (matchId != null) widget.api.chatState(matchId),
     ]);
     if (!mounted) return;
@@ -196,122 +194,129 @@ class _CallDetailsSheetState extends State<_CallDetailsSheet> {
       if (used > 0) context.uiCopyWith('{minutes} min used', {'minutes': used}),
     ].join(' · ');
     final prefs = _prefs;
-    final height = MediaQuery.sizeOf(context).height;
 
-    return Container(
-      constraints: BoxConstraints(maxHeight: height * .9),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceMid,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(top: BorderSide(color: AppColors.goldBorder)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.fromLTRB(
-            AppDimensions.space24,
-            AppDimensions.space12,
-            AppDimensions.space24,
-            AppDimensions.space24,
-          ),
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(color: AppColors.cardBorder, borderRadius: BorderRadius.circular(2)),
-              ),
+    // The list scrolls inside the sheet; at its top, a swipe down drags the
+    // sheet down and closes it (the list no longer swallows the gesture).
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.9,
+      maxChildSize: 0.9,
+      minChildSize: 0.3,
+      snap: true,
+      builder: (context, scrollController) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.surfaceMid,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border(top: BorderSide(color: AppColors.goldBorder)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: ListView(
+            controller: scrollController,
+            padding: const EdgeInsets.fromLTRB(
+              AppDimensions.space24,
+              AppDimensions.space12,
+              AppDimensions.space24,
+              AppDimensions.space24,
             ),
-            const SizedBox(height: AppDimensions.space20),
-            Center(
-              child: CallAvatar(
-                name: _entry.firstName,
-                photoUrl: widget.photoUrl,
-                unavailable: _entry.memberUnavailable,
-                size: 76,
-              ),
-            ),
-            const SizedBox(height: AppDimensions.space12),
-            Semantics(
-              header: true,
-              child: UiText.verbatim(
-                _name,
-                textAlign: TextAlign.center,
-                style: AppTypography.screenTitle.copyWith(fontSize: 22),
-              ),
-            ),
-            const SizedBox(height: AppDimensions.space4),
-            UiText.verbatim(summary, textAlign: TextAlign.center, style: AppTypography.caption),
-            if (_available) ...[
-              const SizedBox(height: AppDimensions.space20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _RoundAction(icon: Icons.call_rounded, label: 'Call back', primary: true, onTap: _callBack),
-                  _RoundAction(icon: Icons.chat_bubble_outline_rounded, label: 'Message', onTap: _message),
-                  _RoundAction(icon: Icons.event_available_outlined, label: 'Plan a call', onTap: _plan),
-                  _RoundAction(icon: Icons.person_outline_rounded, label: 'View profile', onTap: _profile),
-                ],
-              ),
-            ],
-            const SizedBox(height: AppDimensions.space24),
-            UiText('Calls', style: AppTypography.sectionLabel.copyWith(color: AppColors.slateMist)),
-            const SizedBox(height: AppDimensions.space8),
-            if (_loading)
-              const SilarahShimmer(child: ShimmerBox(width: double.infinity, height: 120, radius: 16))
-            else
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceGlass,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.cardBorder),
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: AppColors.cardBorder, borderRadius: BorderRadius.circular(2)),
                 ),
-                child: Column(
+              ),
+              const SizedBox(height: AppDimensions.space20),
+              Center(
+                child: CallAvatar(
+                  name: _entry.firstName,
+                  photoUrl: widget.photoUrl,
+                  unavailable: _entry.memberUnavailable,
+                  size: 76,
+                ),
+              ),
+              const SizedBox(height: AppDimensions.space12),
+              Semantics(
+                header: true,
+                child: UiText.verbatim(
+                  _name,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.screenTitle.copyWith(fontSize: 22),
+                ),
+              ),
+              const SizedBox(height: AppDimensions.space4),
+              UiText.verbatim(summary, textAlign: TextAlign.center, style: AppTypography.caption),
+              if (_available) ...[
+                const SizedBox(height: AppDimensions.space20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (var i = 0; i < _attempts.length; i++) ...[
-                      if (i > 0) Divider(height: 1, color: AppColors.divider),
-                      _AttemptRow(entry: _attempts[i], locale: locale),
-                    ],
+                    _RoundAction(icon: Icons.call_rounded, label: 'Call back', primary: true, onTap: _callBack),
+                    _RoundAction(icon: Icons.chat_bubble_outline_rounded, label: 'Message', onTap: _message),
+                    _RoundAction(icon: Icons.event_available_outlined, label: 'Plan a call', onTap: _plan),
+                    _RoundAction(icon: Icons.person_outline_rounded, label: 'View profile', onTap: _profile),
                   ],
                 ),
-              ),
-            if (_available && prefs != null) ...[
+              ],
               const SizedBox(height: AppDimensions.space24),
-              UiText('Safety', style: AppTypography.sectionLabel.copyWith(color: AppColors.slateMist)),
+              UiText('Calls', style: AppTypography.sectionLabel.copyWith(color: AppColors.slateMist)),
               const SizedBox(height: AppDimensions.space8),
-              _ToggleRow(
-                icon: Icons.notifications_off_outlined,
-                label: context.uiCopyWith('Mute calls from {name}', {'name': _entry.firstName}),
-                detail: context.uiCopy('Calls do not ring; they show as missed.'),
-                value: prefs.muted,
-                enabled: !_saving,
-                onChanged: (v) => _setPrefs(muted: v),
-              ),
-              _ToggleRow(
-                icon: Icons.phone_disabled_outlined,
-                label: context.uiCopyWith('Block calls from {name}', {'name': _entry.firstName}),
-                detail: context.uiCopy('They are not told. Messages are not affected.'),
-                value: prefs.callsBlocked,
-                enabled: !_saving,
-                onChanged: (v) => _setPrefs(blocked: v),
+              if (_loading)
+                const SilarahShimmer(child: ShimmerBox(width: double.infinity, height: 120, radius: 16))
+              else
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceGlass,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Column(
+                    children: [
+                      for (var i = 0; i < _attempts.length; i++) ...[
+                        if (i > 0) Divider(height: 1, color: AppColors.divider),
+                        _AttemptRow(entry: _attempts[i], locale: locale),
+                      ],
+                    ],
+                  ),
+                ),
+              if (_available && prefs != null) ...[
+                const SizedBox(height: AppDimensions.space24),
+                UiText('Safety', style: AppTypography.sectionLabel.copyWith(color: AppColors.slateMist)),
+                const SizedBox(height: AppDimensions.space8),
+                _ToggleRow(
+                  icon: Icons.notifications_off_outlined,
+                  label: context.uiCopyWith('Mute calls from {name}', {'name': _entry.firstName}),
+                  detail: context.uiCopy('Calls do not ring; they show as missed.'),
+                  value: prefs.muted,
+                  enabled: !_saving,
+                  onChanged: (v) => _setPrefs(muted: v),
+                ),
+                _ToggleRow(
+                  icon: Icons.phone_disabled_outlined,
+                  label: context.uiCopyWith('Block calls from {name}', {'name': _entry.firstName}),
+                  detail: context.uiCopy('They are not told. Messages are not affected.'),
+                  value: prefs.callsBlocked,
+                  enabled: !_saving,
+                  onChanged: (v) => _setPrefs(blocked: v),
+                ),
+                const SizedBox(height: AppDimensions.space8),
+                CallOutlineButton(label: 'Report', icon: Icons.flag_outlined, danger: true, onTap: _report),
+              ],
+              const SizedBox(height: AppDimensions.space16),
+              CallOutlineButton(
+                label: 'Remove from history',
+                icon: Icons.delete_sweep_outlined,
+                onTap: _remove,
               ),
               const SizedBox(height: AppDimensions.space8),
-              CallOutlineButton(label: 'Report', icon: Icons.flag_outlined, danger: true, onTap: _report),
+              UiText(
+                'Removing only hides these calls for you. Safety records are kept.',
+                style: AppTypography.caption.copyWith(fontSize: 11),
+              ),
             ],
-            const SizedBox(height: AppDimensions.space16),
-            CallOutlineButton(
-              label: 'Remove from history',
-              icon: Icons.delete_sweep_outlined,
-              onTap: _remove,
-            ),
-            const SizedBox(height: AppDimensions.space8),
-            UiText(
-              'Removing only hides these calls for you. Safety records are kept.',
-              style: AppTypography.caption.copyWith(fontSize: 11),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -517,8 +522,7 @@ class _PlanCallSheetState extends State<_PlanCallSheet> {
     for (var i = 0; i <= _daysAhead; i++) DateTime(_now.year, _now.month, _now.day + i),
   ].where((d) => _slots(d).isNotEmpty).toList(growable: false);
 
-  List<DateTime> _slots(DateTime day) =>
-      planSlotsFor(day, _now, leadMinutes: _lead, daysAhead: _daysAhead);
+  List<DateTime> _slots(DateTime day) => planSlotsFor(day, _now, leadMinutes: _lead, daysAhead: _daysAhead);
   late DateTime _day = _days.first;
   DateTime? _slot;
   bool _sending = false;

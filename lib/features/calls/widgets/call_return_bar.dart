@@ -42,10 +42,16 @@ class CallReturnBarHost extends StatelessWidget {
                   : const SizedBox(width: double.infinity),
             ),
             Expanded(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: visible,
-                child: child,
+              // The screens are their own semantics container: a page route
+              // hides everything painted before it in its container from
+              // screen readers, and the bar is painted just before it.
+              child: Semantics(
+                container: true,
+                child: MediaQuery.removePadding(
+                  context: context,
+                  removeTop: visible,
+                  child: child,
+                ),
               ),
             ),
           ],
