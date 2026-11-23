@@ -297,7 +297,8 @@ async function accept(
   return reply({
     outcome: "active",
     role: "callee",
-    other_name: info.caller_name,
+    // Shown in the app (full name once matched); Stream keeps the short one.
+    other_name: info.caller_shown_name,
     my_name: info.callee_name,
     match_id: info.match_id,
     other_user_id: callerId,
