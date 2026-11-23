@@ -331,16 +331,15 @@ class ChatCallState {
 /// the same neutral words, whatever the real reason).
 const neutralUnavailableCopy = '{name} isn\'t taking calls right now.';
 
-/// Minutes left before the time runs out, from the hold the server granted.
+/// Paid seconds left: the hold itself, counted from when both were
+/// connected. (Stream's own limit adds the connect time on top and is only
+/// the backstop; it changes when both join, so it is not used here.)
 int secondsLeft({
-  required int maxDurationSeconds,
+  required int holdMinutes,
   required DateTime connectedAt,
   required DateTime now,
-  int connectAllowanceSeconds = 30,
 }) {
-  // Stream's timer includes a 30 s connect allowance; the member's paid time
-  // is the hold itself, counted from when both were connected.
-  final paid = maxDurationSeconds - connectAllowanceSeconds;
+  final paid = holdMinutes * 60;
   final elapsed = now.difference(connectedAt).inSeconds;
   final left = paid - elapsed;
   return left < 0 ? 0 : left;

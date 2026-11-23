@@ -152,7 +152,7 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
   int get secondsLeftNow => connectedAt == null
       ? holdMinutes * 60
       : secondsLeft(
-          maxDurationSeconds: maxDurationSeconds,
+          holdMinutes: holdMinutes,
           connectedAt: connectedAt!,
           now: DateTime.now(),
         );
@@ -297,6 +297,7 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     requestId = push.requestId;
     matchId = push.matchId;
     otherName = push.callerName;
+    otherUserId = push.callerId.isEmpty ? null : push.callerId;
     isCaller = false;
     ringEndsAt = push.expiresAt;
     phase = CallPhase.incoming;

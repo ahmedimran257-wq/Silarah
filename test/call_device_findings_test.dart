@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:silarah/features/calls/call_api.dart';
 import 'package:silarah/features/calls/call_controller.dart';
+import 'package:silarah/features/calls/call_notifications.dart';
 import 'package:silarah/features/calls/calls_hub.dart';
 import 'package:silarah/features/calls/screens/call_screen.dart';
 import 'package:silarah/features/calls/widgets/call_return_bar.dart';
@@ -127,5 +128,64 @@ void main() {
 
   test('a never-settling call stops being checked after a minute', () {
     expect(CallsHub.settleCheckEvery * CallsHub.settleChecks, const Duration(seconds: 60));
+  });
+
+  // 3. The callee's call screen showed only the caller's initial: the ring
+  //    carried no caller id, and the screen showed a photo only when the
+  //    opener passed one.
+  test('the ring says who is calling, and the call keeps it', () {
+    final push = IncomingCallPush.fromData({
+      'type': 'call_incoming',
+      'request_id': 'r1',
+      'match_id': 'm1',
+      'caller_id': 'caller-1',
+      'caller_name': 'Imran',
+      'ring_seconds': '30',
+      'for_user': 'u1',
+    })!;
+    expect(push.callerId, 'caller-1');
+    expect(IncomingCallPush.fromPayload(push.toPayload())!.callerId, 'caller-1',
+        reason: 'Answer from the notification keeps it');
+    final call = CallController(api: CallApi(invoke: (_) async => const {}, rpc: (_, __) async => null));
+    call.presentIncoming(push);
+    expect(call.otherUserId, 'caller-1');
+    call.dispose();
+  });
+
+  test('a ring from an older server still works without the id', () {
+    final push = IncomingCallPush.fromData({
+      'type': 'call_incoming',
+      'request_id': 'r1',
+      'caller_name': 'Imran',
+      'ring_seconds': '30',
+      'for_user': 'u1',
+    })!;
+    expect(push.callerId, isEmpty);
+  });
+
+  testWidgets('the call screen loads the photo of the other member itself', (tester) async {
+    final requested = <String>[];
+    // A live call, so the screen stays open.
+    CallController.instance
+      ..phase = CallPhase.active
+      ..otherName = 'Imran';
+    addTearDown(() => CallController.instance.phase = CallPhase.idle);
+    await tester.pumpWidget(MaterialApp(
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        ...AppLocalizations.localizationsDelegates,
+        GlobalMaterialLocalizations.delegate,
+      ],
+      home: CallScreen(
+        otherUserId: 'caller-1',
+        photoLoader: (ids) async {
+          requested.addAll(ids);
+          return const {};
+        },
+      ),
+    ));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(requested, ['caller-1'], reason: 'asked once, only for this member');
   });
 }

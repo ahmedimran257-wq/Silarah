@@ -33,11 +33,15 @@ class IncomingCallPush {
     required this.declineToken,
     required this.expiresAt,
     required this.forUser,
+    this.callerId = '',
   });
 
   final String requestId;
   final String matchId;
   final String callerName;
+
+  /// Who is calling (for their photo); empty from older servers.
+  final String callerId;
   final String declineToken;
   final DateTime expiresAt;
   final String forUser;
@@ -61,6 +65,7 @@ class IncomingCallPush {
       declineToken: data['decline_token']?.toString() ?? '',
       expiresAt: expires,
       forUser: forUser,
+      callerId: data['caller_id']?.toString() ?? '',
     );
   }
 
@@ -68,6 +73,7 @@ class IncomingCallPush {
         'request_id': requestId,
         'match_id': matchId,
         'caller_name': callerName,
+        'caller_id': callerId,
         'decline_token': declineToken,
         'expires_at': expiresAt.toIso8601String(),
         'for_user': forUser,

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/notification_navigation.dart';
+import '../../../core/services/profile_photo_service.dart';
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
 import '../../../core/widgets/overlays/silarah_dialog.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
@@ -23,7 +24,7 @@ import '../widgets/call_minutes_sheet.dart';
 import '../../../core/router/home_tab.dart';
 
 class CallScreen extends StatefulWidget {
-  const CallScreen({super.key, this.answerRequestId, this.photoUrl, this.otherUserId});
+  const CallScreen({super.key, this.answerRequestId, this.photoUrl, this.otherUserId, this.photoLoader});
 
   /// True while a call screen is on screen, so a second ring or tap never
   /// stacks another one on top. Observable for the return-to-call bar.
@@ -53,6 +54,9 @@ class CallScreen extends StatefulWidget {
   final String? photoUrl;
   final String? otherUserId;
 
+  /// Photo URLs this member may see, by owner id (tests swap it).
+  final Future<Map<String, String>> Function(List<String> ownerUserIds)? photoLoader;
+
   @override
   State<CallScreen> createState() => _CallScreenState();
 }
@@ -70,6 +74,7 @@ class _CallScreenState extends State<CallScreen> {
     final answer = widget.answerRequestId;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _loadPhoto();
       if (answer != null) {
         unawaited(_answer(answer));
       } else if (_call.phase == CallPhase.idle) {
@@ -88,8 +93,38 @@ class _CallScreenState extends State<CallScreen> {
 
   String? get _otherUserId => widget.otherUserId ?? _call.otherUserId;
 
+  String? _loadedPhotoUrl;
+  String? _photoLoadedFor;
+
+  String? get _photoUrl {
+    final given = widget.photoUrl;
+    return given != null && given.isNotEmpty ? given : _loadedPhotoUrl;
+  }
+
+  /// Loads the other member's photo once their id is known.
+  void _loadPhoto() {
+    final given = widget.photoUrl;
+    final id = _otherUserId;
+    if ((given != null && given.isNotEmpty) || id == null || id.isEmpty || id == _photoLoadedFor) return;
+    _photoLoadedFor = id;
+    final load = widget.photoLoader ??
+        (List<String> ids) => ProfilePhotoService.instance.getAuthorizedPhotoUrls(ownerUserIds: ids);
+    unawaited(() async {
+      try {
+        final urls = await load([id]);
+        final url = urls[id];
+        if (mounted && _otherUserId == id && url != null && url.isNotEmpty) {
+          setState(() => _loadedPhotoUrl = url);
+        }
+      } catch (_) {
+        // No photo: the initial stays, as before.
+      }
+    }());
+  }
+
   void _changed() {
     if (!mounted) return;
+    _loadPhoto();
     if (_call.phase == CallPhase.idle && !_closing) {
       _closing = true;
       popOrGoToFallback(GoRouter.of(context), HomeTab.chats.path);
@@ -283,7 +318,7 @@ class _CallScreenState extends State<CallScreen> {
                   ],
                 ),
                 const Spacer(),
-                _Avatar(name: name, photoUrl: widget.photoUrl, live: phase == CallPhase.active),
+                _Avatar(name: name, photoUrl: _photoUrl, live: phase == CallPhase.active),
                 const SizedBox(height: AppDimensions.space24),
                 UiText.verbatim(name,
                     textAlign: TextAlign.center,

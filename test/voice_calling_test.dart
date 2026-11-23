@@ -43,13 +43,13 @@ void main() {
 
     test('paid time is the hold, not the 30 s connect allowance', () {
       // hold 30 min -> max duration 1830 s
-      expect(secondsLeft(maxDurationSeconds: 1830, connectedAt: start, now: start), 1800);
+      expect(secondsLeft(holdMinutes: 30, connectedAt: start, now: start), 1800);
       expect(
-        secondsLeft(maxDurationSeconds: 1830, connectedAt: start, now: start.add(const Duration(minutes: 29))),
+        secondsLeft(holdMinutes: 30, connectedAt: start, now: start.add(const Duration(minutes: 29))),
         60,
       );
       expect(
-        secondsLeft(maxDurationSeconds: 1830, connectedAt: start, now: start.add(const Duration(hours: 2))),
+        secondsLeft(holdMinutes: 30, connectedAt: start, now: start.add(const Duration(hours: 2))),
         0,
       );
     });

@@ -135,3 +135,5 @@ test.
 | **Found:** right after a call the Calls tab showed "No answer" and 0 minutes (read before settlement) | fixed (migration 326 + re-check) |
 | Ringback, connected beep, 2-minute and 30-second warnings, end tone, declined (not-reached) tone: heard by the owner, through the OnePlus's Bluetooth device (48104, 3-minute hold) | pass |
 | **Found:** a 3-minute hold ran 3:29 (Stream's limit = hold + 30 s connect allowance; joining took 4 s); billing capped at 3 min | fixed in 48105: the caller's phone ends at 0 |
+| **Found (owner):** the Redmi's call screen showed Imran's initial, not his photo (the ring carried no caller id; the screen showed a photo only when the opener passed one) | fixed in 48105 |
+| **Found (top-up review):** a modified app could talk up to 30 s free per call (Stream allowance) | fixed: migration 327 shrinks the allowance to the real connect time |

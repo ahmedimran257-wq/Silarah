@@ -173,6 +173,7 @@ async function start(supabase: Admin, userId: string, matchId: string): Promise<
     type: "call_incoming",
     request_id: requestIdValue,
     match_id: String(result.match_id),
+    caller_id: userId,
     caller_name: String(result.caller_name),
     decline_token: String(result.decline_token),
     expires_at: expiresAt,

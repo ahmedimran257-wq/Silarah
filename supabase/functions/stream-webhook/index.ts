@@ -13,6 +13,7 @@ import {
   CALL_TYPE,
   constantTimeEqual,
   MAX_WEBHOOK_BYTES,
+  setMaxDuration,
   streamConfigFromEnv,
   verifyWebhook,
 } from "../_shared/stream_video.ts";
@@ -101,6 +102,23 @@ Deno.serve(async (req) => {
   const requestId = typeof result.request_id === "string" ? result.request_id : null;
   if (requestId && result.action === "check_left") {
     later(() => endIfMemberGone(supabase, config, requestId));
+  } else if (
+    requestId && result.action === "set_limit" && typeof result.stream_call_id === "string" &&
+    Number.isFinite(Number(result.max_duration_seconds))
+  ) {
+    // Both members are in: Stream's limit becomes the hold plus the real
+    // connect time, so paid talk time is never longer than the hold. If
+    // this fails the full allowance stays (bounded) and the caller's phone
+    // still ends the call at 0.
+    const streamCallId = result.stream_call_id;
+    const limit = Number(result.max_duration_seconds);
+    later(async () => {
+      try {
+        await setMaxDuration(config, streamCallId, limit);
+      } catch (error) {
+        console.warn("[stream-webhook] time limit not tightened:", (error as Error).message);
+      }
+    });
   } else if (requestId && result.action === "settle") {
     later(async () => {
       // Give Stream a moment to close the participant sessions.

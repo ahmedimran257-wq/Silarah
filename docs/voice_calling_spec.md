@@ -78,6 +78,9 @@ privacy-safe names and missed calls.
 ## 5. Billing and settlement
 
 - Charge = time both participants were connected, rounded up per started minute, capped at the hold.
+- Stream's limit starts as hold + 30 s (connect allowance). When both members are in (migration 327)
+  it becomes hold + the real connect time + 2 s, and "Add minutes" builds on that, so paid talk time is
+  never longer than the hold, whatever the app does. The caller's phone also ends the call at 0.
 - Held minutes stay unavailable until the call is settled, so a missed webhook can never under-charge.
 - Settlement sources: Stream webhooks (`call.session_participant_joined` / `_left` with
   `duration_seconds`, `call.session_ended`, `call.ended`); fallback job reads Stream's call record for
@@ -529,6 +532,8 @@ D = Deno test, W = Dart unit / widget test, P = phone evidence (`docs/voice_call
 | 12.9 Volume keys = call volume; volume key silences the ring; 30 s reconnect limit; 2 min / 30 s warnings | W, P (gate 15) |
 | 12.5 Connected calls answered before settlement; `settling` re-check until final | R (326), W |
 | 12.1 Return bar hidden on the call screen, redraws after it | W, P |
+| 5 Paid talk time never longer than the hold: allowance shrinks to the real connect time (327) | R, P |
+| 12.1 Call screen shows the other member's photo on every path (ring carries the caller id) | W, P |
 
 Sources: getstream.io/video/pricing, /video/docs/flutter/pricing-guide, /video/docs/api/ring-calls,
 /video/docs/api/calls, /video/docs/api/call-types/settings, /video/docs/api/webhooks/overview,
