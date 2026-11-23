@@ -108,8 +108,11 @@ void main() {
       expect(end.indexOf('AudioSwitchManager.instance?.stop()'), lessThan(end.indexOf('main.post')));
       final telecom = File('packages/silarah_calls/android/src/main/kotlin/com/silarah/calls/CallTelecom.kt')
           .readAsStringSync();
-      expect(telecom, contains('if (result is CallControlResult.Success) setActive()'),
+      // Answered once Telecom has the call (a dispatched coroutine), not from
+      // inside Telecom's connection callback, where the answer was lost.
+      expect(telecom, contains('job = scope.launch(Dispatchers.Main) {'),
           reason: 'an answered call is active in Telecom, not ringing');
+      expect(telecom, contains('val result = answer(CallAttributesCompat.CALL_TYPE_AUDIO_CALL)'));
     });
 
     test('a ring wakes a sleeping screen unless Do Not Disturb or the full-screen setting says no', () {

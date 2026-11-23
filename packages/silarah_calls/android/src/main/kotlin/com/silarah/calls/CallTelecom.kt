@@ -11,6 +11,7 @@ import androidx.core.telecom.CallControlScope
 import androidx.core.telecom.CallEndpointCompat
 import androidx.core.telecom.CallsManager
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -59,7 +60,13 @@ internal class CallTelecom(
             callType = CallAttributesCompat.CALL_TYPE_AUDIO_CALL,
             callCapabilities = CallAttributesCompat.SUPPORTS_SET_INACTIVE,
         )
-        job = scope.launch {
+        // Dispatched, never immediate: Telecom hands the call over from inside
+        // its own "create the connection" callback, before it listens to the
+        // connection. Run there (Main.immediate), the answer below reached a
+        // connection nobody listened to yet, and Telecom then marked the
+        // answered call ringing for the whole call (Android 10, build 48108).
+        // Dispatched, it runs once Telecom has the call.
+        job = scope.launch(Dispatchers.Main) {
             try {
                 manager.addCall(
                     attributes,
@@ -81,11 +88,9 @@ internal class CallTelecom(
                             onActive()
                             if (connectedEarly) setActive()
                         } else {
-                            // The member already answered in Silarah. Answer, then
-                            // active: on Android 10 the answered call otherwise
-                            // stayed "ringing" in Telecom for the whole call.
+                            // The member already answered in Silarah: answering
+                            // makes the call active in Telecom.
                             val result = answer(CallAttributesCompat.CALL_TYPE_AUDIO_CALL)
-                            if (result is CallControlResult.Success) setActive()
                             if (result is CallControlResult.Success) {
                                 emit("telecom", mapOf("available" to true))
                                 onActive()
