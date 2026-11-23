@@ -174,6 +174,27 @@ class MissedCallPush {
 class CallNotifications {
   CallNotifications._();
 
+  /// The calling system's own data pushes (the calls and call-worker
+  /// functions): the ring and what follows it, missed calls and plan
+  /// reminders. Only these are handled here. Other notifications about calls
+  /// (a plan suggested, accepted or cancelled; pack minutes added or
+  /// removed) are ordinary Silarah notifications with a `call_` type.
+  static const Set<String> pushTypes = {
+    'call_incoming',
+    'call_cancel',
+    'call_ended',
+    'call_answered',
+    'call_missed',
+    'call_missed_seen',
+    'call_plan_reminder',
+  };
+
+  static bool isCallPush(String? type) => pushTypes.contains(type);
+
+  /// Any notification about calls (a call push or an ordinary `call_`
+  /// notification) changes what the Calls tab shows.
+  static bool concernsCalls(String? type) => type != null && type.startsWith('call_');
+
   static SilarahCalls get _native => SilarahCalls.instance;
 
   static Future<void> rememberSignedInUser(String userId) async {

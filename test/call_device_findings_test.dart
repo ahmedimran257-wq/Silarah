@@ -5,6 +5,7 @@
 //  2. Right after a call the Calls tab showed it as "No answer" with its hold
 //     still spent: the app read the call before the server settled it.
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -240,5 +241,48 @@ void main() {
     await tester.fling(find.text('Calls'), const Offset(0, 500), 1500);
     await tester.pumpAndSettle();
     expect(find.text('Calls'), findsNothing, reason: 'the sheet closed');
+  });
+
+  // 5. With Silarah open, "Call time accepted" never reached the proposer's
+  //    Calls tab: every notification type starting with call_ was routed to
+  //    the call-push handler, which knows only the calling system's own
+  //    pushes, so plan and pack-minutes notifications were dropped.
+  group('call pushes and notifications about calls', () {
+    Set<String> typesIn(String path, RegExp pattern) =>
+        pattern.allMatches(File(path).readAsStringSync()).map((m) => m.group(1)!).toSet();
+
+    test('the call push list is exactly what the calling functions send', () {
+      final sent = <String>{
+        for (final path in [
+          'supabase/functions/calls/index.ts',
+          'supabase/functions/call-worker/index.ts',
+          'supabase/functions/_shared/call_push.ts',
+        ])
+          ...typesIn(path, RegExp(r'type: "(call_[a-z_]+)"')),
+      };
+      expect(sent, CallNotifications.pushTypes);
+    });
+
+    test('call notifications from the notification system are not call pushes, and reload the Calls tab', () {
+      final notes = <String>{
+        ...typesIn('supabase/functions/revenuecat-webhook/index.ts', RegExp(r'type: "(call_[a-z_]+)"')),
+        for (final f in Directory('supabase/migrations').listSync().whereType<File>())
+          ...RegExp(r"queue_notification\(\s*\w+,\s*'(call_[a-z_]+)'")
+              .allMatches(f.readAsStringSync())
+              .map((m) => m.group(1)!),
+      };
+      expect(notes, containsAll(['call_plan', 'call_minutes_added', 'call_minutes_refunded']));
+      for (final type in notes) {
+        expect(CallNotifications.isCallPush(type), isFalse, reason: type);
+        expect(CallNotifications.concernsCalls(type), isTrue, reason: type);
+      }
+    });
+
+    test('both push handlers route by the call push list, not by name', () {
+      final main = File('lib/main.dart').readAsStringSync();
+      expect(main, isNot(contains("startsWith('call_')")));
+      expect(RegExp(r'CallNotifications\.isCallPush\(type\)').allMatches(main).length, 2);
+      expect(main, contains('if (CallNotifications.concernsCalls(type)) CallController.historyChanged();'));
+    });
   });
 }

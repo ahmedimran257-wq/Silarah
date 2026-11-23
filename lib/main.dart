@@ -95,7 +95,7 @@ Future<void> silarahFirebaseMessagingBackgroundHandler(
 ) async {
   await Firebase.initializeApp();
   final type = message.data['type']?.toString() ?? '';
-  if (type.startsWith('call_')) {
+  if (CallNotifications.isCallPush(type)) {
     await CallNotifications.handlePushData(
       Map<String, dynamic>.from(message.data),
     );
@@ -606,11 +606,14 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
       navigateFromPushNotification(_router, path);
     };
     FcmService.instance.onForegroundMessage = (message) {
-      final callType = message.data['type']?.toString() ?? '';
-      if (callType.startsWith('call_')) {
+      final type = message.data['type']?.toString() ?? '';
+      if (CallNotifications.isCallPush(type)) {
         unawaited(_handleCallPush(Map<String, dynamic>.from(message.data)));
         return;
       }
+      // A plan suggested / accepted / cancelled or pack minutes added are
+      // ordinary notifications, and the Calls tab shows them too.
+      if (CallNotifications.concernsCalls(type)) CallController.historyChanged();
       final deepLink = message.data['deep_link']?.toString();
       // The open chat already shows the new message live; skip the banner.
       if (_chatCubit.isViewingConversationLink(deepLink)) {
