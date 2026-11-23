@@ -379,6 +379,13 @@ insight, unseen count, ring capability and planned calls in one call. `hide_my_c
 up_to)` and `mark_calls_seen()` write only the member's own rows. Free tier: no new paid services; all
 reads are bounded pages.
 
+- **A call's result before settlement (migration 326).** A call is settled a few seconds after it ends.
+  A call both members were in counts as answered at once; its talk time and minutes appear at
+  settlement. While a member's call is being settled the overview says `settling` and the app checks
+  again every 3 seconds (up to a minute), then reloads the call log, chats and minutes once.
+- **Return-to-call bar** shows only off the call screen. The call screen's open count is published
+  after the frame, never while the tree builds (a mid-build change once froze the bar on "Calling…").
+
 ### 12.6 One gate, one source of numbers, clear instructions
 
 - **One gate.** `get_calling_rules()` (any signed-in account, Guardians included) returns the switch and
@@ -515,6 +522,8 @@ D = Deno test, W = Dart unit / widget test, P = phone evidence (`docs/voice_call
 | 12.9 Ringback / connected / end / not-reached / failed / reconnecting / warning tones on the call stream | W (wiring), P (gate 15) |
 | 12.9 Route follows headsets; no forced earpiece; one decision for Telecom and engine; headset names | W, P (gate 15, BT headset) |
 | 12.9 Volume keys = call volume; volume key silences the ring; 30 s reconnect limit; 2 min / 30 s warnings | W, P (gate 15) |
+| 12.5 Connected calls answered before settlement; `settling` re-check until final | R (326), W |
+| 12.1 Return bar hidden on the call screen, redraws after it | W, P |
 
 Sources: getstream.io/video/pricing, /video/docs/flutter/pricing-guide, /video/docs/api/ring-calls,
 /video/docs/api/calls, /video/docs/api/call-types/settings, /video/docs/api/webhooks/overview,

@@ -223,6 +223,7 @@ class CallOverview {
     this.premiumUntil,
     this.willRenew = false,
     this.consentRequired = false,
+    this.settling = false,
   });
 
   final bool callsEnabled;
@@ -241,6 +242,10 @@ class CallOverview {
   final DateTime? premiumUntil;
   final bool willRenew;
   final bool consentRequired;
+
+  /// A call of this member's ended and is being settled (talk time and
+  /// minutes are final a few seconds later).
+  final bool settling;
 
   CallMinutesTerms get terms => CallMinutesTerms(
         premium: premium,
@@ -267,6 +272,7 @@ class CallOverview {
         premiumUntil: DateTime.tryParse(json['premium_until']?.toString() ?? '')?.toLocal(),
         willRenew: json['will_renew'] == true,
         consentRequired: json['consent_required'] == true,
+        settling: json['settling'] == true,
       );
 }
 

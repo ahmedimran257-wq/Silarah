@@ -27,8 +27,26 @@ class CallScreen extends StatefulWidget {
 
   /// True while a call screen is on screen, so a second ring or tap never
   /// stacks another one on top. Observable for the return-to-call bar.
-  static bool get isOpen => openCount.value > 0;
+  /// Call screens open now, counted at once (placeCall reads it).
+  static bool get isOpen => _open > 0;
+  static int _open = 0;
+
+  /// The same count for widgets that listen (the return-to-call bar). It is
+  /// updated after the frame: the call screen opens and closes while the
+  /// tree builds, and a listener above it (the bar) changed mid-build was
+  /// left stale and never redrew.
   static final ValueNotifier<int> openCount = ValueNotifier<int>(0);
+
+  @visibleForTesting
+  static void opened() => _changeOpen(1);
+
+  @visibleForTesting
+  static void closed() => _changeOpen(-1);
+
+  static void _changeOpen(int delta) {
+    _open += delta;
+    scheduleMicrotask(() => openCount.value = _open);
+  }
 
   /// Opened from the notification's Answer button: answer this call.
   final String? answerRequestId;
@@ -47,7 +65,7 @@ class _CallScreenState extends State<CallScreen> {
   @override
   void initState() {
     super.initState();
-    CallScreen.openCount.value++;
+    CallScreen.opened();
     _call.addListener(_changed);
     final answer = widget.answerRequestId;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -63,7 +81,7 @@ class _CallScreenState extends State<CallScreen> {
 
   @override
   void dispose() {
-    CallScreen.openCount.value--;
+    CallScreen.closed();
     _call.removeListener(_changed);
     super.dispose();
   }

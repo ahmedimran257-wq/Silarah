@@ -115,3 +115,22 @@ test.
   background/locked, Android 7): need a second Android phone.
 - Gate 6 (license tester buys a pack twice, refund): needs the owner's
   approval and a RevenueCat-enabled build.
+
+## Two-phone test, build 48103 (23 Nov 2026; OnePlus 8 = Imran, Premium; Redmi Note 4 = Aisha, free)
+
+| Check | Result |
+|---|---|
+| Calls tab and minutes card show (switch on); guide before the first call with server numbers | pass |
+| Outgoing call is a Telecom call from the first ring (state DIALING, audio mode IN_COMMUNICATION) | pass |
+| Ring on the Redmi: first name only, Answer / Decline (plain heads-up fallback on this ROM) | pass |
+| Answer: Telecom ACTIVE; OnePlus call goes to its connected Bluetooth device (HeadsetStateMachine AudioOn), Redmi on the earpiece | pass |
+| Meter "17 min left" = 18 − 1 started minute; notification "16 min left" after 1 minute | pass |
+| Volume key changes the Bluetooth call volume (8 → 7), set back | pass |
+| Mute in sync: notification action turns to "Unmute" | pass |
+| Callee hangs up: caller shows "Call ended" within 1 s; both phones back to MODE_NORMAL, no Telecom call, no service, no notification | pass |
+| Settlement: 108 s → 2 min, included minutes, 4 s after the end | pass |
+| Volume key during the ring: FLAG_INSISTENT removed (0x86 → 0x82), ring stays on screen | pass |
+| Caller cancels while ringing: ring gone on the Redmi, both phones clean; missed-call note "9 missed calls from Imran" | pass |
+| **Found:** return bar shown on the call screen and frozen on "Calling…" | fixed in 48104 (bar count published after the frame) |
+| **Found:** right after a call the Calls tab showed "No answer" and 0 minutes (read before settlement) | fixed (migration 326 + re-check) |
+| Ringback, end and other tones: audible only, played on STREAM_VOICE_CALL; need the owner's ears | open |

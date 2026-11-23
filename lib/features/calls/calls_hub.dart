@@ -56,6 +56,14 @@ class CallsHub extends ChangeNotifier with WidgetsBindingObserver {
   bool _refreshing = false;
   bool _refreshAgain = false;
 
+  // A call is settled a few seconds after it ends: check again until the
+  // minutes and talk time are final, then tell every view.
+  static const settleCheckEvery = Duration(seconds: 3);
+  static const settleChecks = 20;
+  Timer? _settleTimer;
+  int _settleChecksLeft = 0;
+  bool _wasSettling = false;
+
   /// A session began. [member]: a member account (Calls tab, minutes, ring
   /// capability); false for Guardian-only accounts, which only need the
   /// switch (their call log follows it).
@@ -84,7 +92,26 @@ class CallsHub extends ChangeNotifier with WidgetsBindingObserver {
     rules.value = null;
     unseenMissed.value = 0;
     tabVisible.value = false;
+    _settleTimer?.cancel();
+    _settleTimer = null;
+    _wasSettling = false;
     notifyListeners();
+  }
+
+  void _followSettlement(bool settling) {
+    _settleTimer?.cancel();
+    _settleTimer = null;
+    if (settling) {
+      if (!_wasSettling) _settleChecksLeft = settleChecks;
+      _wasSettling = true;
+      if (_settleChecksLeft-- > 0) {
+        _settleTimer = Timer(settleCheckEvery, () => unawaited(refresh()));
+      }
+    } else if (_wasSettling) {
+      // Settled: the call log, the chat and this overview reload once.
+      _wasSettling = false;
+      CallController.historyChanged();
+    }
   }
 
   void _onHistoryChanged() => unawaited(refresh());
@@ -118,6 +145,7 @@ class CallsHub extends ChangeNotifier with WidgetsBindingObserver {
         if (next != null) {
           overview = next;
           unseenMissed.value = next.unseenMissed;
+          _followSettlement(next.settling);
         } else if (nextRules != null && !on) {
           overview = null;
           unseenMissed.value = 0;
