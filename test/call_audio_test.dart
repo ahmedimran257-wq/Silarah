@@ -1,0 +1,100 @@
+// Call audio rules (docs/voice_calling_spec.md 12.9): where the call's audio
+// goes when headsets come and go, and which tone a call ends with. The tones
+// themselves and the routing on a real phone are device gates.
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:silarah/features/calls/call_controller.dart';
+import 'package:silarah/features/calls/widgets/call_microphone_gate.dart';
+import 'package:silarah/l10n/calling_ui_copy.dart';
+
+void main() {
+  const earpiece = CallAudioRoute.earpiece;
+  const speaker = CallAudioRoute.speaker;
+  const bluetooth = CallAudioRoute.bluetooth;
+  const wired = CallAudioRoute.wired;
+
+  group('audio route follows headsets like a phone call', () {
+    test('a Bluetooth headset that connects takes the call, even from the speaker', () {
+      expect(
+        nextAudioRoute(current: speaker, before: {earpiece, speaker}, now: {earpiece, speaker, bluetooth}),
+        bluetooth,
+      );
+    });
+
+    test('wired headphones plugged in take the call', () {
+      expect(nextAudioRoute(current: earpiece, before: {earpiece, speaker}, now: {speaker, wired}), wired);
+    });
+
+    test('the member\'s choice stays while that route is there', () {
+      expect(
+        nextAudioRoute(current: speaker, before: {earpiece, speaker, bluetooth}, now: {earpiece, speaker, bluetooth}),
+        speaker,
+      );
+    });
+
+    test('the headset goes: back to the earpiece, never the speaker by surprise', () {
+      expect(nextAudioRoute(current: bluetooth, before: {earpiece, speaker, bluetooth}, now: {earpiece, speaker}),
+          earpiece);
+      expect(nextAudioRoute(current: wired, before: {speaker, wired}, now: {earpiece, speaker}), earpiece);
+    });
+
+    test('Bluetooth goes while wired is in: wired', () {
+      expect(nextAudioRoute(current: bluetooth, before: {speaker, wired, bluetooth}, now: {speaker, wired}), wired);
+    });
+  });
+
+  group('a call ends with one tone', () {
+    test('a connected call: the end tone, for both members, however it ended', () {
+      for (final copy in [CallEndCopy.ended, CallEndCopy.timeUp]) {
+        expect(callEndTone(copy: copy, connected: true, ringingOut: false), 'ended', reason: copy);
+      }
+    });
+
+    test('a call that rang out and did not connect: one neutral tone, never why', () {
+      expect(callEndTone(copy: CallEndCopy.notAnswered, connected: false, ringingOut: true), 'not_reached');
+      expect(callEndTone(copy: CallEndCopy.ended, connected: false, ringingOut: true), 'not_reached');
+    });
+
+    test('a failure has its own tone', () {
+      expect(callEndTone(copy: CallEndCopy.failed, connected: false, ringingOut: true), 'failed');
+      expect(callEndTone(copy: CallEndCopy.failed, connected: true, ringingOut: false), 'failed');
+    });
+
+    test('a ring the member did not answer ends silently', () {
+      for (final copy in [CallEndCopy.missed, CallEndCopy.declined, CallEndCopy.answeredElsewhere]) {
+        expect(callEndTone(copy: copy, connected: false, ringingOut: false), isNull, reason: copy);
+      }
+    });
+  });
+
+  group('wiring', () {
+    final controller = File('lib/features/calls/call_controller.dart').readAsStringSync();
+    final native = File('packages/silarah_calls/android/src/main/kotlin/com/silarah/calls/CallTones.kt')
+        .readAsStringSync();
+
+    test('no forced earpiece when a call connects (it kept calls off Bluetooth)', () {
+      expect(controller, isNot(contains('setRoute(CallAudioRoute.earpiece')));
+      expect(controller, contains('call.state.value.audioOutputDevice'));
+    });
+
+    test('the ringback starts with the ring and stops when answered or ended', () {
+      expect(controller, contains("playTone('ringback')"));
+      expect(RegExp(r"case 'active':\s+_pollTimer\?\.cancel\(\);\s+await _platform\.stopTone\(\);").hasMatch(controller),
+          isTrue);
+      expect(controller, contains('await _platform.stopTone();\n    // While the call'));
+    });
+
+    test('tones play on the voice-call stream (call route and volume)', () {
+      expect(native, contains('ToneGenerator(AudioManager.STREAM_VOICE_CALL'));
+    });
+  });
+
+  test('the Bluetooth rationale exists in every language', () {
+    for (final code in callingUiCopy.keys) {
+      for (final key in [bluetoothRationaleCopy, 'Use your Bluetooth headset']) {
+        expect(callingUiCopy[code]![key], isNotNull, reason: '$code: $key');
+      }
+    }
+  });
+}

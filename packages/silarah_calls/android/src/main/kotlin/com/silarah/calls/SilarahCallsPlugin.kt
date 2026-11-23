@@ -161,12 +161,27 @@ class SilarahCallsPlugin :
                 result.success(null)
             }
             "telecomActive" -> result.success(CallService.telecomActive)
+            "callConnected" -> {
+                CallService.markConnected()
+                result.success(null)
+            }
+            "playTone" -> {
+                // Answers when the tone is over, so the app can wait for an
+                // end tone before it lets the call's audio go.
+                val duration = CallTones.play(context, args["kind"] as? String ?: "")
+                if (duration > 0) main.postDelayed({ result.success(null) }, duration.toLong()) else result.success(null)
+            }
+            "stopTone" -> {
+                CallTones.stop()
+                result.success(null)
+            }
             "setAudioRoute" -> result.success(CallService.requestRoute(args["route"] as? String ?: ""))
             "resumeAfterPhoneCall" -> {
                 CallService.resumeAfterPhoneCall()
                 result.success(null)
             }
             "microphoneStatus" -> result.success(microphoneStatus())
+            "bluetoothNeeded" -> result.success(!bluetoothGrantedOrNotNeeded())
             "requestMicrophone" -> requestMicrophone(result)
             "setCallWindow" -> {
                 activity?.let { CallWindow.apply(it, args["active"] == true) }
@@ -328,6 +343,10 @@ class SilarahCallsPlugin :
          * the call lives there). False when Silarah's screen is gone, so
          * the caller can clean up natively instead.
          */
+        /** A volume key while the ring is on screen (MainActivity): silence it. */
+        @JvmStatic
+        fun onVolumeKey(context: Context): Boolean = CallNotifier.silenceIncoming(context)
+
         fun emit(type: String, data: Map<String, Any?>): Boolean {
             val target = instances.firstOrNull { it.activity != null } ?: return false
             val message = data + ("type" to type)

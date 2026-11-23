@@ -53,6 +53,17 @@ brackets. Copy is in `lib/l10n/calling_ui_copy.dart` (10 languages).
 | Switch off or monthly brake | "Calling is paused right now. Please try again later." |
 | Notifications off on this phone | "Turn on call notifications. Calls cannot ring on this phone. Your matches see that you are not taking calls." |
 | Planned call missed | "Missed scheduled call" |
+| Calling terms not accepted (caller) | "Please review and accept the updated terms to use calls." |
+| Calling terms not accepted (callee's missed call) | "{name} tried to call you" / "Review and accept the updated terms to receive calls." |
+| Premium will not renew, or ends before the period | "Available until {date}" |
+| Period reset date (Premium lasts past it) | "Unused included minutes don't carry over; they reset on {date}." |
+| Pack minutes line | "Pack minutes never expire; you need Premium to use them." |
+| Premium ended with pack minutes | "Your {minutes} pack minutes are saved. Renew Premium to use them." |
+| Store account not confirmed before a purchase | "We couldn't confirm your account with Google Play yet. Please try again in a moment. You were not charged." |
+| Pending payment (UPI) | "Your payment is pending. Minutes are added automatically when it completes; you won't be charged twice." |
+| Profile pause with paid minutes | "Your {minutes} paid call minutes are kept while your profile is paused." |
+| Account deletion with paid minutes | "You have {minutes} paid call minutes. They will be lost and cannot be refunded after deletion." |
+| Pack refund reversed (notification) | "Call minutes restored" / "{minutes} call minutes were given back because the refund was reversed." |
 
 ## What the legal text and privacy policy must cover
 
@@ -78,4 +89,18 @@ brackets. Copy is in `lib/l10n/calling_ui_copy.dart` (10 languages).
 7. **Safety.** Unanswered-call limit, per-person mute / block, reporting from calls ends the call,
    Silarah may review call metadata when handling a report.
 8. **Data export** includes call history (with removed rows marked), planned calls, the call setting and
-   the minutes ledger.
+   the minutes ledger. and a minutes summary (packs bought, minutes refunded, used, forfeited).
+9. **Included minutes and Premium runs.** Included minutes come in 30-day periods from the start of an
+   unbroken Premium run (subscription incl. grace / billing retry, or a grant). Renewal and plan changes
+   continue the run; a new purchase after Premium ended starts fresh periods. Unused included minutes
+   do not carry over.
+10. **Refunds of packs.** A refund removes exactly that purchase's minutes, once; a reversed refund
+   gives them back and no longer counts toward the 2-refund limit. A pack paid from a store account that
+   cannot be matched to a member is kept and credited once the member is identified (automatically, or
+   by Silarah support after checking the order).
+11. **Deletion.** Paid call minutes are lost on account deletion and are not refunded; pausing keeps
+   them. The deletion screen says so when the member has paid minutes.
+12. **Calling terms.** When the legal phase publishes calling terms, set
+   `private.call_settings.calling_consent_version` (and `calling_consent_type` if it is not
+   `terms_of_service`) in a migration; members must accept that version (or later) to call, plan or
+   accept a planned call. Until set, there is no check.

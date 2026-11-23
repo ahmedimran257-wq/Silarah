@@ -25,6 +25,9 @@ class CallPlatform {
 
   Future<MicrophoneStatus> requestMicrophone() => _native.requestMicrophone();
 
+  /// Android 12+ without the nearby-devices permission (Bluetooth headsets).
+  Future<bool> bluetoothNeeded() => _native.bluetoothNeeded();
+
   Future<void> setCallWindow(bool active) => _native.setCallWindow(active);
 
   Future<void> setProximity(bool enabled) => _native.setProximity(enabled);
@@ -60,6 +63,12 @@ class CallPlatform {
   Future<bool> setAudioRoute(String route) => _native.setAudioRoute(route);
 
   Future<void> resumeAfterPhoneCall() => _native.resumeAfterPhoneCall();
+
+  Future<void> callConnected() => _native.callConnected();
+
+  Future<void> playTone(String kind) => _native.playTone(kind);
+
+  Future<void> stopTone() => _native.stopTone();
 
   Future<void> startPhoneCallWatch() => _native.startPhoneCallWatch();
 

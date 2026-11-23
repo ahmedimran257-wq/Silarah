@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
+import '../../../core/services/subscription_service.dart';
+import '../../../core/services/supabase_service.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
@@ -19,6 +21,19 @@ import '../call_api.dart';
 import '../call_models.dart';
 import '../calls_hub.dart';
 import 'calling_guide_sheet.dart';
+import 'calls_tab_widgets.dart';
+
+/// Minutes go to the member the store account belongs to. A pack is bought
+/// only when the store already knows this member, so a paid pack can never
+/// land on an anonymous store ID (docs/voice_calling_spec.md 6.3).
+Future<bool> callPackBuyerConfirmed(String? memberId, Future<String> Function() storeUserId) async {
+  if (memberId == null || memberId.isEmpty) return false;
+  try {
+    return await storeUserId() == memberId;
+  } catch (_) {
+    return false;
+  }
+}
 
 /// Returns true when minutes were added during the sheet.
 Future<bool> showCallMinutesSheet(BuildContext context, {bool duringCall = false}) async {
@@ -83,16 +98,28 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
       _buying = pack.productId;
       _notice = null;
     });
-    try {
-      await Purchases.purchase(PurchaseParams.storeProduct(product));
-    } on PlatformException catch (error) {
-      final code = PurchasesErrorHelper.getErrorCode(error);
+    if (!await callPackBuyerConfirmed(SupabaseService.currentUserId, () => Purchases.appUserID)) {
       if (!mounted) return;
       setState(() {
         _buying = null;
-        _notice = code == PurchasesErrorCode.purchaseCancelledError
-            ? null
-            : 'The purchase could not be completed. You were not charged twice.';
+        _notice = "We couldn't confirm your account with Google Play yet. Please try again in a moment. You were not charged.";
+      });
+      return;
+    }
+    try {
+      await Purchases.purchase(PurchaseParams.storeProduct(product));
+    } on PlatformException catch (error) {
+      final code = storeErrorCode(error);
+      if (!mounted) return;
+      setState(() {
+        _buying = null;
+        _notice = switch (code) {
+          PurchasesErrorCode.purchaseCancelledError => null,
+          // UPI and other delayed payments: the store charges once, later.
+          PurchasesErrorCode.paymentPendingError =>
+            "Your payment is pending. Minutes are added automatically when it completes; you won't be charged twice.",
+          _ => 'The purchase could not be completed. You were not charged twice.',
+        };
       });
       return;
     }
@@ -120,6 +147,12 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
       _buying = null;
       _notice = 'Your minutes are on their way. They will appear shortly; you will not be charged again.';
     });
+  }
+
+  String? _termsDetail(BuildContext context, CallWallet wallet) {
+    final lines = callMinutesTermLines(
+        context, wallet.terms, DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag()));
+    return lines.isEmpty ? null : lines.join('\n');
   }
 
   @override
@@ -161,6 +194,14 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
                             {'included': CallsHub.instance.rules.value?.includedMinutes ?? 0}),
                         textAlign: TextAlign.center,
                         style: AppTypography.body.copyWith(color: AppColors.slateMist)),
+                    if (wallet.terms.packsSavedWhileLapsed) ...[
+                      const SizedBox(height: AppDimensions.space8),
+                      UiText.verbatim(
+                          context.uiCopyWith('Your {minutes} pack minutes are saved. Renew Premium to use them.',
+                              {'minutes': wallet.packMinutes}),
+                          textAlign: TextAlign.center,
+                          style: AppTypography.body.copyWith(color: AppColors.champagneGold)),
+                    ],
                     const SizedBox(height: AppDimensions.space16),
                     FilledButton(
                       onPressed: () {
@@ -173,17 +214,12 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
                     _BalanceRow(
                       label: 'Included with Premium',
                       value: context.uiCopyWith('{minutes} min', {'minutes': wallet.includedMinutes}),
-                      detail: wallet.includedPeriodEnd == null
-                          ? null
-                          : context.uiCopyWith('Renews {date}', {
-                              'date': DateFormat.yMMMd(Localizations.localeOf(context).toLanguageTag())
-                                  .format(wallet.includedPeriodEnd!.toLocal()),
-                            }),
+                      detail: _termsDetail(context, wallet),
                     ),
                     _BalanceRow(
                       label: 'Pack minutes',
                       value: context.uiCopyWith('{minutes} min', {'minutes': wallet.packMinutes}),
-                      detail: context.uiCopy('Pack minutes never expire.'),
+                      detail: context.uiCopy('Pack minutes never expire; you need Premium to use them.'),
                       warn: wallet.negative,
                     ),
                     if (wallet.negative)

@@ -3,6 +3,8 @@
 // server decided the member may see; the app only arranges it.
 import 'package:flutter/foundation.dart';
 
+import 'call_models.dart';
+
 /// What the member sees for one call (server: private.call_outcome_for).
 enum CallLogOutcome {
   answered,
@@ -218,6 +220,9 @@ class CallOverview {
     required this.monthTalkSeconds,
     required this.unseenMissed,
     required this.plans,
+    this.premiumUntil,
+    this.willRenew = false,
+    this.consentRequired = false,
   });
 
   final bool callsEnabled;
@@ -233,6 +238,17 @@ class CallOverview {
   final int monthTalkSeconds;
   final int unseenMissed;
   final List<CallPlan> plans;
+  final DateTime? premiumUntil;
+  final bool willRenew;
+  final bool consentRequired;
+
+  CallMinutesTerms get terms => CallMinutesTerms(
+        premium: premium,
+        periodEnd: includedPeriodEnd,
+        premiumUntil: premiumUntil,
+        willRenew: willRenew,
+        packMinutes: packMinutes,
+      );
 
   factory CallOverview.fromJson(Map<String, dynamic> json) => CallOverview(
         callsEnabled: json['calls_enabled'] == true,
@@ -248,6 +264,9 @@ class CallOverview {
         monthTalkSeconds: (json['month_talk_seconds'] as num?)?.toInt() ?? 0,
         unseenMissed: (json['unseen_missed'] as num?)?.toInt() ?? 0,
         plans: CallPlan.listFrom(json['plans']),
+        premiumUntil: DateTime.tryParse(json['premium_until']?.toString() ?? '')?.toLocal(),
+        willRenew: json['will_renew'] == true,
+        consentRequired: json['consent_required'] == true,
       );
 }
 

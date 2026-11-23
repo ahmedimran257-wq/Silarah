@@ -12,6 +12,7 @@ import 'dart:async';
 
 import 'package:silarah/l10n/ui_copy.dart';
 import '../../calls/widgets/call_settings_section.dart';
+import '../../calls/widgets/paid_call_minutes_note.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -1808,6 +1809,17 @@ class _PrivacySectionState extends State<_PrivacySection> {
                     ),
                   ),
                 ]),
+              ),
+              PaidCallMinutesNote(
+                kind: PaidCallMinutesContext.pause,
+                builder: (context, text) => Padding(
+                  padding: const EdgeInsets.only(top: AppDimensions.space8),
+                  child: UiText.verbatim(
+                    text,
+                    style: AppTypography.caption
+                        .copyWith(color: AppColors.slateMist),
+                  ),
+                ),
               ),
             ],
           ],

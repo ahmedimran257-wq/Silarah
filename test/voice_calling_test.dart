@@ -54,11 +54,14 @@ void main() {
       );
     });
 
-    test('warnings at 5 minutes and 1 minute; "still talking?" at the hour', () {
-      expect(warningFor(301, holdWasFull: false), CallTimeWarning.none);
-      expect(warningFor(300, holdWasFull: false), CallTimeWarning.fiveMinutes);
-      expect(warningFor(60, holdWasFull: false), CallTimeWarning.oneMinute);
-      expect(warningFor(60, holdWasFull: true), CallTimeWarning.stillTalking);
+    test('warnings at 2 minutes and 30 seconds; "still talking?" at the hour (12.9)', () {
+      expect(warningFor(121, holdWasFull: false), CallTimeWarning.none);
+      expect(warningFor(120, holdWasFull: false), CallTimeWarning.twoMinutes);
+      expect(warningFor(31, holdWasFull: false), CallTimeWarning.twoMinutes);
+      expect(warningFor(30, holdWasFull: false), CallTimeWarning.thirtySeconds);
+      expect(warningFor(0, holdWasFull: false), CallTimeWarning.thirtySeconds);
+      expect(warningFor(120, holdWasFull: true), CallTimeWarning.stillTalking);
+      expect(warningFor(121, holdWasFull: true), CallTimeWarning.none);
     });
 
     test('durations read like a phone', () {

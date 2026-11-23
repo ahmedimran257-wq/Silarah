@@ -23,8 +23,10 @@ import kotlinx.coroutines.cancel
  * Mute, Hang up; tap returns to the call). On Android 12+ that notification
  * puts the call chip in the status bar. On Android 8+ the call is also a
  * self-managed Telecom call ([CallTelecom]); on Android 7 it is the service
- * and the notification only. Started by the app only after the call is
- * answered and while Silarah is in front; stopped when the call ends.
+ * and the notification only. Started by the app while Silarah is in front:
+ * for an outgoing call as it starts ringing (so the ringback and the route
+ * are a call's), for an incoming call once answered; stopped when the call
+ * ends.
  */
 class CallService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -36,6 +38,7 @@ class CallService : Service() {
     override fun onCreate() {
         super.onCreate()
         current = this
+        running = true
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -118,6 +121,10 @@ class CallService : Service() {
         (telecom as? CallTelecom)?.end()
         telecom = null
         if (current === this) current = null
+        running = false
+        // The call is over: a tone that set the audio mode gives it back.
+        CallTones.stop()
+        CallTones.releaseMode()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         // Let Telecom hear the disconnect before the scope goes.
         android.os.Handler(mainLooper).postDelayed({ scope.cancel() }, 1_000)
@@ -163,6 +170,11 @@ class CallService : Service() {
         @Volatile
         private var current: CallService? = null
 
+        /** A call (ringing out or live) holds the call service. */
+        @Volatile
+        var running = false
+            private set
+
         val telecomActive: Boolean
             get() = (current?.telecom as? CallTelecom)?.isActive == true
 
@@ -196,6 +208,11 @@ class CallService : Service() {
 
         fun requestRoute(route: String): Boolean =
             (current?.telecom as? CallTelecom)?.requestRoute(route) == true
+
+        /** The other member answered an outgoing call. */
+        fun markConnected() {
+            (current?.telecom as? CallTelecom)?.markConnected()
+        }
 
         fun resumeAfterPhoneCall() {
             (current?.telecom as? CallTelecom)?.resume()

@@ -395,6 +395,27 @@ export type ReportCallContext = {
 
 export const getCallOverview = () => rpc<CallOverview>("admin_call_overview");
 
+/** A paid pack the webhook could not give to a member (spec 6.3). */
+export type UnclaimedCallPack = {
+  event_id: string;
+  app_user_id: string;
+  aliases: string[];
+  product_id: string;
+  minutes: number | null;
+  transaction_id: string | null;
+  store: string | null;
+  environment: string | null;
+  reason: string;
+  event_at: string | null;
+  received_at: string;
+  claimed_at: string | null;
+  claimed_user_id: string | null;
+  claim_source: string | null;
+};
+
+export const getUnclaimedCallPacks = () =>
+  rpc<UnclaimedCallPack[]>("admin_unclaimed_call_packs", { p_include_claimed: false });
+
 export const getMemberCallHistory = (userId: string) =>
   rpc<MemberCallRow[]>("admin_member_call_history", { p_user: userId, p_limit: 100 });
 

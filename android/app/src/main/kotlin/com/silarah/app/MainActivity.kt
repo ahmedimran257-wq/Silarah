@@ -8,7 +8,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.KeyEvent
 import androidx.core.view.WindowCompat
+import com.silarah.calls.SilarahCallsPlugin
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -29,6 +31,17 @@ class MainActivity : FlutterActivity() {
                 splashView.remove()
             }
         }
+    }
+
+    // A volume key while a call rings silences the ring, like a phone call
+    // (docs/voice_calling_spec.md 12.9); otherwise the key works as usual.
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if ((keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) &&
+            SilarahCallsPlugin.onVolumeKey(this)
+        ) {
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

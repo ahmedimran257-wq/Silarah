@@ -33,6 +33,9 @@ internal object CallWindow {
         } else {
             activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
+        // The volume keys set the call's volume while it rings out or is live.
+        activity.volumeControlStream =
+            if (active) AudioManager.STREAM_VOICE_CALL else AudioManager.USE_DEFAULT_STREAM_TYPE
     }
 
     /** The ring (full screen, tap or Answer) opened Silarah. */

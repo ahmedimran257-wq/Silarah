@@ -142,6 +142,17 @@ class CallDirectionBadge extends StatelessWidget {
 // Minutes card (12.5.1)
 // ---------------------------------------------------------------------------
 
+/// When included minutes reset and when Premium ends, in the member's
+/// language (docs/voice_calling_spec.md 6.4). Shared by the Calls tab card
+/// and the minutes sheet.
+List<String> callMinutesTermLines(BuildContext context, CallMinutesTerms terms, DateFormat format) => [
+      if (terms.availableUntil != null)
+        context.uiCopyWith('Available until {date}', {'date': format.format(terms.availableUntil!.toLocal())}),
+      if (terms.resetsOn != null)
+        context.uiCopyWith("Unused included minutes don't carry over; they reset on {date}.",
+            {'date': format.format(terms.resetsOn!.toLocal())}),
+    ];
+
 class CallMinutesCard extends StatelessWidget {
   const CallMinutesCard({
     super.key,
@@ -183,7 +194,7 @@ class CallMinutesCard extends StatelessWidget {
   Widget _premium(BuildContext context) {
     final granted = overview.includedGranted;
     final included = overview.includedMinutes;
-    final renews = overview.includedPeriodEnd;
+    final terms = overview.terms;
     final negative = overview.packMinutes < 0;
     final total = overview.availableMinutes;
     return _frame(
@@ -243,12 +254,10 @@ class CallMinutesCard extends StatelessWidget {
                         }),
                         style: AppTypography.caption,
                       ),
-                      if (renews != null) ...[
+                      for (final line in callMinutesTermLines(context, terms, DateFormat.MMMd(_locale(context)))) ...[
                         const SizedBox(height: 2),
                         UiText.verbatim(
-                          context.uiCopyWith('Renews {date}', {
-                            'date': DateFormat.MMMd(_locale(context)).format(renews),
-                          }),
+                          line,
                           style: AppTypography.caption.copyWith(color: AppColors.slateMist),
                         ),
                       ],
@@ -310,6 +319,14 @@ class CallMinutesCard extends StatelessWidget {
                   ),
                   style: AppTypography.caption,
                 ),
+                if (overview.terms.packsSavedWhileLapsed) ...[
+                  const SizedBox(height: AppDimensions.space4),
+                  UiText.verbatim(
+                    context.uiCopyWith('Your {minutes} pack minutes are saved. Renew Premium to use them.',
+                        {'minutes': overview.packMinutes}),
+                    style: AppTypography.caption.copyWith(color: AppColors.champagneGold),
+                  ),
+                ],
                 const SizedBox(height: AppDimensions.space10),
                 Align(
                   alignment: AlignmentDirectional.centerStart,

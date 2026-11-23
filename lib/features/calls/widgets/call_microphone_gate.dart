@@ -15,6 +15,10 @@ import '../call_platform.dart';
 const _rationaleSeenKey = 'silarah_call_mic_rationale_v1';
 const _bluetoothAskedKey = 'silarah_call_bluetooth_asked_v1';
 
+/// Why Silarah asks for nearby devices (Android 12+): Bluetooth headsets.
+const bluetoothRationaleCopy =
+    'Silarah may also ask to find nearby devices, so calls can use your Bluetooth headset. Calls work without it.';
+
 /// True when the microphone may be used for the call.
 Future<bool> ensureCallMicrophone(BuildContext context) async {
   final platform = CallPlatform.instance;
@@ -23,9 +27,24 @@ Future<bool> ensureCallMicrophone(BuildContext context) async {
     // Bluetooth headsets need their own permission on Android 12+. Ask for
     // it once, the first time the microphone is already allowed.
     final prefs = await SharedPreferences.getInstance();
-    if (!(prefs.getBool(_bluetoothAskedKey) ?? false)) {
+    if (!(prefs.getBool(_bluetoothAskedKey) ?? false) && await platform.bluetoothNeeded()) {
       await prefs.setBool(_bluetoothAskedKey, true);
-      await platform.requestMicrophone();
+      if (!context.mounted) return true;
+      // Why first (spec 12.9); declining never stops the call.
+      final proceed = await showSilarahBottomSheet<bool>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (sheetContext) => _SheetFrame(
+          icon: Icons.bluetooth_audio_rounded,
+          title: 'Use your Bluetooth headset',
+          body: bluetoothRationaleCopy,
+          primary: 'Continue',
+          onPrimary: () => Navigator.of(sheetContext).pop(true),
+          secondary: 'Not now',
+          onSecondary: () => Navigator.of(sheetContext).pop(false),
+        ),
+      );
+      if (proceed == true) await platform.requestMicrophone();
     }
     return true;
   }
@@ -81,6 +100,7 @@ class _RationaleSheet extends StatelessWidget {
         title: 'Allow your microphone',
         body:
             'Silarah uses your microphone only during a call you start or answer. Calls are never recorded.',
+        note: bluetoothRationaleCopy,
         primary: 'Continue',
         onPrimary: () => Navigator.of(context).pop(true),
         secondary: 'Not now',
@@ -95,6 +115,7 @@ class _SheetFrame extends StatelessWidget {
     required this.body,
     required this.primary,
     required this.onPrimary,
+    this.note,
     this.secondary,
     this.onSecondary,
   });
@@ -102,6 +123,7 @@ class _SheetFrame extends StatelessWidget {
   final IconData icon;
   final String title;
   final String body;
+  final String? note;
   final String primary;
   final VoidCallback onPrimary;
   final String? secondary;
@@ -126,6 +148,12 @@ class _SheetFrame extends StatelessWidget {
           UiText(body,
               textAlign: TextAlign.center,
               style: AppTypography.body.copyWith(color: AppColors.slateMist)),
+          if (note != null) ...[
+            const SizedBox(height: AppDimensions.space8),
+            UiText(note!,
+                textAlign: TextAlign.center,
+                style: AppTypography.caption.copyWith(color: AppColors.slateMist)),
+          ],
           const SizedBox(height: AppDimensions.space24),
           SilarahPrimaryButton(label: context.uiCopy(primary), onTap: onPrimary),
           if (secondary != null) ...[

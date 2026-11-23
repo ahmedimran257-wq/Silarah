@@ -120,9 +120,29 @@ internal object CallNotifier {
         )
     }
 
+    // The ring on screen now, so a volume key can silence it.
+    private var ringing: Map<String, Any?>? = null
+    private var ringingUntil = 0L
+
+    /**
+     * A volume key during the ring silences it, like a phone call; the ring
+     * stays on screen. False when nothing is ringing.
+     */
+    fun silenceIncoming(context: Context): Boolean {
+        val args = ringing ?: return false
+        if (args["silent"] == true) return true
+        val left = ringingUntil - System.currentTimeMillis()
+        if (left < 1_000) return false
+        val requestId = args["requestId"] as? String ?: return false
+        NotificationManagerCompat.from(context).cancel(ringId(requestId))
+        showIncoming(context, args + mapOf("silent" to true, "timeoutMs" to left))
+        return true
+    }
+
     /** The ring: CallStyle with Answer / Decline, full screen on a locked or sleeping phone. */
     fun showIncoming(context: Context, args: Map<String, Any?>) {
         ensureChannels(context)
+        val silent = args["silent"] == true
         val requestId = args["requestId"] as String
         val payload = args["payload"] as String
         val id = ringId(requestId)
@@ -131,6 +151,8 @@ internal object CallNotifier {
         val body = (args["body"] as? String).orEmpty()
         val publicTitle = (args["publicTitle"] as? String).orEmpty()
         val timeoutMs = ((args["timeoutMs"] as? Number)?.toLong() ?: 30_000L).coerceIn(1_000L, 120_000L)
+        ringing = args
+        ringingUntil = System.currentTimeMillis() + timeoutMs
 
         val ring = launchIntent(context, ACTION_RING, payload, id) ?: return
         val answer = launchIntent(context, ACTION_ANSWER, payload, id + 1) ?: return
@@ -164,10 +186,11 @@ internal object CallNotifier {
             .setOngoing(true)
             .setAutoCancel(false)
             .setTimeoutAfter(timeoutMs)
+            .setSilent(silent)
 
-        // Keep ringing until answered, declined, cancelled or timed out.
+        // Keep ringing until answered, declined, cancelled, silenced or timed out.
         fun insistent(notification: Notification) = notification.apply {
-            flags = flags or Notification.FLAG_INSISTENT
+            if (!silent) flags = flags or Notification.FLAG_INSISTENT
         }
 
         val callStyle = insistent(
@@ -188,6 +211,7 @@ internal object CallNotifier {
     }
 
     fun cancelIncoming(context: Context, requestId: String) {
+        if ((ringing?.get("requestId") as? String) == requestId) ringing = null
         NotificationManagerCompat.from(context).cancel(ringId(requestId))
     }
 

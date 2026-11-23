@@ -547,6 +547,7 @@ class _PlanCallSheetState extends State<_PlanCallSheet> {
       'already_planned' => 'You already have a call time with them. Cancel it to choose another.',
       'invalid_time' => 'Choose a time at least {lead} minutes from now.',
       'calls_off_self' => 'Turn calls on in Settings to plan a call.',
+      'consent_required' => callingTermsCopy,
       'limit_reached' => 'You have planned enough calls for now. Try again later.',
       'unavailable' => neutralUnavailableCopy,
       _ => 'Could not save. Please try again.',

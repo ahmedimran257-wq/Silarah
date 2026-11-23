@@ -33,7 +33,12 @@ internal class CallTelecom(
 
     val isActive: Boolean get() = control != null
 
-    /** Adds the call and makes it active; [onActive] runs once Telecom has it. */
+    /**
+     * Adds the call; [onActive] runs once Telecom has it. An outgoing call
+     * is added as it starts ringing (Telecom routes its ringback to the
+     * earpiece or headset) and becomes active in [markConnected]; an
+     * incoming call is added when answered, and is active at once.
+     */
     fun start(name: String, requestId: String, outgoing: Boolean, onActive: () -> Unit) {
         if (job != null) return
         val manager = CallsManager(context)
@@ -70,24 +75,33 @@ internal class CallTelecom(
                 ) {
                     control = this
                     launch {
-                        // The member already answered in Silarah.
-                        val result = if (outgoing) setActive() else answer(CallAttributesCompat.CALL_TYPE_AUDIO_CALL)
-                        if (result is CallControlResult.Success) {
+                        if (outgoing) {
+                            // Dialing: active once the other member answers.
                             emit("telecom", mapOf("available" to true))
                             onActive()
+                            if (connectedEarly) setActive()
                         } else {
-                            emit("telecom", mapOf("available" to false, "error" to result.toString()))
+                            // The member already answered in Silarah.
+                            val result = answer(CallAttributesCompat.CALL_TYPE_AUDIO_CALL)
+                            if (result is CallControlResult.Success) {
+                                emit("telecom", mapOf("available" to true))
+                                onActive()
+                            } else {
+                                emit("telecom", mapOf("available" to false, "error" to result.toString()))
+                            }
                         }
                     }
                     launch {
                         currentCallEndpoint.collect { endpoint ->
-                            emit("route", mapOf("current" to routeName(endpoint.type)))
+                            emit("route", mapOf("current" to routeName(endpoint.type), "name" to endpoint.name.toString()))
                         }
                     }
                     launch {
                         availableEndpoints.collect { list ->
                             endpoints = list
-                            emit("routes", mapOf("available" to list.map { routeName(it.type) }.distinct()))
+                            emit("routes", mapOf("available" to list.map {
+                                mapOf("route" to routeName(it.type), "name" to it.name.toString())
+                            }))
                         }
                     }
                 }
@@ -104,6 +118,19 @@ internal class CallTelecom(
         val target = endpoints.firstOrNull { routeName(it.type) == route } ?: return false
         scope.launch { scopeControl.requestEndpointChange(target) }
         return true
+    }
+
+    private var connectedEarly = false
+
+    /** The other member answered: the outgoing call is active. */
+    fun markConnected() {
+        val scopeControl = control
+        if (scopeControl == null) {
+            // Telecom has not handed over the call yet: active when it does.
+            connectedEarly = true
+            return
+        }
+        scope.launch { scopeControl.setActive() }
     }
 
     /** After a regular phone call ended, the Silarah call is active again. */

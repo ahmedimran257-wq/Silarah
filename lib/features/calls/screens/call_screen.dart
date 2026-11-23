@@ -163,7 +163,7 @@ class _CallScreenState extends State<CallScreen> {
               if (_call.availableRoutes.contains(route))
                 ListTile(
                   leading: Icon(_routeIcon(route), color: AppColors.pearlWhite),
-                  title: UiText(_routeLabel(route), style: AppTypography.body),
+                  title: UiText.verbatim(_routeTitle(context, route), style: AppTypography.body),
                   trailing: route == _call.route
                       ? Icon(Icons.check_rounded, color: AppColors.champagneGold)
                       : null,
@@ -189,6 +189,15 @@ class _CallScreenState extends State<CallScreen> {
         CallAudioRoute.wired => Icons.headphones_rounded,
       };
 
+  /// "Bluetooth · Galaxy Buds": the headset's own name when Android gives it.
+  String _routeTitle(BuildContext context, CallAudioRoute route) {
+    final label = context.uiCopy(_routeLabel(route));
+    final name = route == CallAudioRoute.bluetooth || route == CallAudioRoute.wired
+        ? _call.routeNames[route]?.trim()
+        : null;
+    return name == null || name.isEmpty || name.toLowerCase() == label.toLowerCase() ? label : '$label · $name';
+  }
+
   static String _routeLabel(CallAudioRoute route) => switch (route) {
         CallAudioRoute.earpiece => 'Phone',
         CallAudioRoute.speaker => 'Speaker',
@@ -211,12 +220,10 @@ class _CallScreenState extends State<CallScreen> {
 
   String? _meter(BuildContext context) {
     if (_call.phase != CallPhase.active) return null;
-    final left = _call.secondsLeftNow;
-    final minutes = (left / 60).ceil();
+    final minutes = _call.minutesLeftOfHold;
     return switch (_call.warning) {
-      CallTimeWarning.oneMinute || CallTimeWarning.stillTalking =>
-        context.uiCopy('Less than a minute left'),
-      CallTimeWarning.fiveMinutes =>
+      CallTimeWarning.thirtySeconds => context.uiCopy('Less than a minute left'),
+      CallTimeWarning.twoMinutes || CallTimeWarning.stillTalking =>
         context.uiCopyWith('{minutes} min left', {'minutes': minutes}),
       CallTimeWarning.none => _call.isCaller
           ? context.uiCopyWith('{minutes} min left', {'minutes': minutes})

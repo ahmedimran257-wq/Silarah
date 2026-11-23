@@ -81,16 +81,23 @@ void main() {
 
   // RevenueCat retries every non-2xx response. Transfers carry no product to
   // validate and, with "transfer if there are no active subscriptions", move
-  // no access.
+  // no access; a transfer to a member only credits call packs paid under the
+  // old store ID (docs/voice_calling_spec.md 6.3).
   test('transfer and dashboard test events are acknowledged, not retried', () {
     final webhook = File('supabase/functions/revenuecat-webhook/index.ts')
         .readAsStringSync();
-    final ack = webhook
-        .indexOf('if (event?.type === "TRANSFER" || event?.type === "TEST") {');
-    expect(ack, isNonNegative);
-    expect(ack, greaterThan(webhook.indexOf('authHeader !==')),
-        reason: 'Only authenticated deliveries are acknowledged.');
-    expect(ack, lessThan(webhook.indexOf('validRevenueCatEvent(event)')));
+    final transfer = webhook.indexOf('if (event?.type === "TRANSFER") {');
+    final test = webhook.indexOf('if (event?.type === "TEST") {');
+    for (final ack in [transfer, test]) {
+      expect(ack, isNonNegative);
+      expect(ack, greaterThan(webhook.indexOf('authHeader !==')),
+          reason: 'Only authenticated deliveries are acknowledged.');
+      expect(ack, lessThan(webhook.indexOf('validRevenueCatEvent(event)')));
+    }
+    final handler = webhook.substring(webhook.indexOf('async function handleTransfer('));
+    expect(handler, contains('call_service_claim_unclaimed_packs'));
+    expect(handler, isNot(contains('apply_revenuecat_subscription_event')),
+        reason: 'A transfer never changes Premium.');
   });
 
   test('a paid member or a second tap cannot start another purchase', () {

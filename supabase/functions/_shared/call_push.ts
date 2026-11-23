@@ -14,7 +14,7 @@ export function missedCallPush(info: Record<string, unknown>): Record<string, st
     caller_id: String(info.caller_id ?? ""),
     caller_name: String(info.caller_name ?? ""),
     count: String(Math.max(1, Number(info.count ?? 1))),
-    variant: info.variant === "premium" ? "premium" : "missed",
+    variant: info.variant === "premium" || info.variant === "consent" ? String(info.variant) : "missed",
     silent: info.silent === true ? "1" : "0",
   };
 }

@@ -52,3 +52,7 @@ Deno.test("plan reminder TTL is never below a minute", () => {
   const push = planReminderPush({ planned_for: "2026-11-22T15:00:00Z" }, now);
   assertEquals(push.ttlSeconds, 60);
 });
+
+Deno.test("missed-call push tells a member to accept the calling terms (spec 6.5)", () => {
+  assertEquals(missedCallPush({ caller_name: "Arif", variant: "consent" }).variant, "consent");
+});

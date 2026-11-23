@@ -101,6 +101,78 @@ privacy-safe names and missed calls.
 - Premium refunded → that period's included minutes removed.
 - Pack product IDs added to the webhook allow-list.
 
+### 6.1 Included minutes follow Premium runs (migration 325)
+
+- A **Premium run** is an unbroken stretch of Premium from any source: subscription (active or grace),
+  promotional / referral grant, owner test grant. Included minutes come in consecutive 30-day periods
+  from the run's start.
+- The run starts when Premium starts (the event's time; a grant's `starts_at`). It ends when Premium
+  actually ends: at the moment coverage ran out (`call_wallets.premium_covered_until`), or at once when
+  an event withdraws it (expiration, revocation, refund, grant revoked or deleted).
+- The same rules run from triggers on the subscription state and both grant tables, a 15-minute expiry
+  sweep (`voice_call_premium_runs`) and every balance read, so the result never depends on who notices
+  first. A read never decides on its own that Premium ended.
+- Renewal, plan change, un-cancellation and a recovered billing retry **continue the run** (same
+  periods, same used minutes), even after a short lapse. Grace / billing retry counts as Premium.
+  Only a new purchase (`INITIAL_PURCHASE`) or a grant after Premium ended starts a **fresh run with
+  full minutes**.
+- A refunded Premium payment forfeits that period's included minutes (unchanged).
+- Grant members (promo, referral, test) get included minutes and count in the monthly brake.
+
+### 6.2 Pack refunds and reversals
+
+- A refund applies only against the **recorded purchase of that store transaction**, to the member who
+  received it, for that purchase's minutes. A refund with no purchase yet is stored
+  (`call_pack_pending_refunds`) and netted the moment the purchase arrives. Each refund counts once.
+- `REFUND_REVERSED` / `UNCANCELLATION` of a pack gives the minutes back once per transaction and lowers
+  the refund count. A reversed refund that was still waiting is dropped, so the purchase counts in full.
+- A pack refunded during a live call: the call finishes from its hold; the balance then goes negative
+  and the next call asks for a top-up.
+
+### 6.3 Paid packs are never lost
+
+- The minutes sheet buys only when RevenueCat already knows this member
+  (`Purchases.appUserID == Supabase user id`); otherwise "We couldn't confirm your account with Google
+  Play yet. Please try again in a moment. You were not charged."
+- A pack paid by a store account that matches no member (anonymous RevenueCat ID, deleted account) is
+  kept in `private.call_pack_unclaimed`, staff get an admin notification, and it is credited:
+  automatically when one of that store account's IDs is a member (aliases), on a later `TRANSFER` to a
+  member, or by staff with one audited action (admin → Voice calls → Packs waiting for a member).
+- Pending payments (UPI and other delayed methods): "Your payment is pending. Minutes are added
+  automatically when it completes; you won't be charged twice." A pending payment that is cancelled
+  or expires sends no purchase event and adds nothing.
+
+### 6.4 What the minutes card promises
+
+- "Available until {date}" when Premium will not renew or ends before the current period does
+  (`premium_until`, `will_renew` from the server; renewal is shown only for an active subscription whose
+  latest event keeps it going).
+- "Unused included minutes don't carry over; they reset on {date}." only while Premium lasts past the
+  period end.
+- "Pack minutes never expire; you need Premium to use them." Lapsed with pack minutes: "Your {minutes}
+  pack minutes are saved. Renew Premium to use them."
+- Holds and settlement use included minutes before pack minutes. A call that crosses a period reset
+  keeps its hold on the old period; the unused part goes back there and the new period starts full.
+- The in-call meter counts minutes the way settlement charges: every started minute, never more than
+  the hold.
+
+### 6.5 Calling terms
+
+- `call_settings.calling_consent_version` (and `calling_consent_type`, default `terms_of_service`) is
+  set by the legal phase. Until it is set nothing changes.
+- Once set, a member must have accepted that version or later to call, plan a call or accept a plan.
+  The caller gets "Please review and accept the updated terms to use calls."; a callee without it is
+  the same neutral "unavailable" for the caller and gets a missed-call notification "Review and accept
+  the updated terms to receive calls."
+
+### 6.6 Pause, deletion and export
+
+- Profile pause: "Your {minutes} paid call minutes are kept while your profile is paused."
+- Account deletion: "You have {minutes} paid call minutes. They will be lost and cannot be refunded
+  after deletion."
+- The data export has a `minutes_summary`: packs bought, pack minutes bought / refunded / adjusted by
+  staff, included minutes used and forfeited, pack minutes used.
+
 ## 7. Stream lockdown (`silarah_voice` call type)
 
 - `user` role: no `create-call`, no `join-call`. `call_member`: `join-call`, `send-audio`, `end-call`.
@@ -155,6 +227,12 @@ privacy-safe names and missed calls.
     locales; Arabic and Urdu (RTL) screenshots; every theme (Rose & Marigold, Ivory & Emerald, Pure
     OLED, Automatic light and dark).
 14. Scheduled call: propose, accept, reminder 5 min before on both phones, Call now, expiry.
+15. Call sound and route (12.9), both phones, recorded: ringback while ringing out, connected tone,
+    end tone on both sides (hang-up, time up, server end), not-reached tone, reconnecting (Wi-Fi off a
+    few seconds) with tone and recovery, 2-minute and 30-second warnings; volume keys change the call
+    volume and silence an incoming ring; silent / vibrate / Do Not Disturb respected; a real Bluetooth
+    headset: call starts on it, connect and disconnect mid-call, picker shows its name, headset button
+    hangs up; wired headphones; earpiece default; proximity; mute in sync on screen and notification.
 
 ## 10. Worst cases accepted
 
@@ -341,6 +419,33 @@ records of a deleted account. Audio is never recorded or stored by Silarah.
 - Manual pack-minute adjustment (super admin, support) with a written reason, in the ledger and the
   audit log.
 
+### 12.9 Call sound and audio route (phone-call parity)
+
+- **One call from the first ring.** An outgoing call is a self-managed Telecom call (Android 8+) from
+  the moment it rings out, so its ringback, route and status-bar call are a call's; it becomes active
+  when the other member answers. An incoming call joins Telecom when answered.
+- **Tones** on the voice-call stream (they follow the route and the in-call volume): ringback while the
+  other phone rings, stopped at answer / cancel / timeout; a short tone (and a haptic) when the call
+  connects; an end tone on both phones however a connected call ended (hang-up, time up, server end);
+  one neutral "not reached" tone for every call that rang out without connecting (never why, 12.4); an
+  error tone for a failure; a tone when the connection drops ("Reconnecting…"); a tone + haptic at 2
+  minutes and at 30 seconds left (at the 60-minute hold, "Still talking?" 2 minutes before).
+- **Reconnecting** longer than 30 seconds ends the call ("Call failed. Please try again."); Stream ends
+  it on the server and billing stops there.
+- **Volume keys** set the call volume while a call rings out or is live; during an incoming ring on
+  Silarah's screen they silence the ring (it stays on screen, like a phone call).
+- **Route.** Stream picks the route at join: a connected headset, else the earpiece. The app follows it
+  (it never forces the earpiece). One decision is applied to Telecom and the audio engine together.
+  A Bluetooth or wired headset that connects takes the call; the member's choice stays while that
+  route exists; when the route in use goes away, the next best (Bluetooth, wired, earpiece; never the
+  speaker by surprise). The picker lists Phone / Speaker / Bluetooth (with the headset's name) /
+  Headphones.
+- **Bluetooth permission** (Android 12+, nearby devices): asked with the microphone, or once on its own
+  with a short reason ("Use your Bluetooth headset"); declining never stops a call.
+- **Still open (device gates):** answering an incoming ring with a headset button needs the ring to be
+  a Telecom call too; until then the headset button hangs up a live call (Telecom) and the ring is
+  answered on the phone.
+
 ## 13. Planned calls ("Request a call at 8 pm")
 
 1. A plan is possible only where a call would be: an active match, no block, the man in the pair holds
@@ -363,7 +468,8 @@ records of a deleted account. Audio is never recorded or stored by Silarah.
 ## 14. Rule → proof
 
 Every rule above has a proof before the switch is turned on: R = server rollback test
-(`supabase/tests/voice_calling_rules_test.sql`, `supabase/tests/calls_tab_rules_test.sql`),
+(`supabase/tests/voice_calling_rules_test.sql`, `supabase/tests/calls_tab_rules_test.sql`,
+`supabase/tests/call_money_integrity_test.sql`),
 D = Deno test, W = Dart unit / widget test, P = phone evidence (`docs/voice_calling_staging_evidence.md`).
 
 | Rule | Proof |
@@ -394,6 +500,19 @@ D = Deno test, W = Dart unit / widget test, P = phone evidence (`docs/voice_call
 | 5 Monthly brake never below entitled minutes; stale figure falls back to the manual floor | R |
 | 12.7 Retention: 12 months, kept while an open report needs it | R |
 | 12.8 Staff RPCs closed to members; minutes adjustment needs a reason, audited | R, admin `tsc` |
+| 6.1 Run starts / ends on Premium events, never on a read; read, trigger and sweep give the same end time | R |
+| 6.1 Renewal, plan change, recovered billing retry continue the run; new purchase after the end is fresh | R |
+| 6.1 Grace counts as Premium; grants get included minutes and count in the brake | R |
+| 6.2 Refund only against its recorded purchase; early refund netted; reversal once, refund count lowered | R, D |
+| 6.3 Unknown store account: kept, staff alerted, credited by alias / transfer / audited staff action | R, D, admin `tsc` |
+| 6.3 Sheet buys only for the signed-in store identity; pending payment message | W |
+| 6.4 "Available until" / reset date never promise a renewal; lapsed pack minutes kept | R, W |
+| 6.4 Included before pack; period reset mid-call; pack refunded mid-call; meter = settlement maths | R, W |
+| 6.5 Calling terms gate for caller, callee, plans; no change until a version is set | R, W, D |
+| 6.6 Pause / deletion notes; export minutes summary | R, W |
+| 12.9 Ringback / connected / end / not-reached / failed / reconnecting / warning tones on the call stream | W (wiring), P (gate 15) |
+| 12.9 Route follows headsets; no forced earpiece; one decision for Telecom and engine; headset names | W, P (gate 15, BT headset) |
+| 12.9 Volume keys = call volume; volume key silences the ring; 30 s reconnect limit; 2 min / 30 s warnings | W, P (gate 15) |
 
 Sources: getstream.io/video/pricing, /video/docs/flutter/pricing-guide, /video/docs/api/ring-calls,
 /video/docs/api/calls, /video/docs/api/call-types/settings, /video/docs/api/webhooks/overview,

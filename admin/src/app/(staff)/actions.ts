@@ -819,6 +819,38 @@ const callMinutesSchema = z.object({
   reason: z.string().trim().min(6, "Give a reason of at least 6 characters for the audit log.").max(500),
 });
 
+const claimCallPackSchema = z.object({
+  eventId: z.string().trim().min(8).max(200),
+  userId: uuidSchema,
+  reason: z.string().trim().min(6, "Give a reason of at least 6 characters for the audit log.").max(500),
+});
+
+/** Credits a paid pack that matched no member (spec 6.3); audited in the database. */
+export async function claimCallPack(formData: FormData) {
+  await guardedAction("/calls", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "claimCallPacks");
+    const parsed = claimCallPackSchema.parse({
+      eventId: formData.get("eventId"),
+      userId: formData.get("userId"),
+      reason: formData.get("reason") ?? "",
+    });
+    const result = await runAccountRpc<{ applied?: boolean; reason?: string; minutes?: number }>(
+      "admin_claim_unclaimed_call_pack",
+      { p_event_id: parsed.eventId, p_user: parsed.userId, p_reason: parsed.reason },
+    );
+    if (result?.applied) return `${result.minutes ?? 0} pack minutes credited to the member.`;
+    if (result?.reason === "duplicate") return "This purchase was already credited, so it is marked as handled.";
+    throw new UserFacingError(
+      result?.reason === "unknown_user"
+        ? "No active member has that ID."
+        : result?.reason === "already_claimed"
+          ? "This pack was already credited."
+          : "The pack could not be credited.",
+    );
+  }, "Saved.", formData);
+}
+
 /** Support correction of pack minutes; ledger + audit log in the database. */
 export async function adjustCallMinutes(formData: FormData) {
   await guardedAction("/calls", async () => {

@@ -67,6 +67,10 @@ class ChatCallControls extends ValueNotifier<ChatCallState> {
 }
 
 /// Calling stopped by the admin switch or the monthly brake (spec 5, 12.6).
+/// The calling terms changed and this member has not accepted them yet
+/// (docs/voice_calling_spec.md 6.5).
+const callingTermsCopy = 'Please review and accept the updated terms to use calls.';
+
 const callingPausedCopy = 'Calling is paused right now. Please try again later.';
 
 /// The unanswered-call rule, explained where it applies (spec 8, 12.6):
@@ -177,6 +181,8 @@ Future<void> placeCall(
       _snack(context, context.uiCopy("You can't call in this chat."));
     case CallStartOutcome.rateLimited:
       _snack(context, context.uiCopy('Too many calls. Please try again later.'));
+    case CallStartOutcome.consentRequired:
+      _snack(context, context.uiCopy(callingTermsCopy));
     case CallStartOutcome.failed:
       _snack(context, context.uiCopy('Call failed. Please try again.'));
   }

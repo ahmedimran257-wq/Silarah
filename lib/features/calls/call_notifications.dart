@@ -107,6 +107,7 @@ class MissedCallPush {
     required this.premiumVariant,
     required this.silent,
     required this.forUser,
+    this.termsVariant = false,
   });
 
   final String requestId;
@@ -117,6 +118,9 @@ class MissedCallPush {
   final bool premiumVariant;
   final bool silent;
   final String forUser;
+
+  /// They could not be rung until they accept the calling terms.
+  final bool termsVariant;
 
   static MissedCallPush? fromData(Map<String, dynamic> data) {
     if (data['type'] != 'call_missed') return null;
@@ -132,6 +136,7 @@ class MissedCallPush {
       premiumVariant: data['variant'] == 'premium',
       silent: data['silent'] == '1',
       forUser: forUser,
+      termsVariant: data['variant'] == 'consent',
     );
   }
 }
@@ -139,10 +144,12 @@ class MissedCallPush {
 /// Title and text of a missed-call notification in [code]'s language.
 ({String title, String body}) missedCallText(String code, MissedCallPush push) {
   final name = push.callerName.isEmpty ? callingCopyFor(code, 'A Silarah member') : push.callerName;
-  if (push.premiumVariant) {
+  if (push.premiumVariant || push.termsVariant) {
     return (
       title: callingCopyFor(code, '{name} tried to call you').replaceAll('{name}', name),
-      body: callingCopyFor(code, 'Get Premium to talk with your matches'),
+      body: callingCopyFor(code, push.termsVariant
+          ? 'Review and accept the updated terms to receive calls.'
+          : 'Get Premium to talk with your matches'),
     );
   }
   return (

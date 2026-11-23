@@ -10,6 +10,7 @@
 // was cancelled meanwhile) stops itself instead of acting on a newer call.
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stream_video/stream_video.dart' as sv;
@@ -35,6 +36,41 @@ abstract final class CallEndCopy {
   static const timeUp = 'Your call minutes ran out.';
 }
 
+/// Where the call's audio goes after the devices changed (spec 12.9), the
+/// way a phone call does it: a headset that just connected takes the call;
+/// the route in use stays while it is there; when it goes, the next best.
+CallAudioRoute nextAudioRoute({
+  required CallAudioRoute current,
+  required Set<CallAudioRoute> before,
+  required Set<CallAudioRoute> now,
+}) {
+  if (now.contains(CallAudioRoute.bluetooth) && !before.contains(CallAudioRoute.bluetooth)) {
+    return CallAudioRoute.bluetooth;
+  }
+  if (now.contains(CallAudioRoute.wired) && !before.contains(CallAudioRoute.wired)) {
+    return CallAudioRoute.wired;
+  }
+  if (now.contains(current)) return current;
+  for (final next in const [
+    CallAudioRoute.bluetooth,
+    CallAudioRoute.wired,
+    CallAudioRoute.earpiece,
+    CallAudioRoute.speaker,
+  ]) {
+    if (now.contains(next)) return next;
+  }
+  return CallAudioRoute.earpiece;
+}
+
+/// The tone as a call ends (spec 12.9), or none. The caller hears one
+/// neutral tone for every call that did not connect: never why (12.4).
+String? callEndTone({required String copy, required bool connected, required bool ringingOut}) {
+  if (copy == CallEndCopy.failed) return 'failed';
+  if (connected) return 'ended';
+  if (ringingOut) return 'not_reached';
+  return null;
+}
+
 class CallController extends ChangeNotifier with WidgetsBindingObserver {
   CallController({CallApi? api, CallPlatform? platform})
       : _api = api ?? CallApi.instance,
@@ -54,6 +90,10 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
   /// member left), and a dropped phone rejoins within seconds.
   static const otherMemberGrace = Duration(seconds: 15);
 
+  /// A connection lost for longer than this ends the call; the server stops
+  /// billing when Stream ends it.
+  static const reconnectLimit = Duration(seconds: 30);
+
   final CallApi _api;
   final CallPlatform _platform;
 
@@ -69,6 +109,9 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
   bool reconnecting = false;
   CallAudioRoute route = CallAudioRoute.earpiece;
   Set<CallAudioRoute> availableRoutes = const {CallAudioRoute.earpiece, CallAudioRoute.speaker};
+
+  /// Device names (a Bluetooth headset's own name) for the route picker.
+  Map<CallAudioRoute, String> routeNames = const {};
   DateTime? connectedAt;
   int maxDurationSeconds = 0;
   int holdMinutes = 0;
@@ -86,6 +129,8 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
   Timer? _tick;
   Timer? _resetTimer;
   Timer? _otherGoneTimer;
+  Timer? _reconnectTimer;
+  CallTimeWarning _lastWarning = CallTimeWarning.none;
   bool _serviceWanted = false;
   bool _serviceRunning = false;
   bool _observing = false;
@@ -107,6 +152,10 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
 
   int get elapsedSeconds =>
       connectedAt == null ? 0 : DateTime.now().difference(connectedAt!).inSeconds;
+
+  /// The caller's held minutes not yet used, counted the way settlement
+  /// charges: every started minute (docs/voice_calling_spec.md 4).
+  int get minutesLeftOfHold => holdMinutes - chargedMinutesSoFar(elapsedSeconds, holdMinutes);
 
   CallTimeWarning get warning => phase == CallPhase.active
       ? warningFor(secondsLeftNow, holdWasFull: holdWasFull)
@@ -168,6 +217,10 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     phase = CallPhase.outgoing;
     notifyListeners();
     unawaited(_platform.setCallWindow(true));
+    // A call from the first ring: Telecom routes the ringback to the
+    // earpiece or headset, and the status bar shows the call.
+    _wantService(true);
+    unawaited(_platform.playTone('ringback'));
     _pollTimer = Timer.periodic(const Duration(milliseconds: 1500), (_) => _poll(attempt));
     return result;
   }
@@ -199,6 +252,8 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
           return;
         case 'active':
           _pollTimer?.cancel();
+          await _platform.stopTone();
+          if (!_current(attempt)) return;
           phase = CallPhase.connecting;
           notifyListeners();
           final joined = await _api.join(id);
@@ -406,8 +461,11 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
         await hangUp(copy: CallEndCopy.failed);
         return;
       }
+      // Stream picked the route at join: a connected headset, else the
+      // earpiece (silarah_voice has the speaker off). Follow it; forcing the
+      // earpiece here once kept calls off Bluetooth headsets.
+      route = _routeOf(call.state.value.audioOutputDevice) ?? route;
       await _refreshRoutes();
-      await setRoute(CallAudioRoute.earpiece, quiet: true);
     } catch (error) {
       debugPrint('[CallController] connect failed: $error');
       if (_current(attempt)) await hangUp(copy: CallEndCopy.failed);
@@ -428,6 +486,14 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     if (nowReconnecting != reconnecting) {
       reconnecting = nowReconnecting;
       changed = true;
+      _reconnectTimer?.cancel();
+      _reconnectTimer = null;
+      if (nowReconnecting) {
+        unawaited(_platform.playTone('reconnecting'));
+        _reconnectTimer = Timer(reconnectLimit, () {
+          if (_current(attempt) && reconnecting) unawaited(hangUp(copy: CallEndCopy.failed));
+        });
+      }
     }
     final otherHere = state.callParticipants.any((p) => !p.isLocal);
     if (otherHere) {
@@ -438,6 +504,9 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
         phase = CallPhase.active;
         _tick = Timer.periodic(const Duration(seconds: 1), (_) => _onTick(attempt));
         unawaited(_refreshOngoing(connected: true));
+        unawaited(_platform.callConnected());
+        unawaited(_platform.playTone('connected'));
+        unawaited(HapticFeedback.mediumImpact());
         changed = true;
       }
     } else if (connectedAt != null && _otherGoneTimer == null) {
@@ -463,6 +532,14 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
       return;
     }
     unawaited(_refreshOngoing());
+    final now = warning;
+    if (now != _lastWarning) {
+      _lastWarning = now;
+      if (now != CallTimeWarning.none) {
+        unawaited(_platform.playTone('warning'));
+        unawaited(HapticFeedback.heavyImpact());
+      }
+    }
     notifyListeners();
   }
 
@@ -486,15 +563,22 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
       case 'route':
         final next = _routeNamed(event.route);
         if (_telecom && next != null && next != route) {
-          route = next;
-          unawaited(_platform.setProximity(next == CallAudioRoute.earpiece));
-          notifyListeners();
+          // Telecom moved the call (a headset button, the car, the system):
+          // the audio engine follows, so both agree.
+          unawaited(setRoute(next, telecomChose: true));
         }
       case 'routes':
         if (_telecom) {
           final routes = event.routes.map(_routeNamed).whereType<CallAudioRoute>().toSet();
           if (routes.isNotEmpty) {
+            final before = availableRoutes;
             availableRoutes = routes;
+            routeNames = {
+              for (final entry in event.routeNames.entries)
+                if (_routeNamed(entry.key) case final r?) r: entry.value,
+            };
+            final next = nextAudioRoute(current: route, before: before, now: routes);
+            if (next != route) unawaited(setRoute(next));
             notifyListeners();
           }
         }
@@ -570,10 +654,12 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
   /// Minutes left as the ongoing notification shows them: the caller's only
   /// (the callee never pays), -1 when not shown.
   int _minutesLeftForNotice() =>
-      isCaller && connectedAt != null ? (secondsLeftNow / 60).ceil().clamp(0, 999) : -1;
+      isCaller && connectedAt != null ? minutesLeftOfHold.clamp(0, 999) : -1;
 
   String _ongoingText(String code) {
-    if (connectedAt == null) return callingCopyFor(code, 'Connecting…');
+    if (connectedAt == null) {
+      return callingCopyFor(code, phase == CallPhase.outgoing ? 'Ringing…' : 'Connecting…');
+    }
     final minutes = _minutesLeftForNotice();
     if (minutes < 0) return callingCopyFor(code, 'Silarah voice call');
     return callingCopyFor(code, '{minutes} min left').replaceAll('{minutes}', '$minutes');
@@ -607,21 +693,25 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     final result = await sv.RtcMediaDeviceNotifier.instance.audioOutputs();
     final devices = result.getDataOrNull() ?? const <sv.RtcMediaDevice>[];
     final routes = <CallAudioRoute>{CallAudioRoute.speaker};
+    final names = <CallAudioRoute, String>{};
     for (final device in devices) {
       final r = _routeOf(device);
-      if (r != null) routes.add(r);
+      if (r != null) {
+        routes.add(r);
+        if (device.label.trim().isNotEmpty) names.putIfAbsent(r, () => device.label.trim());
+      }
     }
     if (!routes.contains(CallAudioRoute.wired)) routes.add(CallAudioRoute.earpiece);
+    final before = availableRoutes;
     availableRoutes = routes;
-    if (!availableRoutes.contains(route)) {
-      await setRoute(availableRoutes.contains(CallAudioRoute.bluetooth)
-          ? CallAudioRoute.bluetooth
-          : CallAudioRoute.earpiece);
-    }
+    routeNames = names;
+    final next = nextAudioRoute(current: route, before: before, now: routes);
+    if (next != route) await setRoute(next, quiet: true);
     notifyListeners();
   }
 
-  static CallAudioRoute? _routeOf(sv.RtcMediaDevice device) {
+  static CallAudioRoute? _routeOf(sv.RtcMediaDevice? device) {
+    if (device == null) return null;
     final key = '${device.id} ${device.label}'.toLowerCase();
     if (key.contains('bluetooth')) return CallAudioRoute.bluetooth;
     if (key.contains('speaker')) return CallAudioRoute.speaker;
@@ -632,18 +722,17 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     return null;
   }
 
-  Future<void> setRoute(CallAudioRoute next, {bool quiet = false}) async {
+  /// Sends the call's audio to [next]. One decision, applied to every layer
+  /// that routes audio: Telecom (while it holds the call) and the audio
+  /// engine, so neither undoes the other later.
+  Future<void> setRoute(CallAudioRoute next, {bool quiet = false, bool telecomChose = false}) async {
     final call = _call;
     if (call == null) return;
-    // Telecom owns audio routing while it holds the call; asking the audio
-    // engine directly would be undone by Telecom.
-    final viaTelecom = _telecom && await _platform.setAudioRoute(next.name);
-    if (!viaTelecom) {
-      final result = await sv.RtcMediaDeviceNotifier.instance.audioOutputs();
-      final devices = result.getDataOrNull() ?? const <sv.RtcMediaDevice>[];
-      final device = devices.where((d) => _routeOf(d) == next).firstOrNull;
-      if (device != null) await call.setAudioOutputDevice(device);
-    }
+    if (_telecom && !telecomChose) await _platform.setAudioRoute(next.name);
+    final result = await sv.RtcMediaDeviceNotifier.instance.audioOutputs();
+    final devices = result.getDataOrNull() ?? const <sv.RtcMediaDevice>[];
+    final device = devices.where((d) => _routeOf(d) == next).firstOrNull;
+    if (device != null) await call.setAudioOutputDevice(device);
     route = next;
     // Screen off at the ear only when the phone itself is the speaker.
     await _platform.setProximity(next == CallAudioRoute.earpiece);
@@ -713,9 +802,17 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     _subscriptions.clear();
     final call = _call;
     final client = _client;
+    final tone = callEndTone(
+      copy: copy,
+      connected: connectedAt != null,
+      ringingOut: isCaller && call == null,
+    );
     _call = null;
     _client = null;
     notifyListeners();
+    await _platform.stopTone();
+    // While the call's audio is still up, so the tone takes the call's route.
+    if (tone != null) await _platform.playTone(tone);
     if (leave) {
       await _leave(call, client);
     } else if (client != null) {
@@ -743,6 +840,8 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     _resetTimer?.cancel();
     _otherGoneTimer?.cancel();
     _otherGoneTimer = null;
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
   }
 
   void _resetFields() {
@@ -756,6 +855,9 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     onHold = false;
     reconnecting = false;
     route = CallAudioRoute.earpiece;
+    routeNames = const {};
+    availableRoutes = const {CallAudioRoute.earpiece, CallAudioRoute.speaker};
+    _lastWarning = CallTimeWarning.none;
     connectedAt = null;
     maxDurationSeconds = 0;
     holdMinutes = 0;

@@ -28,8 +28,21 @@ class CallEvent {
   String? get payload => data['payload'] as String?;
   bool get active => data['active'] == true;
   String? get route => data['current'] as String?;
-  List<String> get routes =>
-      (data['available'] as List?)?.map((e) => e.toString()).toList() ?? const [];
+
+  /// The current route's device name (a Bluetooth headset's own name).
+  String? get routeName => data['name'] as String?;
+
+  List<String> get routes => [
+        for (final entry in (data['available'] as List?) ?? const [])
+          if (entry is Map) entry['route']?.toString() ?? '' else entry.toString(),
+      ].where((route) => route.isNotEmpty).toList();
+
+  /// Device names by route, for the route picker.
+  Map<String, String> get routeNames => {
+        for (final entry in (data['available'] as List?) ?? const [])
+          if (entry is Map && (entry['name']?.toString() ?? '').isNotEmpty)
+            entry['route'].toString(): entry['name'].toString(),
+      };
   bool get available => data['available'] == true;
   String? get requestId => data['requestId'] as String?;
 
@@ -207,6 +220,17 @@ class SilarahCalls {
 
   Future<void> resumeAfterPhoneCall() => _invoke<void>('resumeAfterPhoneCall');
 
+  /// The other member answered an outgoing call: Telecom marks it active.
+  Future<void> callConnected() => _invoke<void>('callConnected');
+
+  /// A call tone on the voice-call stream (it follows the call's route and
+  /// volume): ringback | connected | ended | not_reached | failed |
+  /// reconnecting | warning. Completes when a timed tone is over; the
+  /// ringback runs until [stopTone].
+  Future<void> playTone(String kind) => _invoke<void>('playTone', {'kind': kind});
+
+  Future<void> stopTone() => _invoke<void>('stopTone');
+
   // ----------------------------------------------------------- device bits
 
   MicrophoneStatus _status(String? value) => switch (value) {
@@ -220,6 +244,9 @@ class SilarahCalls {
 
   Future<MicrophoneStatus> requestMicrophone() async =>
       _status(await _invoke<String>('requestMicrophone'));
+
+  /// Android 12+ and the nearby-devices (Bluetooth) permission not granted.
+  Future<bool> bluetoothNeeded() async => await _invoke<bool>('bluetoothNeeded') ?? false;
 
   /// Shows Silarah over the lock screen and keeps the screen on, only while
   /// a call is ringing or live.

@@ -15,6 +15,7 @@ enum CallStartOutcome {
   busySelf,
   notAllowed,
   rateLimited,
+  consentRequired,
   failed;
 
   static CallStartOutcome parse(String? value) => switch (value) {
@@ -30,6 +31,7 @@ enum CallStartOutcome {
         'busy_self' => busySelf,
         'not_allowed' || 'account_restricted' => notAllowed,
         'rate_limited' => rateLimited,
+        'consent_required' => consentRequired,
         _ => failed,
       };
 }
@@ -115,6 +117,9 @@ class CallWallet {
     required this.availableMinutes,
     required this.canBuyPacks,
     required this.packs,
+    this.premiumUntil,
+    this.willRenew = false,
+    this.consentRequired = false,
   });
 
   final bool callsEnabled;
@@ -127,8 +132,19 @@ class CallWallet {
   final int availableMinutes;
   final bool canBuyPacks;
   final List<CallPack> packs;
+  final DateTime? premiumUntil;
+  final bool willRenew;
+  final bool consentRequired;
 
   bool get negative => packMinutes < 0;
+
+  CallMinutesTerms get terms => CallMinutesTerms(
+        premium: premium,
+        periodEnd: includedPeriodEnd,
+        premiumUntil: premiumUntil,
+        willRenew: willRenew,
+        packMinutes: packMinutes,
+      );
 
   factory CallWallet.fromJson(Map<String, dynamic> json) => CallWallet(
         callsEnabled: json['calls_enabled'] == true,
@@ -141,6 +157,9 @@ class CallWallet {
         heldMinutes: (json['held_minutes'] as num?)?.toInt() ?? 0,
         availableMinutes: (json['available_minutes'] as num?)?.toInt() ?? 0,
         canBuyPacks: json['can_buy_packs'] == true,
+        premiumUntil: DateTime.tryParse(json['premium_until']?.toString() ?? ''),
+        willRenew: json['will_renew'] == true,
+        consentRequired: json['consent_required'] == true,
         packs: [
           for (final pack in (json['packs'] as List? ?? const []))
             if (pack is Map)
@@ -150,6 +169,57 @@ class CallWallet {
               ),
         ],
       );
+}
+
+/// What the minutes card and sheet say about when included minutes reset
+/// and when Premium ends (docs/voice_calling_spec.md 6.4). It never
+/// promises a renewal the server has not confirmed.
+class CallMinutesTerms {
+  const CallMinutesTerms({
+    required this.premium,
+    required this.periodEnd,
+    required this.premiumUntil,
+    required this.willRenew,
+    required this.packMinutes,
+  });
+
+  final bool premium;
+  final DateTime? periodEnd;
+
+  /// End of Premium; null when it has no end date.
+  final DateTime? premiumUntil;
+  final bool willRenew;
+  final int packMinutes;
+
+  /// "Available until {date}": Premium will not renew, or ends before this
+  /// period does.
+  DateTime? get availableUntil {
+    final until = premiumUntil;
+    if (!premium || until == null) return null;
+    final end = periodEnd;
+    if (!willRenew || end == null || until.isBefore(end)) return until;
+    return null;
+  }
+
+  /// "They reset on {date}": only while Premium lasts past the period end.
+  DateTime? get resetsOn {
+    final end = periodEnd;
+    if (!premium || end == null) return null;
+    final until = premiumUntil;
+    if (until != null && !until.isAfter(end)) return null;
+    return end;
+  }
+
+  /// Premium ended with pack minutes left: they are kept.
+  bool get packsSavedWhileLapsed => !premium && packMinutes > 0;
+}
+
+/// Minutes a call has used so far, the way settlement charges them: every
+/// started minute, never more than the hold (docs/voice_calling_spec.md 4).
+int chargedMinutesSoFar(int connectedSeconds, int holdMinutes) {
+  if (connectedSeconds <= 0 || holdMinutes <= 0) return 0;
+  final started = (connectedSeconds + 59) ~/ 60;
+  return started > holdMinutes ? holdMinutes : started;
 }
 
 class CallPack {
@@ -276,15 +346,15 @@ int secondsLeft({
   return left < 0 ? 0 : left;
 }
 
-/// Warnings shown on the in-call screen (spec: minute meter, warnings).
-enum CallTimeWarning { none, fiveMinutes, oneMinute, stillTalking }
+/// Warnings on the in-call screen, each with a tone (spec 12.9): two
+/// minutes left, then 30 seconds. At the 60-minute hold limit the question
+/// is "still talking?" instead, two minutes before.
+enum CallTimeWarning { none, twoMinutes, thirtySeconds, stillTalking }
 
 CallTimeWarning warningFor(int secondsLeft, {required bool holdWasFull}) {
-  if (secondsLeft <= 60) {
-    // At the 60-minute hold limit the question is "still talking?".
-    return holdWasFull ? CallTimeWarning.stillTalking : CallTimeWarning.oneMinute;
-  }
-  if (secondsLeft <= 300) return CallTimeWarning.fiveMinutes;
+  if (secondsLeft <= 120 && holdWasFull) return CallTimeWarning.stillTalking;
+  if (secondsLeft <= 30) return CallTimeWarning.thirtySeconds;
+  if (secondsLeft <= 120) return CallTimeWarning.twoMinutes;
   return CallTimeWarning.none;
 }
 

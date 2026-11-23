@@ -7,10 +7,12 @@ import { requireArea } from "@/lib/auth";
 import {
   getCallOverview,
   getMemberCallHistory,
+  getUnclaimedCallPacks,
   type CallOverview,
   type MemberCallRow,
+  type UnclaimedCallPack,
 } from "@/lib/operations";
-import { adjustCallMinutes, setCallsEnabled } from "../actions";
+import { adjustCallMinutes, claimCallPack, setCallsEnabled } from "../actions";
 
 // Voice calling for staff (docs/voice_calling_spec.md 12.8): the switch, this
 // month's minutes against the brake and the Stream cost, one member's call
@@ -47,6 +49,15 @@ export default async function CallsPage({ searchParams }: { searchParams: Promis
       history = await getMemberCallHistory(memberId);
     } catch {
       history = null;
+    }
+  }
+
+  let unclaimed: UnclaimedCallPack[] | null = null;
+  if (can(admin.role, "claimCallPacks")) {
+    try {
+      unclaimed = await getUnclaimedCallPacks();
+    } catch {
+      unclaimed = null;
     }
   }
 
@@ -145,6 +156,47 @@ export default async function CallsPage({ searchParams }: { searchParams: Promis
           )}
         </div>
       </section>
+
+      {can(admin.role, "claimCallPacks") ? (
+        <section className="card">
+          <div className="card-head">
+            <h2>Packs waiting for a member</h2>
+            <span className="muted">Paid by a store account that matched no member · credited once, recorded in the audit log</span>
+          </div>
+          <div className="card-body stack">
+            {unclaimed === null ? (
+              <p className="notice danger"><span>Waiting packs could not load.</span></p>
+            ) : unclaimed.length === 0 ? (
+              <EmptyState icon={Phone} title="Nothing waiting">Every paid pack reached a member.</EmptyState>
+            ) : (
+              unclaimed.map((pack) => (
+                <form key={pack.event_id} action={claimCallPack} className="stack">
+                  <input type="hidden" name="eventId" value={pack.event_id} />
+                  <input type="hidden" name="returnTo" value={returnTo} />
+                  <p>
+                    <strong>{pack.minutes ?? "?"} minutes</strong> ({pack.product_id}) · paid {formatDateTime(pack.event_at ?? pack.received_at)} · {pack.store ?? "store"}
+                    {pack.environment && pack.environment !== "PRODUCTION" ? ` · ${pack.environment}` : ""}
+                  </p>
+                  <p className="muted mono">
+                    Store ID {pack.app_user_id}
+                    {pack.aliases.length > 0 ? ` · also ${pack.aliases.filter((a) => a !== pack.app_user_id).join(", ") || "none"}` : ""}
+                    {pack.transaction_id ? ` · order ${pack.transaction_id}` : ""}
+                  </p>
+                  <label className="field">Member ID to credit
+                    <input name="userId" className="input mono" required pattern="[0-9a-fA-F-]{36}" placeholder="Confirm the member from the Play order first" />
+                  </label>
+                  <label className="field">Reason
+                    <input name="reason" className="input" required minLength={6} maxLength={500} placeholder="e.g. Play order matched to the member's email, ticket 1234" />
+                  </label>
+                  <div className="form-actions">
+                    <SubmitButton className="btn" confirm="Credit this paid pack to that member? This cannot be undone here.">Credit pack</SubmitButton>
+                  </div>
+                </form>
+              ))
+            )}
+          </div>
+        </section>
+      ) : null}
 
       {can(admin.role, "adjustCallMinutes") ? (
         <section className="card">

@@ -130,8 +130,15 @@ class _CallsTabScreenState extends State<CallsTabScreen> {
   Future<void> _respond(CallPlan plan, bool accept) async {
     final outcome = await CallApi.instance.respondPlan(plan.id, accept: accept);
     if (!mounted) return;
-    if (outcome != 'accepted' && outcome != 'declined') {
-      _snack(outcome == 'closed' ? 'This call time is no longer open.' : 'Could not save. Please try again.');
+    if (outcome == 'premium_required') {
+      await PaywallGateSheet.show(context, gate: PremiumGate.calls);
+    } else if (outcome != 'accepted' && outcome != 'declined') {
+      _snack(switch (outcome) {
+        'closed' => 'This call time is no longer open.',
+        'consent_required' => callingTermsCopy,
+        'calls_off_self' => 'Turn calls on in Settings to plan a call.',
+        _ => 'Could not save. Please try again.',
+      });
     }
     unawaited(_refresh());
   }
