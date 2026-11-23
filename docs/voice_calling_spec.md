@@ -255,6 +255,8 @@ privacy-safe names and missed calls.
   status-bar chip, mute, hang up, missed call). Required before any AAB with calling code is submitted.
 - Release order: migration 324 must be on production before an app version with this code ships (the
   app reads `notification_prefs.missed_call` and the new RPCs).
+- Release order: migration 328 (the matched member's full name on the call screen) goes on production
+  in the same step as the `calls` function, which reads its `caller_shown_name`.
 
 ## 12. Notifications, status bar and Calls tab rules
 
@@ -543,6 +545,8 @@ D = Deno test, W = Dart unit / widget test, P = phone evidence (`docs/voice_call
 | 5 Paid talk time never longer than the hold: allowance shrinks to the real connect time (327) | R, P |
 | 8 Blocked by them: old calls show "Member unavailable" (no name, photo, call back); a call or plan is refused and never rings; no missed note | R, W |
 | 12.1 Call screen shows the other member's photo on every path (ring carries the caller id) | W, P |
+| 12.3 / 12.5 Names: pushes first name only; Stream first name + initial; call screen full name once matched (328) | R, P |
+| 12.5 The call list of a member closes on a swipe down from the top of the list | W, P |
 
 Sources: getstream.io/video/pricing, /video/docs/flutter/pricing-guide, /video/docs/api/ring-calls,
 /video/docs/api/calls, /video/docs/api/call-types/settings, /video/docs/api/webhooks/overview,

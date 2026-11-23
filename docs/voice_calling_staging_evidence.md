@@ -150,3 +150,15 @@ test.
 | Silarah call active again after the phone call ended | pass |
 | OnePlus status-bar call chip shows a "!" glyph (OnePlus system UI; Silarah's icon is a crescent) | cosmetic, open |
 | **Found:** 48106 Redmi still in communication mode after a call: the audio engine kept its session until its own clean-up (0.6 s after Silarah's reset when the other member hung up) and put the mode back on regaining focus; and the answered call stayed RINGING in Telecom on Android 10 | fixed in 48108: the engine's session ends with the call, then the reset; answered calls are set active |
+| 48108: Redmi back to AUDIO_MODE_NORMAL after the call, no Telecom call left | pass |
+| **Found:** 48108 answered calls still RINGING in Telecom on the Redmi: the answer ran inside Telecom's own "create the connection" callback (immediate dispatcher), before Telecom listened to the connection, so it was lost | fixed in 48110: Telecom work is dispatched, the answer runs once Telecom has the call |
+| **Found (owner):** View profile from a member's call list failed ("missing city_name"): the staging test account Aisha had no city (every production profile has one) | staging data fixed; the profile opens |
+| **Found (owner):** the call screen showed "Imran A." for a matched member (Stream's short name) | fixed in 48110 + migration 328: the app shows the full name once matched; Stream keeps first name + initial, pushes first name only |
+| **Found (owner):** the call list of a member did not close on a swipe down (its list took the gesture) | fixed in 48110: a swipe down from the top of the list closes it |
+| **Found:** the "Tap to return to call" bar was invisible to screen readers (a page route hid everything painted before it) | fixed after 48110 (screens are their own semantics container); widget test |
+| One ring never reached the Redmi (sent to Google's push service, not delivered within the 30 s ring; Redmi on the OnePlus hotspot) | network, not the app; the next rings arrived |
+| 48110: dozing Redmi wakes and vibrates; ring screen shows "Imran" (first name); answered call ACTIVE in Telecom; call screen shows "Imran Ahmed"; caller sees "Aisha Testing" | pass |
+| 48110: Back on the OnePlus call screen shows "Aisha Testing · Tap to return to call"; tapping it returns to the call | pass |
+| 48110: swipe down closes the call list; View profile opens Aisha's profile | pass |
+| 48110: ordinary phone call to the OnePlus during a Silarah call: hold silent both ways, Silarah call resumed | pass (owner) |
+| 48110: caller hangs up: both phones AUDIO_MODE_NORMAL, no Telecom call; 374 s settled as 7 min of a 13-min hold; Stream limit 784 s (connect 2 s + 2 s) | pass |
