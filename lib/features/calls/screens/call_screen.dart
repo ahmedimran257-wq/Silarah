@@ -221,6 +221,8 @@ class _CallScreenState extends State<CallScreen> {
   String? _meter(BuildContext context) {
     if (_call.phase != CallPhase.active) return null;
     final minutes = _call.minutesLeftOfHold;
+    // The last started minute is already charged, yet up to 59 s remain.
+    if (minutes <= 0 && _call.warning != CallTimeWarning.none) return context.uiCopy('Less than a minute left');
     return switch (_call.warning) {
       CallTimeWarning.thirtySeconds => context.uiCopy('Less than a minute left'),
       CallTimeWarning.twoMinutes || CallTimeWarning.stillTalking =>

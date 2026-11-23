@@ -191,23 +191,23 @@ class CallMinutesTerms {
   final bool willRenew;
   final int packMinutes;
 
-  /// "Available until {date}": Premium will not renew, or ends before this
-  /// period does.
+  /// "Available until {date}": only when Premium will not renew. A renewing
+  /// subscription's paid period often ends before the 30-day minutes period
+  /// (short months); that is not the end of Premium.
   DateTime? get availableUntil {
     final until = premiumUntil;
-    if (!premium || until == null) return null;
-    final end = periodEnd;
-    if (!willRenew || end == null || until.isBefore(end)) return until;
-    return null;
+    if (!premium || until == null || willRenew) return null;
+    return until;
   }
 
-  /// "They reset on {date}": only while Premium lasts past the period end.
+  /// "They reset on {date}": while Premium lasts past the period end (it
+  /// renews, has no end date, or ends later).
   DateTime? get resetsOn {
     final end = periodEnd;
     if (!premium || end == null) return null;
     final until = premiumUntil;
-    if (until != null && !until.isAfter(end)) return null;
-    return end;
+    if (willRenew || until == null || until.isAfter(end)) return end;
+    return null;
   }
 
   /// Premium ended with pack minutes left: they are kept.

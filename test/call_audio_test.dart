@@ -56,6 +56,10 @@ void main() {
       expect(callEndTone(copy: CallEndCopy.ended, connected: false, ringingOut: true), 'not_reached');
     });
 
+    test('the caller hanging up while it rings hears the end tone, not "not reached"', () {
+      expect(callEndTone(copy: CallEndCopy.ended, connected: false, ringingOut: true, endedByMember: true), 'ended');
+    });
+
     test('a failure has its own tone', () {
       expect(callEndTone(copy: CallEndCopy.failed, connected: false, ringingOut: true), 'failed');
       expect(callEndTone(copy: CallEndCopy.failed, connected: true, ringingOut: false), 'failed');

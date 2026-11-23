@@ -64,9 +64,16 @@ CallAudioRoute nextAudioRoute({
 
 /// The tone as a call ends (spec 12.9), or none. The caller hears one
 /// neutral tone for every call that did not connect: never why (12.4).
-String? callEndTone({required String copy, required bool connected, required bool ringingOut}) {
+String? callEndTone({
+  required String copy,
+  required bool connected,
+  required bool ringingOut,
+  bool endedByMember = false,
+}) {
   if (copy == CallEndCopy.failed) return 'failed';
   if (connected) return 'ended';
+  // The caller hung up while it rang: their own ending, not "not reached".
+  if (ringingOut && endedByMember) return 'ended';
   if (ringingOut) return 'not_reached';
   return null;
 }
@@ -464,8 +471,16 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
       // Stream picked the route at join: a connected headset, else the
       // earpiece (silarah_voice has the speaker off). Follow it; forcing the
       // earpiece here once kept calls off Bluetooth headsets.
-      route = _routeOf(call.state.value.audioOutputDevice) ?? route;
-      await _refreshRoutes();
+      final engineRoute = _routeOf(call.state.value.audioOutputDevice);
+      if (_telecom) {
+        // Telecom routed the ringing call already; decide once from both
+        // (a headset wins) and apply it to Telecom and the engine.
+        route = nextAudioRoute(current: engineRoute ?? route, before: const {}, now: availableRoutes);
+        await setRoute(route, quiet: true);
+      } else {
+        route = engineRoute ?? route;
+        await _refreshRoutes();
+      }
     } catch (error) {
       debugPrint('[CallController] connect failed: $error');
       if (_current(attempt)) await hangUp(copy: CallEndCopy.failed);
@@ -727,7 +742,11 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
   /// engine, so neither undoes the other later.
   Future<void> setRoute(CallAudioRoute next, {bool quiet = false, bool telecomChose = false}) async {
     final call = _call;
-    if (call == null) return;
+    if (call == null) {
+      // Ringing: no audio engine yet. Remember Telecom's route for the join.
+      if (telecomChose) route = next;
+      return;
+    }
     if (_telecom && !telecomChose) await _platform.setAudioRoute(next.name);
     final result = await sv.RtcMediaDeviceNotifier.instance.audioOutputs();
     final devices = result.getDataOrNull() ?? const <sv.RtcMediaDevice>[];
@@ -772,7 +791,7 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
       // Tell the server first; it ends the call on Stream for both.
       unawaited(_api.end(id, reason: phase == CallPhase.outgoing ? 'cancelled' : 'hangup'));
     }
-    await _finish(attempt, copy, leave: !alreadyLeft);
+    await _finish(attempt, copy, leave: !alreadyLeft, endedByMember: !alreadyLeft && copy == CallEndCopy.ended);
   }
 
   Future<void> _leave(sv.Call? call, sv.StreamVideo? client) async {
@@ -788,7 +807,7 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _finish(int attempt, String copy, {bool leave = true}) async {
+  Future<void> _finish(int attempt, String copy, {bool leave = true, bool endedByMember = false}) async {
     if (!_current(attempt) || phase == CallPhase.ended) return;
     // Mark ended first so nothing re-enters while we tidy up.
     phase = CallPhase.ended;
@@ -806,6 +825,7 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
       copy: copy,
       connected: connectedAt != null,
       ringingOut: isCaller && call == null,
+      endedByMember: endedByMember,
     );
     _call = null;
     _client = null;

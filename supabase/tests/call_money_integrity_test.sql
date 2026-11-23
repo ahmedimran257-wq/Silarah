@@ -346,6 +346,19 @@ BEGIN
   PERFORM pg_temp.ok('members cannot call the pack service RPCs',
     r->>'error' = '42501' AND r2->>'error' = '42501', r::text || r2::text);
 
+  r := pg_temp.svc(format('SELECT public.call_service_store_unclaimed_pack(%L, %L, %L, %L, %L, %L, %L, now(), %L)',
+    'ev-anon-notx', '$RCAnonymousID:ghi', ARRAY['$RCAnonymousID:ghi'], 'silarah_calls_20', NULL,
+    'PLAY_STORE', 'PRODUCTION', 'not_a_member'));
+  r := pg_temp.svc(format('SELECT public.call_service_claim_unclaimed_packs(%L, %L, %L)',
+    m5, ARRAY['$RCAnonymousID:ghi'], 'transfer'));
+  PERFORM pg_temp.ok('a kept pack without a store transaction id can still be credited once',
+    (r->>'claimed')::int = 1 AND (pg_temp.wallet(m5)->>'pack_minutes')::int = 20, r::text);
+  UPDATE public.users SET deleted_at = now() WHERE id = m5;
+  r := pg_temp.credit(m5, 'tx-grace');
+  PERFORM pg_temp.ok('a member in the deletion grace period still gets a pack they paid for',
+    (r->>'applied')::boolean AND (pg_temp.wallet(m5)->>'pack_minutes')::int = 40, r::text);
+  UPDATE public.users SET deleted_at = NULL WHERE id = m5;
+
   -- ---- 6.4 Live calls and holds --------------------------------------------------
   -- Included minutes are used before pack minutes, for the hold and the charge.
   UPDATE private.call_wallets SET pack_minutes = 20 WHERE user_id = m4;

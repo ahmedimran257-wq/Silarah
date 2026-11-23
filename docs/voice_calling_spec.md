@@ -170,6 +170,8 @@ privacy-safe names and missed calls.
 - Profile pause: "Your {minutes} paid call minutes are kept while your profile is paused."
 - Account deletion: "You have {minutes} paid call minutes. They will be lost and cannot be refunded
   after deletion."
+- Release order: migration 325 changes `call_service_refund_pack(p_app_user_id, ...)`; deploy the
+  `revenuecat-webhook` function in the same step as the migration.
 - The data export has a `minutes_summary`: packs bought, pack minutes bought / refunded / adjusted by
   staff, included minutes used and forfeited, pack minutes used.
 

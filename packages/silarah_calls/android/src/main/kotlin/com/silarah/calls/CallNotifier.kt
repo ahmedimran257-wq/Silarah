@@ -210,6 +210,12 @@ internal object CallNotifier {
         }
     }
 
+    /** The ring notification [notificationId] went (declined from it). */
+    fun ringEnded(notificationId: Int) {
+        val current = ringing?.get("requestId") as? String ?: return
+        if (ringId(current) == notificationId) ringing = null
+    }
+
     fun cancelIncoming(context: Context, requestId: String) {
         if ((ringing?.get("requestId") as? String) == requestId) ringing = null
         NotificationManagerCompat.from(context).cancel(ringId(requestId))

@@ -77,9 +77,15 @@ void main() {
 
     test('Premium ends before the period: the end date and no reset', () {
       final until = DateTime.utc(2026, 12, 10);
-      final t = _terms(until: until, renews: true);
+      final t = _terms(until: until, renews: false);
       expect(t.availableUntil, until);
       expect(t.resetsOn, isNull);
+    });
+
+    test('a renewing plan whose paid period ends first (short month) never shows an end date', () {
+      final t = _terms(until: DateTime.utc(2026, 12, 18), renews: true);
+      expect(t.availableUntil, isNull);
+      expect(t.resetsOn, _periodEnd);
     });
 
     test('lapsed with pack minutes: they are kept, nothing about dates', () {

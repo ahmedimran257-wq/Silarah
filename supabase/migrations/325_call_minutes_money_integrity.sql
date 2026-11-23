@@ -500,9 +500,9 @@ BEGIN
     OR nullif(trim(coalesce(p_event_id, '')), '') IS NULL THEN
     RETURN jsonb_build_object('applied', false, 'reason', 'missing_transaction');
   END IF;
-  IF p_user IS NULL OR NOT EXISTS (
-    SELECT 1 FROM public.users u WHERE u.id = p_user AND u.deleted_at IS NULL
-  ) THEN
+  -- A member in the deletion grace period is still a member: a payment that
+  -- completes then is theirs (lost only if the account is purged).
+  IF p_user IS NULL OR NOT EXISTS (SELECT 1 FROM public.users u WHERE u.id = p_user) THEN
     RETURN jsonb_build_object('applied', false, 'reason', 'unknown_user');
   END IF;
   INSERT INTO private.call_wallets(user_id) VALUES (p_user) ON CONFLICT (user_id) DO NOTHING;
@@ -550,8 +550,10 @@ BEGIN
   IF v_row.claimed_at IS NOT NULL THEN
     RETURN jsonb_build_object('applied', false, 'reason', 'already_claimed');
   END IF;
+  -- A store event without a transaction id is still one purchase: its event.
   v_result := private.call_credit_pack(
-    p_user, v_row.provider_event_id, v_row.transaction_id, v_row.product_id,
+    p_user, v_row.provider_event_id,
+    coalesce(v_row.transaction_id, 'event:' || v_row.provider_event_id), v_row.product_id,
     'claimed:' || p_source);
   -- 'duplicate': this store transaction was already credited (RevenueCat
   -- also sent it under the member's ID). Close it without a second credit.

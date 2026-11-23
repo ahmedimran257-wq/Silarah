@@ -34,6 +34,8 @@ class CallActionReceiver : BroadcastReceiver() {
     private fun decline(context: Context, intent: Intent) {
         val notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, 0)
         NotificationManagerCompat.from(context).cancel(notificationId)
+        // A volume key must not bring a declined ring back.
+        CallNotifier.ringEnded(notificationId)
         val requestId = intent.getStringExtra(EXTRA_REQUEST_ID).orEmpty()
         val token = intent.getStringExtra(EXTRA_TOKEN).orEmpty()
         val endpoint = intent.getStringExtra(EXTRA_ENDPOINT).orEmpty()
