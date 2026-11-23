@@ -70,7 +70,7 @@ class CallAvatar extends StatelessWidget {
       face = SilarahBlurImage(imageUrl: photoUrl!, width: size, height: size);
     } else {
       face = Center(
-        child: Text(
+        child: UiText.verbatim(
           initial,
           style: AppTypography.screenTitle.copyWith(
             fontSize: size * .38,
@@ -146,11 +146,15 @@ class CallMinutesCard extends StatelessWidget {
   const CallMinutesCard({
     super.key,
     required this.overview,
+    required this.includedMinutes,
     required this.onTopUp,
     required this.onPremium,
   });
 
   final CallOverview overview;
+
+  /// Included minutes per Premium month, from the server's rules.
+  final int includedMinutes;
   final VoidCallback onTopUp;
   final VoidCallback onPremium;
 
@@ -209,7 +213,7 @@ class CallMinutesCard extends StatelessWidget {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
+                            UiText.verbatim(
                               '$total',
                               style: AppTypography.screenTitle.copyWith(
                                 fontSize: 20,
@@ -297,10 +301,13 @@ class CallMinutesCard extends StatelessWidget {
                   style: AppTypography.bodyMedium,
                 ),
                 const SizedBox(height: AppDimensions.space4),
-                UiText(
-                  female
-                      ? 'Premium lets you call your matches too, with 30 minutes every month.'
-                      : 'Calls are part of Premium. Premium includes 30 call minutes every month.',
+                UiText.verbatim(
+                  context.uiCopyWith(
+                    female
+                        ? 'Premium lets you call your matches too, with {included} minutes every month.'
+                        : 'Calls are part of Premium. Premium includes {included} call minutes every month.',
+                    {'included': overview.includedGranted > 0 ? overview.includedGranted : includedMinutes},
+                  ),
                   style: AppTypography.caption,
                 ),
                 const SizedBox(height: AppDimensions.space10),
@@ -593,7 +600,7 @@ class _CallPlanCardState extends State<CallPlanCard> {
       'declined' => context.uiCopy('Not accepted'),
       'cancelled' => context.uiCopy('Cancelled'),
       'done' => context.uiCopy('You talked'),
-      _ => context.uiCopy('Time passed'),
+      _ => context.uiCopy('Missed scheduled call'),
     };
     // Five minutes before the time, the member who can call is offered it.
     final callable = plan.accepted && plan.open && !now.isBefore(plan.callWindowOpens);
@@ -769,7 +776,7 @@ class _FilterChip extends StatelessWidget {
                     color: AppColors.softCoral,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(
+                  child: UiText.verbatim(
                     count > 9 ? '9+' : '$count',
                     style: AppTypography.badge.copyWith(
                       fontSize: 10,

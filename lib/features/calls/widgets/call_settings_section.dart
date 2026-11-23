@@ -1,16 +1,26 @@
-// Settings > Calls: Ring / Silent / Calls off, call minutes, and the two
-// Android helpers (lock-screen calls on Android 14+, auto-start on some
-// phone makers). Hidden while calling is switched off on the server.
+// Settings > Calls: Ring / Silent / Calls off (each says exactly what
+// happens, and what a caller sees), missed-call notifications, call minutes,
+// "How calling works", and the two Android helpers (lock-screen calls on
+// Android 14+, auto-start on some phone makers). Hidden while calling is
+// switched off on the server (CallsHub, the one gate).
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../core/cubits/notification_prefs/notification_prefs_cubit.dart';
+import '../../../core/cubits/notification_prefs/notification_prefs_state.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../l10n/ui_copy.dart';
 import '../call_api.dart';
 import '../call_platform.dart';
+import '../calling_rules.dart';
+import '../calls_hub.dart';
 import 'call_minutes_sheet.dart';
+import 'calling_guide_sheet.dart';
 
 class CallSettingsSection extends StatefulWidget {
   const CallSettingsSection({super.key});
@@ -79,7 +89,15 @@ class _CallSettingsSectionState extends State<CallSettingsSection> with WidgetsB
 
   @override
   Widget build(BuildContext context) {
-    if (!_enabled || _mode == null) return const SizedBox.shrink();
+    return ValueListenableBuilder<CallingRules?>(
+      valueListenable: CallsHub.instance.rules,
+      builder: (context, rules, _) => rules?.callsEnabled == true && _enabled && _mode != null
+          ? _section(context)
+          : const SizedBox.shrink(),
+    );
+  }
+
+  Widget _section(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -98,9 +116,11 @@ class _CallSettingsSectionState extends State<CallSettingsSection> with WidgetsB
           child: Column(
             children: [
               for (final option in const [
-                ('ring', 'Ring', 'Calls ring your phone.'),
-                ('silent', 'Silent', 'No ring. Calls show as missed in the chat.'),
-                ('off', 'Calls off', 'Nobody can call you. Missed calls still show.'),
+                ('ring', 'Ring', 'Calls from your matches ring this phone.'),
+                ('silent', 'Silent',
+                    'No ring. Calls show as missed, and callers see that you are not taking calls right now.'),
+                ('off', 'Calls off',
+                    'Nobody can call you or plan a call with you. Callers see that you are not taking calls right now.'),
               ])
                 RadioListTile<String>(
                   value: option.$1,
@@ -113,6 +133,26 @@ class _CallSettingsSectionState extends State<CallSettingsSection> with WidgetsB
                   subtitle: UiText(option.$3,
                       style: AppTypography.caption.copyWith(color: AppColors.slateMist)),
                 ),
+              Divider(color: AppColors.divider, height: 1),
+              BlocBuilder<NotificationPrefsCubit, NotificationPrefsState>(
+                buildWhen: (a, b) => a.missedCall != b.missedCall,
+                builder: (context, prefs) => SwitchListTile.adaptive(
+                  value: prefs.missedCall,
+                  activeTrackColor: AppColors.champagneGold,
+                  onChanged: context.read<NotificationPrefsCubit>().toggleMissedCall,
+                  secondary: Icon(Icons.phone_missed_outlined, color: AppColors.champagneGold),
+                  title: UiText('Missed-call notifications', style: AppTypography.body),
+                  subtitle: UiText('Missed calls always show in your Calls tab.',
+                      style: AppTypography.caption.copyWith(color: AppColors.slateMist)),
+                ),
+              ),
+              Divider(color: AppColors.divider, height: 1),
+              ListTile(
+                leading: Icon(Icons.info_outline_rounded, color: AppColors.champagneGold),
+                title: UiText('How calling works', style: AppTypography.body),
+                trailing: Icon(Icons.chevron_right_rounded, color: AppColors.slateMist),
+                onTap: () => unawaited(showCallingGuide(context)),
+              ),
               Divider(color: AppColors.divider, height: 1),
               ListTile(
                 leading: Icon(Icons.timer_outlined, color: AppColors.champagneGold),

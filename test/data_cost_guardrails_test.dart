@@ -79,7 +79,7 @@ void main() {
       blocks,
       contains('AuthorizedProfileService.load(relatedUserIds)'),
     );
-    expect(home, contains('List<Widget?>.filled(_tabCount, null)'));
+    expect(home, contains('final Map<HomeTab, Widget> _tabCache = {};'));
   });
 
   test('discovery and admin refreshes have explicit cost ceilings', () {

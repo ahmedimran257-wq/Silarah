@@ -14,6 +14,7 @@ import 'call_controller.dart';
 import 'call_log.dart';
 import 'call_notifications.dart';
 import 'call_platform.dart';
+import 'calling_rules.dart';
 
 class CallsHub extends ChangeNotifier with WidgetsBindingObserver {
   CallsHub({CallApi? api, CallPlatform? platform})
@@ -29,6 +30,16 @@ class CallsHub extends ChangeNotifier with WidgetsBindingObserver {
   final CallApi _api;
   final CallPlatform _platform;
 
+  /// The server's calling rules (switch and every number members are told).
+  /// Null until loaded or when signed out.
+  final ValueNotifier<CallingRules?> rules = ValueNotifier<CallingRules?>(null);
+
+  /// The one gate for every calling surface (spec 12.6): the Calls tab, call
+  /// settings, the missed-call toggle, the guide and Help article, call
+  /// buttons, minutes and packs, the Premium benefit and the Guardian call
+  /// log. Off (or unknown) means the app looks as it does without calling.
+  bool get callingOn => rules.value?.callsEnabled ?? false;
+
   /// Calls tab shown (server switch on for this member).
   final ValueNotifier<bool> tabVisible = ValueNotifier<bool>(false);
 
@@ -41,20 +52,26 @@ class CallsHub extends ChangeNotifier with WidgetsBindingObserver {
   bool phoneCanRing = true;
 
   bool _active = false;
+  bool _member = false;
   bool _refreshing = false;
   bool _refreshAgain = false;
 
-  /// A member's session began (never for Guardian-only accounts).
-  Future<void> start() async {
+  /// A session began. [member]: a member account (Calls tab, minutes, ring
+  /// capability); false for Guardian-only accounts, which only need the
+  /// switch (their call log follows it).
+  Future<void> start({bool member = true}) async {
     if (_active) return;
     _active = true;
+    _member = member;
     WidgetsBinding.instance.addObserver(this);
     CallController.historyVersion.addListener(_onHistoryChanged);
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      tabVisible.value = prefs.getBool(_tabKey) ?? false;
-    } catch (_) {}
-    await Future.wait([refresh(), reportRingCapability()]);
+    if (member) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        tabVisible.value = prefs.getBool(_tabKey) ?? false;
+      } catch (_) {}
+    }
+    await Future.wait([refresh(), if (member) reportRingCapability()]);
   }
 
   /// Sign-out: nothing of the departing member stays.
@@ -64,6 +81,7 @@ class CallsHub extends ChangeNotifier with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     CallController.historyVersion.removeListener(_onHistoryChanged);
     overview = null;
+    rules.value = null;
     unseenMissed.value = 0;
     tabVisible.value = false;
     notifyListeners();
@@ -75,7 +93,7 @@ class CallsHub extends ChangeNotifier with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _active) {
       unawaited(refresh());
-      unawaited(reportRingCapability());
+      if (_member) unawaited(reportRingCapability());
     }
   }
 
@@ -90,20 +108,31 @@ class CallsHub extends ChangeNotifier with WidgetsBindingObserver {
     try {
       do {
         _refreshAgain = false;
-        final next = await _api.overview();
+        final nextRules = await _api.rules();
+        if (!_active) return;
+        if (nextRules != null) rules.value = nextRules;
+        // Calling off: nothing else to load, and nothing is shown.
+        final on = callingOn;
+        final next = _member && on ? await _api.overview() : null;
         if (!_active) return;
         if (next != null) {
           overview = next;
           unseenMissed.value = next.unseenMissed;
-          if (tabVisible.value != next.callsEnabled) {
-            tabVisible.value = next.callsEnabled;
+        } else if (nextRules != null && !on) {
+          overview = null;
+          unseenMissed.value = 0;
+        }
+        if (nextRules != null) {
+          final visible = _member && on;
+          if (tabVisible.value != visible) {
+            tabVisible.value = visible;
             try {
               final prefs = await SharedPreferences.getInstance();
-              await prefs.setBool(_tabKey, next.callsEnabled);
+              await prefs.setBool(_tabKey, visible);
             } catch (_) {}
           }
-          notifyListeners();
         }
+        notifyListeners();
       } while (_refreshAgain && _active);
     } finally {
       _refreshing = false;

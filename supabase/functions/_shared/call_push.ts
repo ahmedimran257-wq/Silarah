@@ -33,6 +33,8 @@ export function planReminderPush(
       match_id: String(row.match_id ?? ""),
       other_name: String(row.other_name ?? ""),
       planned_for: String(row.planned_for ?? ""),
+      // Quiet hours or Silent: shown without sound.
+      silent: row.silent === true ? "1" : "0",
     },
     ttlSeconds: Math.max(60, Math.round((windowEnd - now) / 1000)),
   };

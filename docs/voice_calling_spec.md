@@ -84,8 +84,12 @@ privacy-safe names and missed calls.
   every unsettled call we created. Stream has no usage/billing API and retries webhooks only ~15 s.
 - Webhook security: verify `X-Signature` (HMAC-SHA256, API secret) over the raw body, gunzip first if
   compressed; dedupe on `X-Webhook-Id`; reply within 6 s.
-- Server monthly cap on total call minutes (below the free credit until a card is attached and revenue
-  covers it), with email alerts at 70% / 90%; admin switch to stop new calls.
+- Monthly minute brake, an **emergency brake, never a budget limit for paid members**: it is at least
+  the minutes members are entitled to this month (active Premium members x included minutes + unused
+  pack minutes) plus 25%, recomputed hourly; a manual floor (`monthly_cap_minutes`) applies when that
+  figure is stale. It trips only on abnormal spend: new calls then get "Calling is paused right now"
+  and staff get the operational alert (70% / 90% alerts before that). The admin switch stops calling
+  completely.
 
 ## 6. Packs: purchase and refund (RevenueCat)
 
@@ -163,7 +167,11 @@ privacy-safe names and missed calls.
 - Stream: create account, apply for Maker plan, add a card before launch, share API key/secret.
 - RevenueCat: Google refund notifications (RTDN) connected.
 - Play Console: 4 consumable packs (section 3), microphone/calling declarations, foreground service
-  type `phoneCall` (self-managed calls) with its demo video.
+  types `phoneCall` and `microphone` and the full-screen intent, each with the demo video recorded on
+  the OnePlus during the staging gates (`release/voice_calling_play_demo.mp4`: incoming ring, answer,
+  status-bar chip, mute, hang up, missed call). Required before any AAB with calling code is submitted.
+- Release order: migration 324 must be on production before an app version with this code ships (the
+  app reads `notification_prefs.missed_call` and the new RPCs).
 
 ## 12. Notifications, status bar and Calls tab rules
 
@@ -291,20 +299,66 @@ insight, unseen count, ring capability and planned calls in one call. `hide_my_c
 up_to)` and `mark_calls_seen()` write only the member's own rows. Free tier: no new paid services; all
 reads are bounded pages.
 
+### 12.6 One gate, one source of numbers, clear instructions
+
+- **One gate.** `get_calling_rules()` (any signed-in account, Guardians included) returns the switch and
+  every number a member is told. While the switch is off the app looks exactly like a release without
+  calling: no Calls tab, call settings, missed-call toggle, "How calling works", Help entry, call
+  buttons, minutes or packs, Premium benefit or Guardian call log. If the switch turns off while the app
+  is open, the tab disappears and `/calls` links land on Chats; a call already live ends by the server's
+  rules (section 4.5). Turning it on shows everything again on the next refresh or resume.
+- **One source of numbers.** Unanswered-call limit, included minutes and period, longest call, ring
+  time, refund limit, minimum minutes to call, planned-call lead / horizon / window / reminder / limits
+  and log retention all live in `private.call_settings`; copy uses placeholders, never fixed numbers.
+- **"How calling works"** is shown once before a member's first call and from the Calls tab (ⓘ), the
+  minutes sheet, call settings and Help: who can call whom, minutes (included, packs, per started
+  minute, caller pays, refunds), Ring / Silent / Calls off and per-person mute / block, the unanswered-
+  call rule in plain words, reporting, no recording, Guardian sees times only, planned calls.
+- **Explained where it applies**, never a code: the unanswered-call limit (the number and when they can
+  call again), Premium needed (calls paywall), minutes out (packs sheet) and warnings in the call,
+  callee not taking calls (neutral), negative balance after a refund, the refund purchase limit, Calls
+  off (what callers see), notifications off (Calls tab prompt), planned call expired ("Missed scheduled
+  call"), calling paused (switch or brake).
+- **Premium screen** lists private voice calls with the included minutes for men and women (women: they
+  can call with Premium and always answer free), and the paywall sheets list it, only while calling is on.
+- All in 10 languages, RTL, every theme.
+
+### 12.7 Retention
+
+Call records (who called whom, when, outcome, length, minutes) are kept **12 months**
+(`log_retention_months`), then deleted by a daily job, except while an open (pending) report between the
+two members needs them. "Remove from history" only hides rows for that member. Minutes ledger rows are
+the member's account history and are deleted with the account (existing deletion flow), as are all call
+records of a deleted account. Audio is never recorded or stored by Silarah.
+
+### 12.8 Staff tools (admin panel, staff roles and AAL2)
+
+- Calling switch (super admin) with a confirm dialog; every change in the admin audit log.
+- This month's charged minutes, the brake in force and the estimated Stream cost.
+- "Harassing calls" reports in the existing reports queue with the call metadata between the two members
+  (times, results, lengths, unanswered attempts before the report; never audio).
+- One member's call history for an open case (moderators, support).
+- Manual pack-minute adjustment (super admin, support) with a written reason, in the ledger and the
+  audit log.
+
 ## 13. Planned calls ("Request a call at 8 pm")
 
-1. Either member of an active match who can open the chat proposes a time from the chat or the call
-   details sheet: at least 10 minutes and at most 7 days ahead. One open plan per match; at most 5 open
-   plans per member, and at most 3 proposals per chat in 24 hours (no notification spam). Refused, neutrally, where a call could not happen (block, calls blocked for this
-   chat, callee on Calls off, switch off).
+1. A plan is possible only where a call would be: an active match, no block, the man in the pair holds
+   Premium, and neither member has Calls off. Either member proposes a time from a call's details (a
+   free man is sent to the paywall; a free woman proposing to a free man gets the neutral answer):
+   at least `plan_min_lead_minutes` (10) and at most `plan_max_days_ahead` (7 days) ahead. One open plan
+   per match, at most `plan_max_open` (5) open plans per member, and at most `plan_max_per_chat_day` (3)
+   proposals per chat in 24 hours. Refused neutrally where a call could not happen.
 2. The other member accepts or declines (push "Abdul suggested a time to talk", first name only, opens
    the plan). Either member can cancel at any time. Nobody is told why a plan was declined.
-3. Accepted plans are pinned in both Calls tabs with a countdown. 5 minutes before, both get a reminder
-   (respects Calls off; not sent if the plan was cancelled). From 5 minutes before until 30 minutes
-   after, the member who can start calls sees **Call now**; the call itself follows every rule of
-   sections 2–5 (minutes, Premium, harassment limit, ringing). A free man sees the paywall instead.
-4. A plan ends as done when the two connect within that window, otherwise expired 30 minutes after the
-   time. Plans are part of the call history, the Guardian log (time only) and the data export.
+3. Accepted plans are pinned in both Calls tabs with a countdown. `plan_reminder_minutes` (5) before,
+   both get a reminder: none for Calls off, silent in quiet hours or on Silent, none if cancelled. From
+   then until `plan_window_minutes` (30) after, the member who can start calls sees **Call now**; the
+   call itself goes through every check of sections 2–5 at that moment (Premium, minutes, block,
+   unanswered-call limit, ringing). A free man sees the paywall instead.
+4. A plan ends as done when the two connect within that window, otherwise expired ("Missed scheduled
+   call"). It is cancelled when the match closes, someone blocks, or the man's Premium ends. Plans are
+   part of the call history, the Guardian log (time only) and the data export.
 
 ## 14. Rule → proof
 
@@ -332,6 +386,14 @@ D = Deno test, W = Dart unit / widget test, P = phone evidence (`docs/voice_call
 | 12.5 Log privacy (names, photos, unavailable members), pagination, filters, search | R, W |
 | 12.5 Remove hides for the member only; export keeps hidden rows; badge and seen | R, W |
 | 13 Planned calls: window, one per match, limits, accept / cancel / reminder / expiry | R, W, P (gate 14) |
+| 13.1 Plans only where a call could happen (man Premium, no Calls off), end on Premium loss / block | R |
+| 13.3 Reminder silent in quiet hours, none for Calls off | R, D |
+| 12.6 One gate: switch off hides every surface; tab and links fall back to Chats | W, P (gate 13) |
+| 12.6 Numbers from the server rules in the guide, minutes card, paywall, Premium screen, plan sheet | R, W |
+| 12.6 Premium screen and paywall list calling only while on, men and women, 10 languages | W |
+| 5 Monthly brake never below entitled minutes; stale figure falls back to the manual floor | R |
+| 12.7 Retention: 12 months, kept while an open report needs it | R |
+| 12.8 Staff RPCs closed to members; minutes adjustment needs a reason, audited | R, admin `tsc` |
 
 Sources: getstream.io/video/pricing, /video/docs/flutter/pricing-guide, /video/docs/api/ring-calls,
 /video/docs/api/calls, /video/docs/api/call-types/settings, /video/docs/api/webhooks/overview,

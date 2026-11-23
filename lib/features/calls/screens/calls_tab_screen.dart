@@ -25,6 +25,7 @@ import '../call_platform.dart';
 import '../calls_hub.dart';
 import '../widgets/call_details_sheet.dart';
 import '../widgets/call_minutes_sheet.dart';
+import '../widgets/calling_guide_sheet.dart';
 import '../widgets/calls_tab_widgets.dart';
 import '../widgets/chat_call_widgets.dart';
 
@@ -208,6 +209,7 @@ class _CallsTabScreenState extends State<CallsTabScreen> {
                             SilarahEntrance(
                               child: CallMinutesCard(
                                 overview: overview,
+                                includedMinutes: _hub.rules.value?.includedMinutes ?? 0,
                                 onTopUp: () async {
                                   await showCallMinutesSheet(context);
                                   unawaited(_hub.refresh());
@@ -413,6 +415,8 @@ class _CallsTabScreenState extends State<CallsTabScreen> {
                     ),
             ),
           ),
+          const SizedBox(width: AppDimensions.space8),
+          const CallingGuideButton(),
           const SizedBox(width: AppDimensions.space8),
           SilarahPressable(
             semanticLabel: context.uiCopy(_searching ? 'Close search' : 'Search calls'),

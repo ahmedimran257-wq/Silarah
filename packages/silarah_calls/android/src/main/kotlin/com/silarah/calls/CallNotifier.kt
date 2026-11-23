@@ -151,11 +151,10 @@ internal object CallNotifier {
             .setContentTitle(publicTitle)
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .build()
-        val notification = NotificationCompat.Builder(context, CHANNEL_INCOMING)
+        fun base() = NotificationCompat.Builder(context, CHANNEL_INCOMING)
             .setSmallIcon(smallIcon(context))
             .setContentTitle(title)
             .setContentText(body)
-            .setStyle(NotificationCompat.CallStyle.forIncomingCall(person, decline, answer))
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
@@ -165,10 +164,27 @@ internal object CallNotifier {
             .setOngoing(true)
             .setAutoCancel(false)
             .setTimeoutAfter(timeoutMs)
-            .build()
+
         // Keep ringing until answered, declined, cancelled or timed out.
-        notification.flags = notification.flags or Notification.FLAG_INSISTENT
-        notify(context, null, id, notification)
+        fun insistent(notification: Notification) = notification.apply {
+            flags = flags or Notification.FLAG_INSISTENT
+        }
+
+        val callStyle = insistent(
+            base().setStyle(NotificationCompat.CallStyle.forIncomingCall(person, decline, answer)).build(),
+        )
+        if (!notify(context, null, id, callStyle)) {
+            // Some Android 14+ builds refuse a CallStyle ring once the member
+            // has not allowed full-screen calls. The ring must still show:
+            // a heads-up with the same Answer and Decline.
+            val plain = insistent(
+                base()
+                    .addAction(0, (args["declineLabel"] as? String).orEmpty(), decline)
+                    .addAction(0, (args["answerLabel"] as? String).orEmpty(), answer)
+                    .build(),
+            )
+            notify(context, null, id, plain)
+        }
     }
 
     fun cancelIncoming(context: Context, requestId: String) {
@@ -216,6 +232,7 @@ internal object CallNotifier {
             .setContentText((args["body"] as? String).orEmpty())
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setSilent(args["silent"] == true)
             .setContentIntent(open)
             .setAutoCancel(true)
             .setTimeoutAfter(timeoutMs)
@@ -243,14 +260,19 @@ internal object CallNotifier {
         }
     }
 
+    /** False when Android refused this notification (it is not shown). */
     @Suppress("MissingPermission")
-    private fun notify(context: Context, tag: String?, id: Int, notification: Notification) {
+    private fun notify(context: Context, tag: String?, id: Int, notification: Notification): Boolean {
         val compat = NotificationManagerCompat.from(context)
-        if (!compat.areNotificationsEnabled()) return
-        try {
+        if (!compat.areNotificationsEnabled()) return true
+        return try {
             compat.notify(tag, id, notification)
+            true
         } catch (error: SecurityException) {
             // POST_NOTIFICATIONS revoked between the check and the call.
+            true
+        } catch (error: IllegalArgumentException) {
+            false
         }
     }
 }

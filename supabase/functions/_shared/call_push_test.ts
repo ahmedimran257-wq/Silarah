@@ -43,6 +43,8 @@ Deno.test("plan reminder lives until 30 minutes after the planned time", () => {
   assertEquals(push.ttlSeconds, 35 * 60);
   assertEquals(push.data.type, "call_plan_reminder");
   assertEquals(push.data.other_name, "Aisha");
+  assertEquals(push.data.silent, "0");
+  assertEquals(planReminderPush({ planned_for: "2026-11-22T15:00:00Z", silent: true }, now).data.silent, "1");
 });
 
 Deno.test("plan reminder TTL is never below a minute", () => {

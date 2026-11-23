@@ -70,6 +70,7 @@ import 'core/widgets/silarah_launch_sequence.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'l10n/ui_copy.dart';
 import 'core/router/home_tab.dart';
+import 'features/calls/widgets/call_return_bar.dart';
 
 const _rtlLocales = {'ar', 'ur'};
 
@@ -1149,13 +1150,13 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
                   }
                   unawaited(CallNotifications.rememberSignedInUser(state.userId)
                       .whenComplete(FcmService.instance.onUserLogin));
-                  // Calls tab, its badge and this phone's ring capability.
-                  // Guardian-only accounts never see calling.
+                  // Calling switch for everyone; for members also the Calls
+                  // tab, its badge and this phone's ring capability.
                   // A new session may follow another account's without a
                   // sign-out in between: start over for this member.
-                  if (!state.isGuardianOnly) {
-                    unawaited(CallsHub.instance.stop().then((_) => CallsHub.instance.start()));
-                  }
+                  unawaited(CallsHub.instance
+                      .stop()
+                      .then((_) => CallsHub.instance.start(member: !state.isGuardianOnly)));
                   unawaited(
                     _localeCubit.syncToServer(countryCode: state.countryCode),
                   );
@@ -1236,7 +1237,11 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
                         child: InAppNotificationBannerHost(
                           notifications: _notificationsCubit.inAppNotifications,
                           onTap: _openInAppNotification,
-                          child: child ?? const SizedBox.shrink(),
+                          // A call left in the background: one tap back.
+                          child: CallReturnBarHost(
+                            onOpenCall: () => _openCallScreen(AppRoutes.call),
+                            child: child ?? const SizedBox.shrink(),
+                          ),
                         ),
                       ),
                     );

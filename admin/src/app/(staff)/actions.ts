@@ -789,3 +789,51 @@ export async function endReferralGrant(formData: FormData) {
     if (!ended) throw new UserFacingError("This reward has already ended.");
   }, "Referral reward ended.", formData);
 }
+
+// ---------------------------------------------------------------------------
+// Voice calling (docs/voice_calling_spec.md 12.8)
+// ---------------------------------------------------------------------------
+
+const callSwitchSchema = z.object({
+  enabled: z.enum(["true", "false"]),
+  note: z.string().trim().min(6, "Say why calling is being switched, for the audit log.").max(500),
+});
+
+/** Super admin only; admin_set_calls_enabled writes the audit log entry. */
+export async function setCallsEnabled(formData: FormData) {
+  await guardedAction("/calls", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "switchCalls");
+    const parsed = callSwitchSchema.parse({
+      enabled: formData.get("enabled"),
+      note: formData.get("note") ?? "",
+    });
+    await run("admin_set_calls_enabled", { p_enabled: parsed.enabled === "true", p_note: parsed.note });
+    return parsed.enabled === "true" ? "Calling is on for members." : "Calling is off. Live calls end within seconds.";
+  }, "Saved.", formData);
+}
+
+const callMinutesSchema = z.object({
+  userId: uuidSchema,
+  minutes: z.coerce.number().int().min(-1000).max(1000).refine((v) => v !== 0, "Enter a number of minutes."),
+  reason: z.string().trim().min(6, "Give a reason of at least 6 characters for the audit log.").max(500),
+});
+
+/** Support correction of pack minutes; ledger + audit log in the database. */
+export async function adjustCallMinutes(formData: FormData) {
+  await guardedAction("/calls", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "adjustCallMinutes");
+    const parsed = callMinutesSchema.parse({
+      userId: formData.get("userId"),
+      minutes: formData.get("minutes"),
+      reason: formData.get("reason") ?? "",
+    });
+    const balance = await runAccountRpc<number>("admin_adjust_call_minutes", {
+      p_user: parsed.userId,
+      p_pack_minutes: parsed.minutes,
+      p_reason: parsed.reason,
+    });
+    return `Pack minutes adjusted. New balance: ${balance}.`;
+  }, "Saved.", formData);
+}

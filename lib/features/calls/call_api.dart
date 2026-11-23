@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/services/supabase_service.dart';
 import 'call_log.dart';
 import 'call_models.dart';
+import 'calling_rules.dart';
 
 typedef CallFunctionInvoker = Future<Map<String, dynamic>> Function(
   Map<String, Object?> body,
@@ -122,15 +123,17 @@ class CallApi {
     }
   }
 
-  Future<ChatCallState> chatState(String matchId) async {
+  /// The chat's call controls, or null when they could not be loaded (the
+  /// caller keeps what it showed: a failed load is not an answer).
+  Future<ChatCallState?> chatState(String matchId) async {
     try {
       final data = await _rpc('get_chat_call_state', {'p_match_id': matchId});
-      return data is Map
-          ? ChatCallState.fromJson(Map<String, dynamic>.from(data))
-          : ChatCallState.hidden;
+      if (data is Map) return ChatCallState.fromJson(Map<String, dynamic>.from(data));
+      debugPrint('[CallApi] chat state: unexpected reply ${data.runtimeType}');
+      return null;
     } catch (error) {
       debugPrint('[CallApi] chat state failed: $error');
-      return ChatCallState.hidden;
+      return null;
     }
   }
 
@@ -179,6 +182,16 @@ class CallApi {
   // ---------------------------------------------------------------------------
   // Calls tab (spec 12.5) and planned calls (spec 13)
   // ---------------------------------------------------------------------------
+
+  /// The switch and every number members are told (spec 12.6).
+  Future<CallingRules?> rules() async {
+    try {
+      return CallingRules.fromJson(await _rpc('get_calling_rules', const {}));
+    } catch (error) {
+      debugPrint('[CallApi] rules failed: $error');
+      return null;
+    }
+  }
 
   Future<CallOverview?> overview() async {
     try {

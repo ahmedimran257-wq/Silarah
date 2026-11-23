@@ -5,7 +5,7 @@ import { SubmitButton } from "@/components/client-ui";
 import { EmptyState, NoAccess, PageHeader, StatusPill, formatDate, formatDateTime, relativeTime } from "@/components/ui";
 import { can } from "@/lib/access";
 import { requireArea } from "@/lib/auth";
-import { getMemberAccountState, getMemberNotes, getMemberReview, type MemberAccountState, type MemberNote, type MemberReview, type MemberReviewPhoto } from "@/lib/operations";
+import { getMemberAccountState, getMemberNotes, getMemberReview, getReportCallContext, type MemberAccountState, type MemberNote, type MemberReview, type MemberReviewPhoto, type ReportCallContext } from "@/lib/operations";
 import { accountAction, addMemberNote, cancelAccountDeletion, grantTestPremium, removeGuardianLink, removeMemberPhoto, resolveReport, revokeTestPremium, scheduleAccountDeletion, sendMemberMessage } from "../../actions";
 
 export const metadata = { title: "Member review" };
@@ -79,6 +79,10 @@ export default async function MemberReviewPage({
   }
 
   const activeReport = reportId ? review.reportsAgainst.find((item) => item.id === reportId) ?? null : null;
+  // Calls between the two members (times, results, lengths; never audio).
+  const callContext: ReportCallContext | null = activeReport
+    ? await getReportCallContext(activeReport.id).catch((): ReportCallContext | null => null)
+    : null;
   const returnTo = `/users/${review.userId}${reportId ? `?report=${reportId}` : ""}`;
   const status = review.isBanned ? "banned" : review.isShadowbanned ? "shadowbanned" : review.visibility;
   const restricted = review.visibility === "suspended" || review.isShadowbanned || review.isBanned;
@@ -112,6 +116,29 @@ export default async function MemberReviewPage({
               {activeReport.reporterTrust !== null ? <span className="muted">reporter trust {activeReport.reporterTrust}</span> : null}
             </div>
             {activeReport.description ? <p className="quote">{activeReport.description}</p> : <p className="muted">The reporter gave no details. Judge from the photos and profile below.</p>}
+            {callContext && callContext.calls.length > 0 ? (
+              <div className="stack">
+                <p className="muted">
+                  Calls between them in the last 90 days: this member called the reporter {callContext.reported_called_reporter} times;
+                  {" "}{callContext.reported_unanswered_24h} unanswered in the 24 hours before the report. Audio is never recorded.
+                </p>
+                <div className="table-wrap">
+                  <table className="table">
+                    <thead><tr><th>When</th><th>From</th><th>Result</th><th>Talk time</th></tr></thead>
+                    <tbody>
+                      {callContext.calls.slice(0, 30).map((call) => (
+                        <tr key={`${call.created_at}-${call.from}`}>
+                          <td>{formatDateTime(call.created_at)}</td>
+                          <td>{call.from === "reported" ? "This member" : "Reporter"}</td>
+                          <td>{call.status}{call.reason ? ` · ${call.reason.replaceAll("_", " ")}` : ""}</td>
+                          <td>{call.connected_seconds ? `${Math.floor(call.connected_seconds / 60)}:${String(call.connected_seconds % 60).padStart(2, "0")}` : "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : null}
             {activeReport.status === "pending" ? (
               <div className="action-row">
                 <form action={resolveReport}>

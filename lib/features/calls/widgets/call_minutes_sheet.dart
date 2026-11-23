@@ -17,6 +17,8 @@ import '../../../l10n/ui_copy.dart';
 import '../../home/screens/paywall_gate_screen.dart';
 import '../call_api.dart';
 import '../call_models.dart';
+import '../calls_hub.dart';
+import 'calling_guide_sheet.dart';
 
 /// Returns true when minutes were added during the sheet.
 Future<bool> showCallMinutesSheet(BuildContext context, {bool duringCall = false}) async {
@@ -138,21 +140,32 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  UiText('Call minutes', style: AppTypography.screenTitle, textAlign: TextAlign.center),
+                  Row(
+                    children: [
+                      const SizedBox(width: AppDimensions.minTouchTarget),
+                      Expanded(
+                        child: UiText('Call minutes',
+                            style: AppTypography.screenTitle, textAlign: TextAlign.center),
+                      ),
+                      const CallingGuideButton(),
+                    ],
+                  ),
                   const SizedBox(height: AppDimensions.space16),
                   if (wallet == null)
                     UiText('Minutes could not be loaded. Check your connection and try again.',
                         textAlign: TextAlign.center,
                         style: AppTypography.body.copyWith(color: AppColors.slateMist))
                   else if (!wallet.premium) ...[
-                    UiText('Calls are part of Premium. Premium includes 30 call minutes every month.',
+                    UiText.verbatim(
+                        context.uiCopyWith('Calls are part of Premium. Premium includes {included} call minutes every month.',
+                            {'included': CallsHub.instance.rules.value?.includedMinutes ?? 0}),
                         textAlign: TextAlign.center,
                         style: AppTypography.body.copyWith(color: AppColors.slateMist)),
                     const SizedBox(height: AppDimensions.space16),
                     FilledButton(
                       onPressed: () {
                         Navigator.of(context).pop(false);
-                        PaywallGateSheet.show(context, gate: PremiumGate.feature);
+                        PaywallGateSheet.show(context, gate: PremiumGate.calls);
                       },
                       child: const UiText('See Premium'),
                     ),
@@ -187,7 +200,11 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
                           style: AppTypography.bodyMedium.copyWith(color: AppColors.verifiedTeal)),
                     const SizedBox(height: AppDimensions.space8),
                     if (!wallet.canBuyPacks)
-                      UiText('Packs are not available on this account.',
+                      // A Premium member who cannot buy: the refund limit.
+                      UiText.verbatim(
+                          context.uiCopyWith(
+                              'After {refunds} refunded packs, minute packs can no longer be bought on this account. Your included minutes still work.',
+                              {'refunds': CallsHub.instance.rules.value?.maxPackRefunds ?? 0}),
                           textAlign: TextAlign.center,
                           style: AppTypography.caption.copyWith(color: AppColors.slateMist))
                     else

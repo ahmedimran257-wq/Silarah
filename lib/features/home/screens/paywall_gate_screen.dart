@@ -20,6 +20,7 @@ import '../../../core/utils/messaging_access_policy.dart';
 import '../../../core/widgets/buttons/silarah_pressable.dart';
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
 import 'subscription_screen.dart';
+import '../../calls/calls_hub.dart';
 
 /// Why the Premium sheet is being shown.
 enum PremiumGate {
@@ -153,9 +154,10 @@ class _PaywallGateContent extends StatelessWidget {
           const SizedBox(height: 14),
 
           if (forCalls) ...[
-            const _PremiumProofRow(
+            _PremiumProofRow(
               icon: Icons.call_outlined,
-              label: '30 call minutes every month',
+              label: context.uiCopyWith('{included} call minutes every month',
+                  {'included': CallsHub.instance.rules.value?.includedMinutes ?? 0}),
             ),
             const SizedBox(height: 7),
             const _PremiumProofRow(
@@ -182,11 +184,26 @@ class _PaywallGateContent extends StatelessWidget {
               icon: Icons.hub_outlined,
               label: 'Mutual compatibility insights',
             ),
+            if (CallsHub.instance.callingOn) ...[
+              const SizedBox(height: 7),
+              const _PremiumProofRow(
+                icon: Icons.call_outlined,
+                label: 'Private voice calls with your matches',
+              ),
+            ],
           ] else ...[
             const _PremiumProofRow(
               icon: Icons.forum_outlined,
               label: 'Full match messaging',
             ),
+            // Listed only while calling is switched on (spec 12.6).
+            if (CallsHub.instance.callingOn) ...[
+              const SizedBox(height: 7),
+              const _PremiumProofRow(
+                icon: Icons.call_outlined,
+                label: 'Private voice calls with your matches',
+              ),
+            ],
             const SizedBox(height: 7),
             const _PremiumProofRow(
               icon: Icons.travel_explore_rounded,

@@ -21,6 +21,8 @@ import '../../home/widgets/report_bottom_sheet.dart';
 import '../call_api.dart';
 import '../call_log.dart';
 import '../call_models.dart';
+import '../calling_rules.dart';
+import '../calls_hub.dart';
 import 'calls_tab_widgets.dart';
 import 'chat_call_widgets.dart';
 
@@ -458,11 +460,11 @@ class _ToggleRow extends StatelessWidget {
 // Plan a call time (spec 13)
 // ---------------------------------------------------------------------------
 
-/// Times a member can pick: every 30 minutes, at least 10 minutes and at most
-/// 7 days ahead (the server checks the same window).
-List<DateTime> planSlotsFor(DateTime day, DateTime now) {
-  final earliest = now.add(const Duration(minutes: 10));
-  final latest = now.add(const Duration(days: 7));
+/// Times a member can pick: every 30 minutes within the server's planning
+/// window (the server checks the same window).
+List<DateTime> planSlotsFor(DateTime day, DateTime now, {required int leadMinutes, required int daysAhead}) {
+  final earliest = now.add(Duration(minutes: leadMinutes));
+  final latest = now.add(Duration(days: daysAhead));
   final slots = <DateTime>[];
   for (var minutes = 0; minutes < 24 * 60; minutes += 30) {
     final slot = DateTime(day.year, day.month, day.day, minutes ~/ 60, minutes % 60);
@@ -478,6 +480,13 @@ Future<bool> showPlanCallSheet(
   required String name,
   CallApi? api,
 }) async {
+  if (CallsHub.instance.rules.value?.callsEnabled != true) {
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+      behavior: SnackBarBehavior.floating,
+      content: UiText(context.uiCopy('Calling is paused right now. Please try again later.')),
+    ));
+    return false;
+  }
   final sent = await showSilarahBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
@@ -500,9 +509,16 @@ class _PlanCallSheet extends StatefulWidget {
 
 class _PlanCallSheetState extends State<_PlanCallSheet> {
   late final DateTime _now = DateTime.now();
+  // Opened only while the rules are loaded (showPlanCallSheet).
+  late final CallingRules _rules = CallsHub.instance.rules.value!;
+  late final int _lead = _rules.planMinLeadMinutes;
+  late final int _daysAhead = _rules.planMaxDaysAhead;
   late final List<DateTime> _days = [
-    for (var i = 0; i < 8; i++) DateTime(_now.year, _now.month, _now.day + i),
-  ].where((d) => planSlotsFor(d, _now).isNotEmpty).toList(growable: false);
+    for (var i = 0; i <= _daysAhead; i++) DateTime(_now.year, _now.month, _now.day + i),
+  ].where((d) => _slots(d).isNotEmpty).toList(growable: false);
+
+  List<DateTime> _slots(DateTime day) =>
+      planSlotsFor(day, _now, leadMinutes: _lead, daysAhead: _daysAhead);
   late DateTime _day = _days.first;
   DateTime? _slot;
   bool _sending = false;
@@ -529,24 +545,26 @@ class _PlanCallSheetState extends State<_PlanCallSheet> {
     }
     final message = switch (outcome) {
       'already_planned' => 'You already have a call time with them. Cancel it to choose another.',
-      'invalid_time' => 'Choose a time at least 10 minutes from now.',
+      'invalid_time' => 'Choose a time at least {lead} minutes from now.',
+      'calls_off_self' => 'Turn calls on in Settings to plan a call.',
       'limit_reached' => 'You have planned enough calls for now. Try again later.',
       'unavailable' => neutralUnavailableCopy,
       _ => 'Could not save. Please try again.',
     };
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
       behavior: SnackBarBehavior.floating,
-      content: UiText(context.uiCopyWith(message, {'name': widget.name})),
+      content: UiText(context.uiCopyWith(message, {'name': widget.name, 'lead': _lead})),
     ));
   }
 
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final slots = planSlotsFor(_day, _now);
+    final slots = _slots(_day);
     return SilarahBottomSheet(
       title: context.uiCopyWith('Plan a call with {name}', {'name': widget.name}),
-      subtitle: context.uiCopy('They choose whether to accept. You both get a reminder 5 minutes before.'),
+      subtitle: context.uiCopyWith('They choose whether to accept. You both get a reminder {reminder} minutes before.',
+          {'reminder': _rules.planReminderMinutes}),
       primaryAction: BottomSheetAction(
         label: context.uiCopy(_sending ? 'Sending…' : 'Suggest this time'),
         onTap: _slot == null || _sending ? () {} : _send,
@@ -591,7 +609,7 @@ class _PlanCallSheetState extends State<_PlanCallSheet> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             FittedBox(
-                              child: Text(
+                              child: UiText.verbatim(
                                 label,
                                 style: AppTypography.caption.copyWith(
                                   color: selected ? AppColors.champagneGold : AppColors.slateMist,
@@ -599,7 +617,7 @@ class _PlanCallSheetState extends State<_PlanCallSheet> {
                               ),
                             ),
                             const SizedBox(height: 2),
-                            Text(
+                            UiText.verbatim(
                               DateFormat.d(locale).format(day),
                               style: AppTypography.bodyMedium.copyWith(
                                 color: selected ? AppColors.champagneGold : AppColors.pearlWhite,
@@ -641,7 +659,7 @@ class _PlanCallSheetState extends State<_PlanCallSheet> {
                             border: Border.all(color: slot == _slot ? AppColors.champagneGold : AppColors.cardBorder),
                           ),
                           child: ExcludeSemantics(
-                            child: Text(
+                            child: UiText.verbatim(
                               DateFormat.jm(locale).format(slot),
                               style: AppTypography.caption.copyWith(
                                 fontWeight: FontWeight.w600,

@@ -32,11 +32,11 @@ void main() {
   });
 
   test('home caches tab trees and pauses every offscreen ticker', () {
-    expect(home, contains('List<Widget?>.filled(_tabCount, null)'));
-    expect(home, contains('_ensureTabBuilt(index)'));
+    expect(home, contains('final Map<HomeTab, Widget> _tabCache = {};'));
+    expect(home, contains('_ensureTabBuilt(tab)'));
     expect(home, contains('TickerMode('));
-    expect(home, contains('enabled: index == _currentTab'));
-    expect(home, contains('_tabCache[index] ?? const SizedBox.shrink()'));
+    expect(home, contains('enabled: tab == current'));
+    expect(home, contains('_tabCache[tab] ?? const SizedBox.shrink()'));
     expect(home, contains('_profileRefreshToken'));
     expect(home, contains('MyProfileScreen(refreshToken:'));
     expect(home, isNot(contains('refreshToken++')));

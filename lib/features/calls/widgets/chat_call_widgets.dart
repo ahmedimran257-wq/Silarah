@@ -17,6 +17,8 @@ import '../call_controller.dart';
 import '../call_models.dart';
 import 'call_microphone_gate.dart';
 import 'call_minutes_sheet.dart';
+import 'calling_guide_sheet.dart';
+import '../calls_hub.dart';
 import '../screens/call_screen.dart';
 
 /// Loads and refreshes the call controls of one chat.
@@ -27,10 +29,23 @@ class ChatCallControls extends ValueNotifier<ChatCallState> {
 
   final String matchId;
   bool _disposed = false;
+  Timer? _retry;
+  int _failures = 0;
 
+  /// Loads the controls. A failed load keeps what is shown (the button never
+  /// disappears on a network blip) and tries again: 2 s, 4 s, 8 s, ... 60 s.
   Future<void> refresh() async {
+    _retry?.cancel();
     final state = await CallApi.instance.chatState(matchId);
-    if (!_disposed) value = state;
+    if (_disposed) return;
+    if (state != null) {
+      _failures = 0;
+      value = state;
+      return;
+    }
+    _failures++;
+    final seconds = (1 << _failures.clamp(1, 5)).clamp(2, 60);
+    _retry = Timer(Duration(seconds: seconds), () => unawaited(refresh()));
   }
 
   /// A call ended or a missed-call note arrived: show it in the history.
@@ -45,9 +60,36 @@ class ChatCallControls extends ValueNotifier<ChatCallState> {
   @override
   void dispose() {
     _disposed = true;
+    _retry?.cancel();
     CallController.historyVersion.removeListener(_onHistoryChanged);
     super.dispose();
   }
+}
+
+/// Calling stopped by the admin switch or the monthly brake (spec 5, 12.6).
+const callingPausedCopy = 'Calling is paused right now. Please try again later.';
+
+/// The unanswered-call rule, explained where it applies (spec 8, 12.6):
+/// the server's limit and the time calling them opens again.
+void _explainLimit(BuildContext context, String name, DateTime? retryAfter) {
+  final limit = CallsHub.instance.rules.value?.unansweredCallLimit;
+  final time = retryAfter == null
+      ? null
+      : DateFormat.jm(Localizations.localeOf(context).toLanguageTag()).format(retryAfter.toLocal());
+  final first = limit == null
+      ? context.uiCopyWith('You called {name} several times without an answer.', {'name': name})
+      : context.uiCopyWith('You called {name} {limit} times without an answer.', {'name': name, 'limit': limit});
+  final second = time == null
+      ? context.uiCopyWith('You can call {name} again tomorrow.', {'name': name})
+      : context.uiCopyWith('You can call again after {time}.', {'time': time});
+  final why = context.uiCopy('This protects members from unwanted calls.');
+  ScaffoldMessenger.maybeOf(context)
+    ?..clearSnackBars()
+    ..showSnackBar(SnackBar(
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 6),
+      content: UiText.verbatim('$first $second $why'),
+    ));
 }
 
 void _snack(BuildContext context, String text) {
@@ -64,7 +106,7 @@ Future<void> startCallFromChat(
 }) async {
   final state = controls.value;
   if (!state.callsEnabled) {
-    _snack(context, context.uiCopy("Calling isn't available right now."));
+    _snack(context, context.uiCopy(callingPausedCopy));
     return;
   }
   if (state.reason == 'premium_required') {
@@ -72,7 +114,7 @@ Future<void> startCallFromChat(
     return;
   }
   if (state.reason == 'limit_reached') {
-    _snack(context, context.uiCopyWith('You can call {name} again tomorrow.', {'name': name}));
+    _explainLimit(context, name, state.retryAfter);
     return;
   }
   if (state.reason == 'not_allowed' || state.reason == 'account_restricted') {
@@ -99,6 +141,8 @@ Future<void> placeCall(
   String? otherUserId,
   VoidCallback? onUnavailable,
 }) async {
+  // The first time: how calling works, with the server's numbers.
+  if (!await ensureCallingGuideSeen(context) || !context.mounted) return;
   if (!await ensureCallMicrophone(context) || !context.mounted) return;
   final router = GoRouter.of(context);
   final result = await CallController.instance.startOutgoing(
@@ -122,11 +166,11 @@ Future<void> placeCall(
     case CallStartOutcome.balanceNegative:
       await showCallMinutesSheet(context);
     case CallStartOutcome.limitReached:
-      _snack(context, context.uiCopyWith('You can call {name} again tomorrow.', {'name': name}));
+      _explainLimit(context, name, result.retryAfter);
     case CallStartOutcome.callsDisabled:
-      _snack(context, context.uiCopy("Calling isn't available right now."));
     case CallStartOutcome.capacity:
-      _snack(context, context.uiCopy('Calling is busy right now. Please try again later.'));
+      // The switch or the monthly brake: same plain words, never a code.
+      _snack(context, context.uiCopy(callingPausedCopy));
     case CallStartOutcome.busySelf:
       _snack(context, context.uiCopy("You're already in a call."));
     case CallStartOutcome.notAllowed:

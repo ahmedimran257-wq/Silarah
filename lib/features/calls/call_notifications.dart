@@ -246,6 +246,8 @@ class CallNotifications {
       declineToken: push.declineToken,
       declineEndpoint: AppConfig.supabaseUrl.isEmpty ? '' : '${AppConfig.supabaseUrl}/functions/v1/calls',
       apiKey: AppConfig.supabaseAnonKey,
+      answerLabel: callingCopyFor(code, 'Answer'),
+      declineLabel: callingCopyFor(code, 'Decline'),
     );
   }
 
@@ -282,6 +284,7 @@ class CallNotifications {
           .replaceAll('{name}', name.isEmpty ? callingCopyFor(code, 'A Silarah member') : name),
       body: callingCopyFor(code, 'Tap to open your calls'),
       timeout: windowEnd.difference(DateTime.now()),
+      silent: data['silent'] == '1',
     );
   }
 

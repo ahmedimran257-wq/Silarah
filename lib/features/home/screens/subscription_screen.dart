@@ -23,6 +23,8 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import 'legal_doc_screen.dart';
 import '../../../core/router/home_tab.dart';
+import '../../calls/calling_rules.dart';
+import '../../calls/calls_hub.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -276,7 +278,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
                   SizedBox(height: spaceMedium),
 
                   // What's included
-                  _IncludedFeatures(
+                  PremiumIncludedFeatures(
                       isFemale: isFemale, isSmallScreen: isSmallScreen),
 
                   SizedBox(height: spaceLarge),
@@ -487,7 +489,7 @@ class _PaidPremiumActiveView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppDimensions.space24),
-          _IncludedFeatures(isFemale: isFemale, isSmallScreen: false),
+          PremiumIncludedFeatures(isFemale: isFemale, isSmallScreen: false),
           const SizedBox(height: AppDimensions.space24),
           planSwitch,
           SizedBox(
@@ -767,7 +769,7 @@ class _ReferralPremiumActiveView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppDimensions.space24),
-          _IncludedFeatures(isFemale: isFemale, isSmallScreen: false),
+          PremiumIncludedFeatures(isFemale: isFemale, isSmallScreen: false),
           const SizedBox(height: AppDimensions.space24),
           Container(
             padding: const EdgeInsets.all(AppDimensions.space16),
@@ -1143,8 +1145,8 @@ class _PlanCard extends StatelessWidget {
 }
 
 // Included Features
-class _IncludedFeatures extends StatelessWidget {
-  const _IncludedFeatures({this.isFemale = false, this.isSmallScreen = false});
+class PremiumIncludedFeatures extends StatelessWidget {
+  const PremiumIncludedFeatures({super.key, this.isFemale = false, this.isSmallScreen = false});
   final bool isFemale;
   final bool isSmallScreen;
 
@@ -1175,9 +1177,35 @@ class _IncludedFeatures extends StatelessWidget {
     (Icons.bookmark_border_rounded, 'Save multiple filter presets'),
   ];
 
+  /// Voice calls are listed only while calling is switched on (spec 12.6):
+  /// advertising a feature that is not live would mislead buyers. Minutes
+  /// come from the server.
+  List<(IconData, String)> _features(BuildContext context, CallingRules? rules) {
+    final base = isFemale ? _femaleFeatures : _maleFeatures;
+    if (rules?.callsEnabled != true) return base;
+    final calls = (
+      Icons.call_outlined,
+      context.uiCopyWith(
+        isFemale
+            ? 'Call your matches privately · {included} minutes every month. Answering is always free.'
+            : 'Private voice calls with your matches · {included} minutes every month included',
+        {'included': rules!.includedMinutes},
+      ),
+    );
+    // Men: right after messaging. Women: first, it is new for them.
+    final at = isFemale ? 0 : 3;
+    return [...base.take(at), calls, ...base.skip(at)];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final features = isFemale ? _femaleFeatures : _maleFeatures;
+    return ValueListenableBuilder<CallingRules?>(
+      valueListenable: CallsHub.instance.rules,
+      builder: (context, rules, _) => _list(context, _features(context, rules)),
+    );
+  }
+
+  Widget _list(BuildContext context, List<(IconData, String)> features) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),

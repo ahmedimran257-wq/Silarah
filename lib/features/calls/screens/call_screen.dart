@@ -26,9 +26,9 @@ class CallScreen extends StatefulWidget {
   const CallScreen({super.key, this.answerRequestId, this.photoUrl, this.otherUserId});
 
   /// True while a call screen is on screen, so a second ring or tap never
-  /// stacks another one on top.
-  static bool get isOpen => _openCount > 0;
-  static int _openCount = 0;
+  /// stacks another one on top. Observable for the return-to-call bar.
+  static bool get isOpen => openCount.value > 0;
+  static final ValueNotifier<int> openCount = ValueNotifier<int>(0);
 
   /// Opened from the notification's Answer button: answer this call.
   final String? answerRequestId;
@@ -47,7 +47,7 @@ class _CallScreenState extends State<CallScreen> {
   @override
   void initState() {
     super.initState();
-    CallScreen._openCount++;
+    CallScreen.openCount.value++;
     _call.addListener(_changed);
     final answer = widget.answerRequestId;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -63,7 +63,7 @@ class _CallScreenState extends State<CallScreen> {
 
   @override
   void dispose() {
-    CallScreen._openCount--;
+    CallScreen.openCount.value--;
     _call.removeListener(_changed);
     super.dispose();
   }

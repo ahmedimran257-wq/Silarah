@@ -41,24 +41,29 @@ void main() {
       contains('android.permission.FOREGROUND_SERVICE_MICROPHONE'),
     );
     expect(manifest, contains('android.permission.USE_FULL_SCREEN_INTENT'));
-    // A regular phone call is detected through audio focus, never phone state.
+    // Self-managed calls through Jetpack Core-Telecom (spec 12.1): the
+    // phone-call service type and own-call management, each with its Play
+    // declaration. A regular phone call is detected through Telecom's hold
+    // and the audio mode, never phone state.
+    expect(manifest, contains('android.permission.FOREGROUND_SERVICE_PHONE_CALL"'));
+    expect(manifest, contains('android.permission.MANAGE_OWN_CALLS"'));
     for (final unused in <String>[
       'FOREGROUND_SERVICE_CAMERA',
-      'FOREGROUND_SERVICE_PHONE_CALL',
       'FOREGROUND_SERVICE_MEDIA_PLAYBACK',
       'FOREGROUND_SERVICE_MEDIA_PROJECTION',
-      'MANAGE_OWN_CALLS',
     ]) {
       expect(manifest, isNot(contains('android.permission.$unused"')),
           reason: '$unused needs its own Play declaration and is not used.');
     }
-    // The call's foreground service is microphone-only.
+    // The call's foreground service lives in the call module: microphone,
+    // and phone call only while Telecom holds the call.
+    final module = File('packages/silarah_calls/android/src/main/AndroidManifest.xml').readAsStringSync();
     expect(
-      manifest,
+      module,
       matches(RegExp(
-        r'android:name="\.CallForegroundService"\s+'
+        r'android:name="com\.silarah\.calls\.CallService"\s+'
         r'android:exported="false"\s+'
-        r'android:foregroundServiceType="microphone"',
+        r'android:foregroundServiceType="phoneCall\|microphone"',
       )),
     );
     // Stream's ringing needs singleInstance; Silarah rings itself and keeps

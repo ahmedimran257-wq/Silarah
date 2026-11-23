@@ -1,5 +1,6 @@
-// Guardian mode (spec 8): the Guardian sees when calls happened and how
-// long they lasted, never anything said. Guardians never block calls.
+// Guardian mode (spec 8, 13.4): the Guardian sees when calls happened, how
+// long they lasted and planned call times, never anything said. Guardians
+// never block calls. Shown only while calling is switched on.
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -10,6 +11,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../l10n/ui_copy.dart';
 import '../call_models.dart';
+import '../calling_rules.dart';
+import '../calls_hub.dart';
 
 class GuardianCallLogButton extends StatelessWidget {
   const GuardianCallLogButton({super.key, required this.matchId});
@@ -17,14 +20,20 @@ class GuardianCallLogButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: context.uiCopy('Call times'),
-      icon: Icon(Icons.call_outlined, color: AppColors.slateMist),
-      onPressed: () => showSilarahBottomSheet<void>(
-        context: context,
-        backgroundColor: AppColors.surfaceMid,
-        builder: (_) => _GuardianCallLog(matchId: matchId),
-      ),
+    return ValueListenableBuilder<CallingRules?>(
+      valueListenable: CallsHub.instance.rules,
+      builder: (context, rules, _) {
+        if (rules?.callsEnabled != true) return const SizedBox.shrink();
+        return IconButton(
+          tooltip: context.uiCopy('Call times'),
+          icon: Icon(Icons.call_outlined, color: AppColors.slateMist),
+          onPressed: () => showSilarahBottomSheet<void>(
+            context: context,
+            backgroundColor: AppColors.surfaceMid,
+            builder: (_) => _GuardianCallLog(matchId: matchId),
+          ),
+        );
+      },
     );
   }
 }
@@ -34,12 +43,20 @@ class _GuardianCallLog extends StatelessWidget {
   final String matchId;
 
   Future<List<Map<String, dynamic>>> _load() async {
-    final rows = await SupabaseService.client
-        .rpc('get_guardian_match_calls', params: {'p_match_id': matchId});
-    return (rows as List? ?? const [])
+    final results = await Future.wait([
+      SupabaseService.client.rpc('get_guardian_match_calls', params: {'p_match_id': matchId}),
+      SupabaseService.client.rpc('get_guardian_match_call_plans', params: {'p_match_id': matchId}),
+    ]);
+    List<Map<String, dynamic>> rows(Object? value) => (value as List? ?? const [])
         .whereType<Map>()
         .map((row) => Map<String, dynamic>.from(row))
         .toList();
+    // Calls and planned call times, newest first.
+    final all = [
+      ...rows(results[0]),
+      for (final plan in rows(results[1])) {...plan, 'called_at': plan['planned_for'], 'planned': true},
+    ]..sort((a, b) => b['called_at'].toString().compareTo(a['called_at'].toString()));
+    return all;
   }
 
   @override
@@ -77,7 +94,11 @@ class _GuardianCallLog extends StatelessWidget {
                           ListTile(
                             dense: true,
                             leading: Icon(
-                              row['answered'] == true ? Icons.call_rounded : Icons.call_missed_rounded,
+                              row['planned'] == true
+                                  ? Icons.event_available_outlined
+                                  : row['answered'] == true
+                                      ? Icons.call_rounded
+                                      : Icons.call_missed_rounded,
                               color: AppColors.slateMist,
                             ),
                             title: UiText.verbatim(
@@ -86,9 +107,11 @@ class _GuardianCallLog extends StatelessWidget {
                               style: AppTypography.body,
                             ),
                             trailing: UiText.verbatim(
-                              row['answered'] == true
-                                  ? formatCallDuration((row['duration_seconds'] as num?)?.toInt() ?? 0)
-                                  : context.uiCopy('Not answered'),
+                              row['planned'] == true
+                                  ? context.uiCopy('Planned call')
+                                  : row['answered'] == true
+                                      ? formatCallDuration((row['duration_seconds'] as num?)?.toInt() ?? 0)
+                                      : context.uiCopy('Not answered'),
                               style: AppTypography.caption.copyWith(color: AppColors.slateMist),
                             ),
                           ),

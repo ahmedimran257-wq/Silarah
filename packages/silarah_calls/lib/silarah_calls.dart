@@ -90,8 +90,12 @@ class SilarahCalls {
     required String declineToken,
     required String declineEndpoint,
     required String apiKey,
+    required String answerLabel,
+    required String declineLabel,
   }) =>
       _invoke<void>('showIncoming', {
+        'answerLabel': answerLabel,
+        'declineLabel': declineLabel,
         'requestId': requestId,
         'payload': payload,
         'callerName': callerName,
@@ -135,6 +139,7 @@ class SilarahCalls {
     required String title,
     required String body,
     required Duration timeout,
+    bool silent = false,
   }) =>
       _invoke<void>('showPlanReminder', {
         'planId': planId,
@@ -142,6 +147,7 @@ class SilarahCalls {
         'title': title,
         'body': body,
         'timeoutMs': timeout.inMilliseconds,
+        'silent': silent,
       });
 
   /// Sign-out: every call notification goes and any call service stops.

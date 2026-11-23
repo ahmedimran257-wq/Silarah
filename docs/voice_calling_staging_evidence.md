@@ -83,6 +83,30 @@ missing or tampered signature 401; another app's key 401. Refused deliveries
 are not recorded. Real Stream deliveries are checked again during the phone
 test.
 
+## Phone tests, 22 Nov (OnePlus d2e084e7 + Redmi 427bc4f00903, build 48102)
+
+- Ringing in front, in the background and with the app closed (2–6 s); decline in the app and from the
+  notification; missed call with its note; answer from the notification with the app closed.
+- Audio both ways (IN_COMMUNICATION, microphone recording), speaker / earpiece switch, mute, microphone
+  kept alive in the background, call over the lock screen.
+- Settlement from Stream's participant sessions: 51 s → 1 min, 195 s → 4 min, 228 s → 4 min.
+- Unanswered-call limit: the 4th call is refused until the caller's local midnight, with the message.
+- Found and fixed: a ring on a sleeping Android 10 screen opened the call behind a dark screen (the
+  window is now set as the ring opens Silarah); a failed chat-state load hid the call button (the last
+  answer is kept and the load retried).
+
+## Calls tab, notifications, planned calls (migration 324, 23 Nov)
+
+| Item | Result |
+|---|---|
+| 324 dry run on staging (BEGIN … ROLLBACK) | compiled |
+| `supabase/tests/voice_calling_rules_test.sql` with 324 | **94 / 94 pass** |
+| `supabase/tests/calls_tab_rules_test.sql` | **112 / 112 pass** |
+| Deno (`_shared`, incl. push builders) | 47 pass |
+| Flutter: `test/calls_tab_test.dart` (tabs by name, grouping, plans, guide numbers, Premium list on/off in 10 languages, 5 tabs at 360 dp in 10 languages, Calls tab in every theme incl. Arabic/Urdu, return-to-call bar) | 52 pass |
+| Android compile incl. `packages/silarah_calls` (Core-Telecom 1.1.0) | passes |
+| Admin panel `tsc --noEmit`, eslint | clean |
+
 ## Still to run (needs phones / approval)
 
 - Gate 3 (max duration ends on time for both), gate 5 (Stream dashboard
