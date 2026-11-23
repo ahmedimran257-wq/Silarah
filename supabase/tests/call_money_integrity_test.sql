@@ -53,8 +53,8 @@ BEGIN
     CASE WHEN p_premium THEN 'active' ELSE 'none' END,
     CASE WHEN p_premium THEN now() + interval '30 days' END);
   INSERT INTO public.profiles(user_id, first_name, last_name, date_of_birth, gender,
-    country_code, visibility, onboarding_completed)
-  VALUES (p_id, p_first, 'Qatest', date '1995-01-01', p_gender, 'IN', 'visible', true);
+    country_code, visibility, onboarding_completed, city_id)
+  VALUES (p_id, p_first, 'Qatest', date '1995-01-01', p_gender, 'IN', 'visible', true, (SELECT c.id FROM public.cities c JOIN public.regions r ON r.id = c.region_id WHERE upper(r.country_code) = 'IN' ORDER BY c.id LIMIT 1));
   INSERT INTO public.notification_prefs(user_id, quiet_start, quiet_end)
   VALUES (p_id, time '00:00', time '00:00')
   ON CONFLICT (user_id) DO UPDATE SET quiet_start = time '00:00', quiet_end = time '00:00';

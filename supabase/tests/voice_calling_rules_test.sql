@@ -66,8 +66,8 @@ BEGIN
     CASE WHEN p_premium THEN 'active' ELSE 'none' END,
     CASE WHEN p_premium THEN now() + interval '30 days' END);
   INSERT INTO public.profiles(user_id, first_name, last_name, date_of_birth, gender,
-    country_code, visibility, onboarding_completed)
-  VALUES (p_id, p_first, 'Qatest', date '1995-01-01', p_gender, 'IN', 'visible', true);
+    country_code, visibility, onboarding_completed, city_id)
+  VALUES (p_id, p_first, 'Qatest', date '1995-01-01', p_gender, 'IN', 'visible', true, (SELECT c.id FROM public.cities c JOIN public.regions r ON r.id = c.region_id WHERE upper(r.country_code) = 'IN' ORDER BY c.id LIMIT 1));
   PERFORM pg_temp.phone(p_id);
   -- No quiet hours unless a test sets them.
   INSERT INTO public.notification_prefs(user_id, quiet_start, quiet_end)
