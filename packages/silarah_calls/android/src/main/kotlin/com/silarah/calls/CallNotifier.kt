@@ -121,7 +121,10 @@ internal object CallNotifier {
     }
 
     // The ring on screen now, so a volume key can silence it.
+    @Volatile
     private var ringing: Map<String, Any?>? = null
+
+    @Volatile
     private var ringingUntil = 0L
 
     /**
@@ -280,6 +283,8 @@ internal object CallNotifier {
 
     /** Sign-out on a shared phone: nothing of the previous account stays. */
     fun clearAll(context: Context) {
+        // Nothing of the previous account may come back on a volume key.
+        ringing = null
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         for (active in manager.activeNotifications) {
             val tag = active.tag
