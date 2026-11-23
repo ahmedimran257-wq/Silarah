@@ -139,3 +139,6 @@ test.
 | **Found (top-up review):** a modified app could talk up to 30 s free per call (Stream allowance) | fixed: migration 327 shrinks the allowance to the real connect time |
 | 48105: Redmi ring and call screen show Imran's photo | pass |
 | 48105: 1-minute hold ends on the caller's phone at 0 ("Your call minutes ran out."), end_reason hangup at 61 s, charged 1 min; Stream limit tightened to 63 s (connect 1 s + 2 s) | pass |
+| **Found:** Redmi (Android 10) asleep: the ring did not light the screen when Silarah was already the app in front | fixed in 48106: the ring wakes the screen (not with DND on or full-screen calls off) |
+| **Found (owner):** Redmi did not vibrate on incoming calls: audio stayed in MODE_IN_COMMUNICATION after a call (Android 10 keeps an app's mode until it resets it), so Android treated rings as "during a call" | fixed in 48106: the call service resets communication mode when a call ends |
+| Ring over the lock screen (screen on), with the caller's photo | pass (48105) |

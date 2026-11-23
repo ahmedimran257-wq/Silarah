@@ -122,9 +122,9 @@ class CallService : Service() {
         telecom = null
         if (current === this) current = null
         running = false
-        // The call is over: a tone that set the audio mode gives it back.
+        // The call is over: tones stop and the phone leaves call audio mode.
         CallTones.stop()
-        CallTones.releaseMode()
+        CallTones.endCallAudio(this)
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         // Let Telecom hear the disconnect before the scope goes.
         android.os.Handler(mainLooper).postDelayed({ scope.cancel() }, 1_000)

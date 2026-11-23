@@ -96,6 +96,22 @@ void main() {
       expect(tick, contains('isCaller && !extending'));
     });
 
+    test('a finished call puts the phone back in normal audio mode (Android 10: rings vibrate again)', () {
+      final service = File('packages/silarah_calls/android/src/main/kotlin/com/silarah/calls/CallService.kt')
+          .readAsStringSync();
+      expect(service, contains('CallTones.endCallAudio(this)'));
+      expect(native, contains('if (manager.mode == AudioManager.MODE_IN_COMMUNICATION)'));
+      expect(native, isNot(contains('MODE_IN_CALL')), reason: 'a regular phone call is never touched');
+    });
+
+    test('a ring wakes a sleeping screen unless Do Not Disturb or the full-screen setting says no', () {
+      final notifier = File('packages/silarah_calls/android/src/main/kotlin/com/silarah/calls/CallNotifier.kt')
+          .readAsStringSync();
+      expect(notifier, contains('if (!silent) wakeScreenForRing(context)'));
+      expect(notifier, contains('INTERRUPTION_FILTER_ALL'));
+      expect(notifier, contains('canUseFullScreenIntent()'));
+    });
+
     test('tones play on the voice-call stream (call route and volume)', () {
       expect(native, contains('ToneGenerator(AudioManager.STREAM_VOICE_CALL'));
     });

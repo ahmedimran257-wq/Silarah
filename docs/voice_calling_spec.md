@@ -449,6 +449,10 @@ records of a deleted account. Audio is never recorded or stored by Silarah.
   device.
 - **Reconnecting** longer than 30 seconds ends the call ("Call failed. Please try again."); Stream ends
   it on the server and billing stops there.
+- **After a call** the phone leaves communication audio mode (the call service resets it; Android 10
+  and older keep an app's mode until it does, and rings would then neither vibrate nor ring normally).
+- **A ring on a sleeping phone** turns the screen on (not with Do Not Disturb on or full-screen calls
+  off).
 - **Volume keys** set the call volume while a call rings out or is live; during an incoming ring on
   Silarah's screen they silence the ring (it stays on screen, like a phone call).
 - **Route.** Stream picks the route at join: a connected headset, else the earpiece. The app follows it

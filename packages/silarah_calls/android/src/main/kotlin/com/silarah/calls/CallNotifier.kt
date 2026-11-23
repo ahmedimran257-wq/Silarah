@@ -9,6 +9,7 @@ import android.content.Intent
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.os.Build
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
@@ -210,6 +211,32 @@ internal object CallNotifier {
                     .build(),
             )
             notify(context, null, id, plain)
+        }
+        if (!silent) wakeScreenForRing(context)
+    }
+
+    /**
+     * A ring on a sleeping phone turns the screen on, like the phone app's.
+     * The full-screen ring asks Android to do it too, but when Silarah is
+     * already the app in front Android hands the ring to that screen and
+     * the request can be lost (seen on Android 10). Not when Do Not Disturb
+     * is on or full-screen calls are not allowed: those settings win.
+     */
+    @Suppress("DEPRECATION")
+    private fun wakeScreenForRing(context: Context) {
+        val power = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        if (power.isInteractive) return
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (manager.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !manager.canUseFullScreenIntent()) return
+        try {
+            power.newWakeLock(
+                PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or
+                    PowerManager.ON_AFTER_RELEASE,
+                "silarah:ring-wake",
+            ).acquire(5_000)
+        } catch (_: RuntimeException) {
+            // Waking is a courtesy; the ring still shows.
         }
     }
 

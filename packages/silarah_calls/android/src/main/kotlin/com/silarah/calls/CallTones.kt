@@ -80,6 +80,26 @@ internal object CallTones {
         if (!CallService.running) releaseMode()
     }
 
+    /**
+     * The call is over: the phone leaves communication mode. On Android 10
+     * and older an app's mode stays set until that app resets it, and the
+     * call's audio engine does not always do so; the phone then treats every
+     * later ring as arriving during a call (no vibration, no ringtone).
+     * Only communication mode (internet calls) is touched, never a regular
+     * phone call's mode.
+     */
+    @Synchronized
+    fun endCallAudio(context: Context) {
+        releaseMode()
+        val manager = context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        if (manager.mode == AudioManager.MODE_IN_COMMUNICATION) {
+            try {
+                manager.mode = AudioManager.MODE_NORMAL
+            } catch (_: SecurityException) {
+            }
+        }
+    }
+
     /** Puts back the audio mode a tone changed, if nobody changed it since. */
     @Synchronized
     fun releaseMode() {
