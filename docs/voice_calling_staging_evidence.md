@@ -142,3 +142,10 @@ test.
 | **Found:** Redmi (Android 10) asleep: the ring did not light the screen when Silarah was already the app in front | fixed in 48106: the ring wakes the screen (not with DND on or full-screen calls off) |
 | **Found (owner):** Redmi did not vibrate on incoming calls: audio stayed in MODE_IN_COMMUNICATION after a call (Android 10 keeps an app's mode until it resets it), so Android treated rings as "during a call" | fixed in 48106: the call service resets communication mode when a call ends |
 | Ring over the lock screen (screen on), with the caller's photo | pass (48105) |
+| 48106: dozing Redmi rings: screen wakes (silarah:ring-wake), ring screen over the lock screen, vibrates with the ring pattern | pass |
+| 48106: OnePlus call in the background: green call chip with timer, Telecom ACTIVE, call service running; reopening Silarah returns to the call | pass |
+| 48106: Redmi Wi-Fi off for ~10 s during a call: call continued (no member left, server still active) | pass (owner) |
+| **Found (owner):** an ordinary phone call to the OnePlus during a Silarah call: Silarah went on hold and Aisha heard nothing, but the owner heard both the phone caller and Aisha | fixed in 48107: hold silences the other member's audio too |
+| **Found:** Back did nothing on the call screen during a call | fixed in 48107: Back leaves the screen, the call goes on with the return bar |
+| Silarah call active again after the phone call ended | pass |
+| OnePlus status-bar call chip shows a "!" glyph (OnePlus system UI; Silarah's icon is a crescent) | cosmetic, open |

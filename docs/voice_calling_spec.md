@@ -449,6 +449,10 @@ records of a deleted account. Audio is never recorded or stored by Silarah.
   device.
 - **Reconnecting** longer than 30 seconds ends the call ("Call failed. Please try again."); Stream ends
   it on the server and billing stops there.
+- **Hold:** a regular phone call holds the Silarah call both ways: the microphone is off and the other
+  member is not heard; both come back when the phone call ends.
+- **Back** during a call leaves the call screen (the call goes on, with the return bar); a ring waits
+  for Answer or Decline.
 - **After a call** the phone leaves communication audio mode (the call service resets it; Android 10
   and older keep an app's mode until it does, and rings would then neither vibrate nor ring normally).
 - **A ring on a sleeping phone** turns the screen on (not with Do Not Disturb on or full-screen calls

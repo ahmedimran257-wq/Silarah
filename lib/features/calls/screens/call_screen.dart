@@ -19,6 +19,7 @@ import '../../../features/home/widgets/report_bottom_sheet.dart';
 import '../../../l10n/ui_copy.dart';
 import '../call_controller.dart';
 import '../call_models.dart';
+import '../widgets/call_return_bar.dart';
 import '../widgets/call_microphone_gate.dart';
 import '../widgets/call_minutes_sheet.dart';
 import '../../../core/router/home_tab.dart';
@@ -293,8 +294,16 @@ class _CallScreenState extends State<CallScreen> {
     final meter = _meter(context);
     final warn = _call.warning != CallTimeWarning.none;
     return PopScope(
-      // Back never drops a call by accident; End does.
+      // Back never drops a call by accident; End does. During a call, Back
+      // leaves this screen and the call goes on, with the return bar above
+      // the app (spec 12.1). A ring waits for Answer or Decline.
       canPop: phase == CallPhase.ended || phase == CallPhase.idle,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (CallReturnBarHost.showsFor(_call, screenOpen: false)) {
+          popOrGoToFallback(GoRouter.of(context), HomeTab.chats.path);
+        }
+      },
       child: Scaffold(
         backgroundColor: AppColors.obsidianDeep,
         body: SafeArea(

@@ -511,6 +511,9 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
         });
       }
     }
+    // Held: an audio track the connection rebuilt meanwhile stays silent.
+    final held = _call;
+    if (onHold && held != null) _setOtherMemberAudio(held, heard: false);
     final otherHere = state.callParticipants.any((p) => !p.isLocal);
     if (otherHere) {
       _otherGoneTimer?.cancel();
@@ -621,12 +624,29 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     final call = _call;
     if (call == null || interrupted == onHold) return;
     onHold = interrupted;
-    // A regular phone call took the audio: mute so the other member does
-    // not hear it, unmute when it is over (unless muted by the member).
+    // A regular phone call took the audio: the call is held both ways, like
+    // a held phone call. The other member does not hear it (microphone off)
+    // and is not heard over it (their audio off); both come back when it
+    // is over (the microphone only if the member had not muted it).
     unawaited(call.setMicrophoneEnabled(enabled: !interrupted && !muted));
+    _setOtherMemberAudio(call, heard: !interrupted);
     // Telecom put the call on hold; it is ours again once the phone call ends.
     if (!interrupted && _telecom) unawaited(_platform.resumeAfterPhoneCall());
     notifyListeners();
+  }
+
+  /// Plays or silences the other member's audio on this phone.
+  static void _setOtherMemberAudio(sv.Call call, {required bool heard}) {
+    for (final participant in call.state.value.callParticipants) {
+      if (participant.isLocal) continue;
+      final track = call.getTrack(participant.trackIdPrefix, sv.SfuTrackType.audio);
+      if (track == null) continue;
+      if (heard) {
+        track.enable();
+      } else {
+        track.disable();
+      }
+    }
   }
 
   Future<void> toggleMute() async {
