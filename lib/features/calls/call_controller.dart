@@ -540,6 +540,14 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
 
   void _onTick(int attempt) {
     if (!_current(attempt) || phase != CallPhase.active) return;
+    // The paid time is over: the caller's phone ends the call now, with the
+    // end tone and "Your call minutes ran out" (spec 12.9); the other phone
+    // follows when the server ends it. Stream's limit (30 s later, the
+    // connect allowance) stays as the backstop.
+    if (isCaller && !extending && maxDurationSeconds > 0 && secondsLeftNow <= 0) {
+      unawaited(hangUp(copy: CallEndCopy.timeUp));
+      return;
+    }
     // Stream's timer is the hard stop; leave just after it in case its
     // event is lost.
     if (DateTime.now().difference(connectedAt!).inSeconds > maxDurationSeconds + 5) {

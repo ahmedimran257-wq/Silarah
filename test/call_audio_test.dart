@@ -89,6 +89,13 @@ void main() {
       expect(controller, contains('await _platform.stopTone();\n    // While the call'));
     });
 
+    test('the caller ends the call when the paid time is over, not 30 s later', () {
+      final tick = controller.substring(controller.indexOf('void _onTick('));
+      expect(tick.indexOf('secondsLeftNow <= 0'), lessThan(tick.indexOf('maxDurationSeconds + 5')));
+      expect(tick, contains('hangUp(copy: CallEndCopy.timeUp)'));
+      expect(tick, contains('isCaller && !extending'));
+    });
+
     test('tones play on the voice-call stream (call route and volume)', () {
       expect(native, contains('ToneGenerator(AudioManager.STREAM_VOICE_CALL'));
     });

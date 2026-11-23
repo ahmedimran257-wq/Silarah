@@ -439,6 +439,11 @@ records of a deleted account. Audio is never recorded or stored by Silarah.
   one neutral "not reached" tone for every call that rang out without connecting (never why, 12.4); an
   error tone for a failure; a tone when the connection drops ("Reconnecting…"); a tone + haptic at 2
   minutes and at 30 seconds left (at the 60-minute hold, "Still talking?" 2 minutes before).
+- **Time up:** the caller's phone ends the call when the paid time reaches 0 (end tone, "Your call minutes
+  ran out."); the other phone ends with the end tone when the server ends it. Stream's limit (hold +
+  30 s connect allowance) is only the backstop. Proven by ear on 23 Nov: ringback, connected beep,
+  2-minute and 30-second warnings, end tone and the declined (not-reached) tone, through a Bluetooth
+  device.
 - **Reconnecting** longer than 30 seconds ends the call ("Call failed. Please try again."); Stream ends
   it on the server and billing stops there.
 - **Volume keys** set the call volume while a call rings out or is live; during an incoming ring on

@@ -133,4 +133,5 @@ test.
 | Caller cancels while ringing: ring gone on the Redmi, both phones clean; missed-call note "9 missed calls from Imran" | pass |
 | **Found:** return bar shown on the call screen and frozen on "Calling…" | fixed in 48104 (bar count published after the frame) |
 | **Found:** right after a call the Calls tab showed "No answer" and 0 minutes (read before settlement) | fixed (migration 326 + re-check) |
-| Ringback, end and other tones: audible only, played on STREAM_VOICE_CALL; need the owner's ears | open |
+| Ringback, connected beep, 2-minute and 30-second warnings, end tone, declined (not-reached) tone: heard by the owner, through the OnePlus's Bluetooth device (48104, 3-minute hold) | pass |
+| **Found:** a 3-minute hold ran 3:29 (Stream's limit = hold + 30 s connect allowance; joining took 4 s); billing capped at 3 min | fixed in 48105: the caller's phone ends at 0 |
