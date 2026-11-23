@@ -137,3 +137,5 @@ test.
 | **Found:** a 3-minute hold ran 3:29 (Stream's limit = hold + 30 s connect allowance; joining took 4 s); billing capped at 3 min | fixed in 48105: the caller's phone ends at 0 |
 | **Found (owner):** the Redmi's call screen showed Imran's initial, not his photo (the ring carried no caller id; the screen showed a photo only when the opener passed one) | fixed in 48105 |
 | **Found (top-up review):** a modified app could talk up to 30 s free per call (Stream allowance) | fixed: migration 327 shrinks the allowance to the real connect time |
+| 48105: Redmi ring and call screen show Imran's photo | pass |
+| 48105: 1-minute hold ends on the caller's phone at 0 ("Your call minutes ran out."), end_reason hangup at 61 s, charged 1 min; Stream limit tightened to 63 s (connect 1 s + 2 s) | pass |
