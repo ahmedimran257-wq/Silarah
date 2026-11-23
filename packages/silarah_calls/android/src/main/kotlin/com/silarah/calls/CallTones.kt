@@ -91,11 +91,25 @@ internal object CallTones {
     @Synchronized
     fun endCallAudio(context: Context) {
         releaseMode()
+        // The audio engine keeps its audio session (and audio focus) until
+        // its own clean-up, which can come after this when the other member
+        // hung up; regaining focus meanwhile it put communication mode back
+        // (seen on Android 10). End its session now: it gives up focus and
+        // restores the mode it found. Its later clean-up is then a no-op.
+        try {
+            io.getstream.webrtc.flutter.audio.AudioSwitchManager.instance?.stop()
+        } catch (_: Throwable) {
+            // Engine not present: nothing of its to end.
+        }
         val manager = context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        if (manager.mode == AudioManager.MODE_IN_COMMUNICATION) {
-            try {
-                manager.mode = AudioManager.MODE_NORMAL
-            } catch (_: SecurityException) {
+        // The engine's stop runs first on the main thread (queued at the
+        // front); this runs after it, so the call ends in normal mode.
+        main.post {
+            if (manager.mode == AudioManager.MODE_IN_COMMUNICATION) {
+                try {
+                    manager.mode = AudioManager.MODE_NORMAL
+                } catch (_: SecurityException) {
+                }
             }
         }
     }

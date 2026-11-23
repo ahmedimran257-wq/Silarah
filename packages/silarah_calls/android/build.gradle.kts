@@ -31,5 +31,8 @@ dependencies {
     // Self-managed calls: status-bar call chip, Bluetooth / car buttons,
     // hold when a regular phone call arrives (Android 8+ at runtime).
     implementation("androidx.core:core-telecom:1.1.0")
+    // The call's audio engine (stream_webrtc_flutter, in the app already):
+    // its audio session is ended with the call (CallTones.endCallAudio).
+    compileOnly(project(":stream_webrtc_flutter"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 }

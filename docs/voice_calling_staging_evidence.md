@@ -149,3 +149,4 @@ test.
 | **Found:** Back did nothing on the call screen during a call | fixed in 48107: Back leaves the screen, the call goes on with the return bar |
 | Silarah call active again after the phone call ended | pass |
 | OnePlus status-bar call chip shows a "!" glyph (OnePlus system UI; Silarah's icon is a crescent) | cosmetic, open |
+| **Found:** 48106 Redmi still in communication mode after a call: the audio engine kept its session until its own clean-up (0.6 s after Silarah's reset when the other member hung up) and put the mode back on regaining focus; and the answered call stayed RINGING in Telecom on Android 10 | fixed in 48108: the engine's session ends with the call, then the reset; answered calls are set active |

@@ -102,6 +102,14 @@ void main() {
       expect(service, contains('CallTones.endCallAudio(this)'));
       expect(native, contains('if (manager.mode == AudioManager.MODE_IN_COMMUNICATION)'));
       expect(native, isNot(contains('MODE_IN_CALL')), reason: 'a regular phone call is never touched');
+      // The engine's audio session ends first (it would put the mode back on
+      // regaining focus); the reset runs after it on the main thread.
+      final end = native.substring(native.indexOf('fun endCallAudio('));
+      expect(end.indexOf('AudioSwitchManager.instance?.stop()'), lessThan(end.indexOf('main.post')));
+      final telecom = File('packages/silarah_calls/android/src/main/kotlin/com/silarah/calls/CallTelecom.kt')
+          .readAsStringSync();
+      expect(telecom, contains('if (result is CallControlResult.Success) setActive()'),
+          reason: 'an answered call is active in Telecom, not ringing');
     });
 
     test('a ring wakes a sleeping screen unless Do Not Disturb or the full-screen setting says no', () {

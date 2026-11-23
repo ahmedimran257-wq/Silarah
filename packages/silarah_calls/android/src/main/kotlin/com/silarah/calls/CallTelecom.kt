@@ -81,8 +81,11 @@ internal class CallTelecom(
                             onActive()
                             if (connectedEarly) setActive()
                         } else {
-                            // The member already answered in Silarah.
+                            // The member already answered in Silarah. Answer, then
+                            // active: on Android 10 the answered call otherwise
+                            // stayed "ringing" in Telecom for the whole call.
                             val result = answer(CallAttributesCompat.CALL_TYPE_AUDIO_CALL)
+                            if (result is CallControlResult.Success) setActive()
                             if (result is CallControlResult.Success) {
                                 emit("telecom", mapOf("available" to true))
                                 onActive()
