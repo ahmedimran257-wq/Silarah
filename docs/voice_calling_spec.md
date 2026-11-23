@@ -541,6 +541,7 @@ D = Deno test, W = Dart unit / widget test, P = phone evidence (`docs/voice_call
 | 12.5 Connected calls answered before settlement; `settling` re-check until final | R (326), W |
 | 12.1 Return bar hidden on the call screen, redraws after it | W, P |
 | 5 Paid talk time never longer than the hold: allowance shrinks to the real connect time (327) | R, P |
+| 8 Blocked by them: old calls show "Member unavailable" (no name, photo, call back); a call or plan is refused and never rings; no missed note | R, W |
 | 12.1 Call screen shows the other member's photo on every path (ring carries the caller id) | W, P |
 
 Sources: getstream.io/video/pricing, /video/docs/flutter/pricing-guide, /video/docs/api/ring-calls,

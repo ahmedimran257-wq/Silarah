@@ -321,6 +321,20 @@ void main() {
       expect(missedName.style?.color, AppColors.softCoral, reason: 'missed in the error colour');
     });
 
+    testWidgets('someone who blocked me: "Member unavailable", no photo, no call back', (tester) async {
+      tester.view.physicalSize = const Size(390, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await pump(tester, [
+        _row('a', now, other: 'u9', direction: 'outgoing', outcome: 'answered', talk: 90, used: 2, unavailable: true),
+        _row('b', now.subtract(const Duration(hours: 1)), other: 'u2', name: 'Bilal', direction: 'outgoing',
+            outcome: 'answered', talk: 60, used: 1),
+      ]);
+      expect(find.textContaining('Member unavailable'), findsOneWidget);
+      expect(find.textContaining('Silarah member'), findsNothing);
+      expect(find.byIcon(Icons.call_outlined), findsOneWidget, reason: 'only the available member has a call-back button');
+    });
+
     testWidgets('empty history explains itself', (tester) async {
       await pump(tester, const []);
       expect(find.text('Your calls will appear here'), findsOneWidget);
