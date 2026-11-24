@@ -9695,10 +9695,17 @@ extension UiCopyBuildContext on BuildContext {
   String uiCopyWith(String source, Map<String, Object> values) {
     var text = UiCopy.localize(this, source);
     values.forEach((name, value) {
-      text = text.replaceAll('{$name}', '$value');
+      text = text.replaceAll('{$name}', uiIsolate('$value'));
     });
     return text;
   }
+
+  /// A runtime value placed inside right-to-left copy keeps its own
+  /// direction: "10:30 AM" or a Latin name inside Urdu would otherwise be
+  /// reordered ("AM 10:30"). Unicode first-strong isolates, invisible on
+  /// screen; left-to-right copy is returned unchanged.
+  String uiIsolate(String value) =>
+      Directionality.maybeOf(this) == TextDirection.rtl ? isolateBidi(value) : value;
 
   /// Localizes short relative times that models build without a context, such
   /// as `5m`, `3h ago` or `Just now`.

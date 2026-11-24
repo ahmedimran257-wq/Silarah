@@ -719,7 +719,7 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     }
     final minutes = _minutesLeftForNotice();
     if (minutes < 0) return callingCopyFor(code, 'Silarah voice call');
-    return callingCopyFor(code, '{minutes} min left').replaceAll('{minutes}', '$minutes');
+    return callingCopyWith(code, '{minutes} min left', {'minutes': minutes});
   }
 
   /// Timer start, mute and minutes left on the ongoing notification.

@@ -557,7 +557,10 @@ String planTimeLabel(BuildContext context, DateTime at, DateTime now) {
       context.uiCopy('Tomorrow'),
     _ => DateFormat.MMMEd(locale).format(at),
   };
-  return '$day, $time';
+  // Right-to-left languages use their own comma, and the time keeps its
+  // direction ("10:30 AM" in Urdu must not read "AM 10:30").
+  final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
+  return rtl ? '${context.uiIsolate(day)}، ${context.uiIsolate(time)}' : '$day, $time';
 }
 
 /// "in 2 h 15 m" / "now".

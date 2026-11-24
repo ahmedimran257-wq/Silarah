@@ -225,6 +225,20 @@ void main() {
       expect(text.body, 'Get Premium to talk with your matches');
     });
 
+    test('Arabic and Urdu: a Latin name never sets the direction of the line', () {
+      // Android lays a notification out by its first strong letter; the name
+      // is isolated so the Urdu or Arabic sentence stays right to left.
+      for (final code in rightToLeftLanguages) {
+        final text = missedCallText(code, missed({'count': '3'})!);
+        expect(text.title, contains(isolateBidi('Abdul')), reason: code);
+        expect(text.title, isNot(startsWith('Abdul')), reason: code);
+      }
+      expect(callingCopyWith('ur', 'Your call with {name} is soon', {'name': 'Aisha'}),
+          contains(isolateBidi('Aisha')));
+      expect(callingCopyWith('en', 'Your call with {name} is soon', {'name': 'Aisha'}),
+          'Your call with Aisha is soon');
+    });
+
     test('silent flag, bounded count, and pushes for nobody are dropped', () {
       expect(missed({'silent': '1'})!.silent, isTrue);
       expect(missed({'count': '500'})!.count, 99);

@@ -2330,3 +2330,27 @@ const Map<String, Map<String, String>> callingUiCopy = {
 /// For places without a BuildContext (the background ring notification).
 String callingCopyFor(String languageCode, String source) =>
     callingUiCopy[languageCode]?[source] ?? source;
+
+/// The app's right-to-left languages.
+const rightToLeftLanguages = {'ar', 'ur'};
+
+/// [value] as a Unicode first-strong isolate (FSI ... PDI, invisible): inside
+/// right-to-left text it keeps its own direction. Built from code points so
+/// no invisible direction character sits in the source.
+String isolateBidi(String value) =>
+    '${String.fromCharCode(0x2068)}$value${String.fromCharCode(0x2069)}';
+
+/// [callingCopyFor] with its `{name}` placeholders filled from [values]. In a
+/// right-to-left language each value is a Unicode first-strong isolate, so a
+/// Latin name or time keeps its own direction and never decides the
+/// direction of the whole line: Android takes a notification's direction
+/// from its first strong letter, and "Aisha کے ساتھ ..." would otherwise be
+/// laid out left to right.
+String callingCopyWith(String languageCode, String source, Map<String, Object> values) {
+  final rtl = rightToLeftLanguages.contains(languageCode);
+  var text = callingCopyFor(languageCode, source);
+  values.forEach((name, value) {
+    text = text.replaceAll('{$name}', rtl ? isolateBidi('$value') : '$value');
+  });
+  return text;
+}

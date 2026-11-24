@@ -28,6 +28,7 @@ import 'package:silarah/features/calls/widgets/calls_tab_widgets.dart';
 import 'package:silarah/features/home/screens/subscription_screen.dart';
 import 'package:silarah/features/home/widgets/silarah_bottom_nav.dart';
 import 'package:silarah/l10n/calling_ui_copy.dart';
+import 'package:silarah/l10n/ui_copy.dart';
 import 'package:silarah/l10n/generated/app_localizations.dart';
 
 const _locales = ['en', 'ar', 'bn', 'de', 'fr', 'hi', 'id', 'ms', 'tr', 'ur'];
@@ -107,6 +108,35 @@ void main() {
       expect(HomeTab.parse('4'), isNull);
       expect(HomeTab.parse('nonsense'), isNull);
       expect(HomeTab.calls.path, '/home?tab=calls');
+    });
+  });
+
+  group('right-to-left copy keeps inserted values in their own direction', () {
+    Future<BuildContext> contextFor(WidgetTester tester, String locale) async {
+      late BuildContext captured;
+      await tester.pumpWidget(_app(Builder(builder: (context) {
+        captured = context;
+        return const SizedBox.shrink();
+      }), locale: locale));
+      return captured;
+    }
+
+    testWidgets('Urdu: "Today، 10:30 AM" with the time isolated, never "AM 10:30"', (tester) async {
+      final context = await contextFor(tester, 'ur');
+      final at = DateTime(2026, 11, 24, 10, 30);
+      final label = planTimeLabel(context, at, DateTime(2026, 11, 24, 10));
+      expect(label, contains('،'), reason: 'the Urdu comma');
+      expect(label, contains(isolateBidi('10:30 AM')));
+      expect(context.uiCopyWith('You can call again after {time}.', {'time': '10:30 AM'}),
+          contains(isolateBidi('10:30 AM')));
+    });
+
+    testWidgets('left-to-right copy is unchanged', (tester) async {
+      final context = await contextFor(tester, 'en');
+      final at = DateTime(2026, 11, 24, 10, 30);
+      expect(planTimeLabel(context, at, DateTime(2026, 11, 24, 10)), 'Today, 10:30 AM');
+      expect(context.uiCopyWith('You can call again after {time}.', {'time': '10:30 AM'}),
+          'You can call again after 10:30 AM.');
     });
   });
 

@@ -152,7 +152,7 @@ class MissedCallPush {
   final name = push.callerName.isEmpty ? callingCopyFor(code, 'A Silarah member') : push.callerName;
   if (push.premiumVariant || push.termsVariant) {
     return (
-      title: callingCopyFor(code, '{name} tried to call you').replaceAll('{name}', name),
+      title: callingCopyWith(code, '{name} tried to call you', {'name': name}),
       body: callingCopyFor(code, push.termsVariant
           ? 'Review and accept the updated terms to receive calls.'
           : 'Get Premium to talk with your matches'),
@@ -160,10 +160,8 @@ class MissedCallPush {
   }
   return (
     title: push.count > 1
-        ? callingCopyFor(code, '{count} missed calls from {name}')
-            .replaceAll('{count}', '${push.count}')
-            .replaceAll('{name}', name)
-        : callingCopyFor(code, 'Missed call from {name}').replaceAll('{name}', name),
+        ? callingCopyWith(code, '{count} missed calls from {name}', {'count': push.count, 'name': name})
+        : callingCopyWith(code, 'Missed call from {name}', {'name': name}),
     body: callingCopyFor(code, 'Tap to see your calls'),
   );
 }
@@ -273,8 +271,8 @@ class CallNotifications {
       requestId: push.requestId,
       payload: push.toPayload(),
       callerName: name,
-      title: callingCopyFor(code, '{name} · Silarah voice call').replaceAll('{name}', name),
-      body: callingCopyFor(code, '{name} is calling you').replaceAll('{name}', name),
+      title: callingCopyWith(code, '{name} · Silarah voice call', {'name': name}),
+      body: callingCopyWith(code, '{name} is calling you', {'name': name}),
       publicTitle: callingCopyFor(code, 'Incoming Silarah call'),
       timeout: push.expiresAt.difference(DateTime.now()),
       declineToken: push.declineToken,
@@ -314,8 +312,8 @@ class CallNotifications {
     await _native.showPlanReminder(
       planId: planId,
       payload: jsonEncode({'plan_id': planId, 'match_id': data['match_id']?.toString() ?? ''}),
-      title: callingCopyFor(code, 'Your call with {name} is soon')
-          .replaceAll('{name}', name.isEmpty ? callingCopyFor(code, 'A Silarah member') : name),
+      title: callingCopyWith(code, 'Your call with {name} is soon',
+          {'name': name.isEmpty ? callingCopyFor(code, 'A Silarah member') : name}),
       body: callingCopyFor(code, 'Tap to open your calls'),
       timeout: windowEnd.difference(DateTime.now()),
       silent: data['silent'] == '1',
