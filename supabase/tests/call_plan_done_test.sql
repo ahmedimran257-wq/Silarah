@@ -147,5 +147,74 @@ BEGIN
     (SELECT status FROM private.call_plans WHERE id = plan) = 'done');
 END $$;
 
+-- 331: a planned call still unfinished when its window ends (gate 14,
+-- 24 Nov 2026). The sweep expired the plan while they were still talking.
+DO $$
+DECLARE
+  m3 uuid := '00000000-0000-4000-8000-000000140005'; -- still talking at the window's end
+  w3 uuid := '00000000-0000-4000-8000-000000140006';
+  m4 uuid := '00000000-0000-4000-8000-000000140007'; -- answered, never connected
+  w4 uuid := '00000000-0000-4000-8000-000000140008';
+  m5 uuid := '00000000-0000-4000-8000-000000140009'; -- a call that never settles
+  w5 uuid := '00000000-0000-4000-8000-00000014000a';
+  k uuid; rid uuid; r jsonb; plan uuid;
+BEGIN
+  PERFORM pg_temp.member(m3, 'male', 'Hamza', true);
+  PERFORM pg_temp.member(w3, 'female', 'Maryam', false);
+  k := pg_temp.match(m3, w3);
+  INSERT INTO private.call_plans(match_id, proposer_id, invitee_id, planned_for, status, responded_at)
+  VALUES (k, m3, w3, now() - interval '31 minutes', 'accepted', now() - interval '1 hour') RETURNING id INTO plan;
+  r := pg_temp.svc(format('SELECT public.call_service_request(%L, %L)', m3, k));
+  rid := (r->>'request_id')::uuid;
+  PERFORM pg_temp.svc(format('SELECT public.call_service_accept(%L, %L, NULL)', w3, rid));
+  UPDATE private.call_requests SET created_at = now() - interval '31 minutes' WHERE id = rid;
+  UPDATE private.call_sessions SET status = 'active', both_joined_at = now() - interval '31 minutes'
+  WHERE request_id = rid;
+  PERFORM private.call_close_due_plans();
+  PERFORM pg_temp.ok('331: still talking when the window ends: the plan stays open',
+    (SELECT status FROM private.call_plans WHERE id = plan) = 'accepted');
+  UPDATE private.call_sessions SET status = 'ended', ended_at = now() WHERE request_id = rid;
+  PERFORM private.call_close_due_plans();
+  PERFORM pg_temp.ok('331: ended but not yet settled: still open',
+    (SELECT status FROM private.call_plans WHERE id = plan) = 'accepted');
+  PERFORM pg_temp.svc(format('SELECT public.call_service_settle(%L, 1860, %L)', rid, 'test'));
+  PERFORM pg_temp.ok('331: once settled, the plan is done',
+    (SELECT status FROM private.call_plans WHERE id = plan) = 'done');
+
+  -- Answered after the window passed but never connected: expired once settled.
+  PERFORM pg_temp.member(m4, 'male', 'Idris', true);
+  PERFORM pg_temp.member(w4, 'female', 'Huda', false);
+  k := pg_temp.match(m4, w4);
+  INSERT INTO private.call_plans(match_id, proposer_id, invitee_id, planned_for, status, responded_at)
+  VALUES (k, m4, w4, now() - interval '31 minutes', 'accepted', now() - interval '1 hour') RETURNING id INTO plan;
+  r := pg_temp.svc(format('SELECT public.call_service_request(%L, %L)', m4, k));
+  rid := (r->>'request_id')::uuid;
+  UPDATE private.call_requests SET created_at = now() - interval '30 minutes' WHERE id = rid;
+  PERFORM private.call_close_due_plans();
+  PERFORM pg_temp.ok('331: still ringing when the window ends: the plan stays open',
+    (SELECT status FROM private.call_plans WHERE id = plan) = 'accepted');
+  PERFORM pg_temp.svc(format('SELECT public.call_service_accept(%L, %L, NULL)', w4, rid));
+  UPDATE private.call_sessions SET status = 'ended', ended_at = now() WHERE request_id = rid;
+  PERFORM pg_temp.svc(format('SELECT public.call_service_settle(%L, 0, %L)', rid, 'test'));
+  PERFORM private.call_close_due_plans();
+  PERFORM pg_temp.ok('331: never connected: the next sweep expires it',
+    (SELECT status FROM private.call_plans WHERE id = plan) = 'expired');
+
+  -- A call stuck unsettled cannot keep a plan open past the longest call.
+  PERFORM pg_temp.member(m5, 'male', 'Junaid', true);
+  PERFORM pg_temp.member(w5, 'female', 'Khadija', false);
+  k := pg_temp.match(m5, w5);
+  INSERT INTO private.call_plans(match_id, proposer_id, invitee_id, planned_for, status, responded_at)
+  VALUES (k, m5, w5, now() - interval '3 hours', 'accepted', now() - interval '4 hours') RETURNING id INTO plan;
+  r := pg_temp.svc(format('SELECT public.call_service_request(%L, %L)', m5, k));
+  rid := (r->>'request_id')::uuid;
+  PERFORM pg_temp.svc(format('SELECT public.call_service_accept(%L, %L, NULL)', w5, rid));
+  UPDATE private.call_requests SET created_at = now() - interval '3 hours' WHERE id = rid;
+  UPDATE private.call_sessions SET status = 'active' WHERE request_id = rid;
+  PERFORM private.call_close_due_plans();
+  PERFORM pg_temp.ok('331: a call stuck unsettled hours later does not keep the plan open',
+    (SELECT status FROM private.call_plans WHERE id = plan) = 'expired');
+END $$;
+
 SELECT n, ok, name, detail FROM t_results ORDER BY n;
 ROLLBACK;

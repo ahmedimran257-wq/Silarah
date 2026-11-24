@@ -508,7 +508,9 @@ records of a deleted account. Audio is never recorded or stored by Silarah.
    call itself goes through every check of sections 2–5 at that moment (Premium, minutes, block,
    unanswered-call limit, ringing). A free man sees the paywall instead.
 4. A plan ends as done when the two connect within that window, otherwise expired ("Missed scheduled
-   call"). It is cancelled when the match closes, someone blocks, or the man's Premium ends. Plans are
+   call"). It is done as soon as that call is settled; while a call made in the window is still
+   ringing, live or unsettled when the window ends, the plan waits for it (at most the longest call
+   the window allows), so a long planned call is never "missed" (331). It is cancelled when the match closes, someone blocks, or the man's Premium ends. Plans are
    part of the call history, the Guardian log (time only) and the data export.
 
 ## 14. Rule → proof
