@@ -477,9 +477,11 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     if (id == null || phase != CallPhase.incoming) return;
     final attempt = _attempt;
     _pollTimer?.cancel();
-    await CallNotifications.cancel(id);
-    await _api.end(id, reason: 'declined');
-    if (_current(attempt)) await _finish(attempt, CallEndCopy.declined);
+    // Like Hang up: the ring ends on this phone at once and the server is
+    // told alongside. Waiting for it first kept the ring on screen for
+    // seconds on a slow connection (Redmi, just out of Doze, 24 Nov 2026).
+    unawaited(_api.end(id, reason: 'declined'));
+    await _finish(attempt, CallEndCopy.declined);
   }
 
   // ---------------------------------------------------------------------------

@@ -97,16 +97,18 @@ class SilarahCallsPlugin :
     }
 
     // Why Silarah's screen last went away: the member went to another app
-    // (true), or the phone's screen turned off with Silarah in front (false).
-    // A ring that brings Silarah back from another app returns the member
-    // there once the call is over, like a phone call (spec 12.1).
+    // (true), or the phone locked over it: the screen turned off, or the lock
+    // screen came back over Silarah after a ring (false). A ring that brings
+    // Silarah back from another app returns the member there once the call
+    // is over, like a phone call (spec 12.1).
     private var leftForAnotherApp = false
 
     private val screenWatch = object : Application.ActivityLifecycleCallbacks {
         override fun onActivityStopped(stopped: Activity) {
             if (stopped !== activity) return
             val power = stopped.getSystemService(Context.POWER_SERVICE) as PowerManager
-            leftForAnotherApp = power.isInteractive
+            val keyguard = stopped.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+            leftForAnotherApp = power.isInteractive && !keyguard.isKeyguardLocked
         }
 
         override fun onActivityResumed(resumed: Activity) {

@@ -10,6 +10,8 @@
 // The call screen was a page of the app's navigation, opened through
 // start-up and guarded by a count of open call screens. It is now a layer
 // driven by the call itself.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -207,6 +209,28 @@ void main() {
     await tester.runAsync(() => call.hangUp());
     await tester.pump(const Duration(seconds: 3));
     expect(phone.movedToBack, 0);
+  });
+
+  testWidgets('Decline ends the ring at once, without waiting for the server', (tester) async {
+    final serverNeverAnswers = Completer<Map<String, dynamic>>();
+    final ends = <String?>[];
+    final slow = CallController(
+      api: CallApi(
+        invoke: (body) {
+          if (body['action'] == 'end') {
+            ends.add(body['reason'] as String?);
+            return serverNeverAnswers.future;
+          }
+          return Future.value({'outcome': 'ringing'});
+        },
+        rpc: (_, __) async => null,
+      ),
+      platform: phone,
+    );
+    slow.presentIncoming(_ring('r1'));
+    await tester.runAsync(slow.decline);
+    expect(slow.phase, CallPhase.ended, reason: 'the ring screen shows "Declined" at once');
+    expect(ends, ['declined'], reason: 'the server is still told');
   });
 
   testWidgets("the notification's Answer is taken once, by the call screen", (tester) async {
