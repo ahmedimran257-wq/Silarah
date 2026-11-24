@@ -525,6 +525,13 @@ void main() {
       final attach = plugin.substring(plugin.indexOf('override fun onAttachedToActivity('),
           plugin.indexOf('override fun onReattachedToActivityForConfigChanges('));
       expect(attach, contains('consumeLaunch(binding.activity.intent, initial = true)'));
+      // A screen Android recreates after its process was killed comes back
+      // with the launch it was first opened by: never shown again. Launches
+      // wait for Dart to listen (banner tap on a killed app, 24 Nov 2026).
+      expect(plugin, contains('if (initial && prefs.getString(KEY_LAST_LAUNCH, null) == key) return'));
+      expect(plugin, contains('if (dartListening) {'));
+      final take = plugin.substring(plugin.indexOf('"takeLaunchAction" -> {'));
+      expect(take.substring(0, take.indexOf('}')), contains('dartListening = true'));
       expect(plugin, contains('override fun onNewIntent(intent: Intent): Boolean'));
       expect(plugin, contains('if (CallWindow.isRingLaunch(intent)) activity?.let { CallWindow.apply(it, true) }'));
       expect(window, contains('setTurnScreenOn(active)'));

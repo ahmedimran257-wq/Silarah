@@ -67,6 +67,10 @@ class SilarahCallsPlugin :
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         attach(binding)
+        // A screen Android has just created was not in use, however the
+        // launch reaches it: as its first intent, or as a new intent right
+        // after Android recreated it with an older one.
+        notShownYet = true
         // Attached during the activity's onCreate, before it is resumed: a
         // ring that opened Silarah lights the screen and shows over the lock.
         consumeLaunch(binding.activity.intent, initial = true)
@@ -103,6 +107,9 @@ class SilarahCallsPlugin :
     // is over, like a phone call (spec 12.1).
     private var leftForAnotherApp = false
 
+    // The screen was created and has not been shown to the member yet.
+    private var notShownYet = false
+
     private val screenWatch = object : Application.ActivityLifecycleCallbacks {
         override fun onActivityStopped(stopped: Activity) {
             if (stopped !== activity) return
@@ -112,7 +119,9 @@ class SilarahCallsPlugin :
         }
 
         override fun onActivityResumed(resumed: Activity) {
-            if (resumed === activity) leftForAnotherApp = false
+            if (resumed !== activity) return
+            leftForAnotherApp = false
+            notShownYet = false
         }
 
         override fun onActivityCreated(created: Activity, state: Bundle?) {}
@@ -128,22 +137,37 @@ class SilarahCallsPlugin :
         return false
     }
 
+    // Dart has asked for the launch that opened Silarah (takeLaunchAction):
+    // from then on launches go to it as events. Before that they wait here,
+    // the latest first; sent earlier, an event found no listener and the
+    // ring it carried was lost (Redmi, 24 Nov 2026).
+    private var dartListening = false
+
     private fun consumeLaunch(intent: Intent?, initial: Boolean) {
         val action = intent?.action ?: return
         if (action !in LAUNCH_ACTIONS) return
+        val payload = intent.getStringExtra(CallNotifier.EXTRA_PAYLOAD)
+        // Android recreates a screen whose process was killed with the launch
+        // it was first opened by, and sends any new one after it. A launch
+        // already handled, by this process or an earlier one, is not a ring
+        // to show again.
+        val key = "$action|$payload"
+        val prefs = context.getSharedPreferences(LAUNCH_PREFS, Context.MODE_PRIVATE)
+        if (initial && prefs.getString(KEY_LAST_LAUNCH, null) == key) return
+        prefs.edit().putString(KEY_LAST_LAUNCH, key).apply()
         if (CallWindow.isRingLaunch(intent)) activity?.let { CallWindow.apply(it, true) }
         val launch = mapOf(
             "action" to action.substringAfterLast('.').lowercase(),
-            "payload" to intent.getStringExtra(CallNotifier.EXTRA_PAYLOAD),
-            // Opened from closed, or from behind another app.
-            "fromAnotherApp" to (initial || leftForAnotherApp),
+            "payload" to payload,
+            // Opened from closed (a screen not shown yet), or from behind
+            // another app.
+            "fromAnotherApp" to (initial || notShownYet || leftForAnotherApp),
         )
-        // Recreating the activity must not replay the same launch.
         intent.action = Intent.ACTION_MAIN
-        if (initial) {
-            pendingLaunch = launch
-        } else {
+        if (dartListening) {
             channel.invokeMethod("event", launch + ("type" to "launch"))
+        } else {
+            pendingLaunch = launch
         }
     }
 
@@ -180,6 +204,7 @@ class SilarahCallsPlugin :
                 result.success(null)
             }
             "takeLaunchAction" -> {
+                dartListening = true
                 result.success(pendingLaunch)
                 pendingLaunch = null
             }
@@ -368,6 +393,8 @@ class SilarahCallsPlugin :
         private const val REQUEST_CODE = 41_010
         private const val PREFS = "silarah_call_permissions"
         private const val KEY_ASKED = "microphone_asked"
+        private const val LAUNCH_PREFS = "silarah_call_launches"
+        private const val KEY_LAST_LAUNCH = "last_launch"
         private val LAUNCH_ACTIONS = setOf(
             CallNotifier.ACTION_RING,
             CallNotifier.ACTION_ANSWER,
