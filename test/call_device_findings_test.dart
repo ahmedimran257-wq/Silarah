@@ -225,6 +225,75 @@ void main() {
     expect(find.text('Calls'), findsNothing, reason: 'the sheet closed');
   });
 
+  // 6. A free woman's missed call on the Calls tab had no "Ask him to call
+  //    back" (spec 12.5.9); only the chat's call tile had it.
+  group('a free woman asks him to call back from the Calls tab', () {
+    CallLogEntry entry({required bool outgoing, required CallLogOutcome outcome}) => CallLogEntry(
+          requestId: 'r1',
+          createdAt: DateTime(2026, 11, 24, 20, 39),
+          outgoing: outgoing,
+          outcome: outcome,
+          talkSeconds: null,
+          minutesUsed: null,
+          matchId: 'm1',
+          otherUserId: 'u1',
+          firstName: 'Imran',
+          lastName: 'Ahmed',
+          memberUnavailable: false,
+          unseen: false,
+        );
+
+    Future<void> openSheet(WidgetTester tester, CallLogEntry latest, {required bool female, required bool premium}) async {
+      late BuildContext host;
+      await tester.pumpWidget(MaterialApp(
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: const [
+          ...AppLocalizations.localizationsDelegates,
+          GlobalMaterialLocalizations.delegate,
+        ],
+        home: Scaffold(body: Builder(builder: (context) {
+          host = context;
+          return const SizedBox.expand();
+        })),
+      ));
+      unawaited(showCallDetailsSheet(
+        host,
+        row: CallLogRow([latest]),
+        photoUrl: null,
+        api: CallApi(
+          invoke: (_) async => const {},
+          rpc: (name, _) async => switch (name) {
+            'get_chat_call_state' => {'calls_enabled': true, 'i_am_female': female, 'i_am_premium': premium},
+            _ => const <Object?>[],
+          },
+        ),
+      ));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('shown for a free woman whose latest call with him was missed', (tester) async {
+      await openSheet(tester, entry(outgoing: false, outcome: CallLogOutcome.missed), female: true, premium: false);
+      expect(find.text('Ask him to call back'), findsOneWidget);
+    });
+
+    testWidgets('not for a Premium woman, a man, or a call that was not missed', (tester) async {
+      await openSheet(tester, entry(outgoing: false, outcome: CallLogOutcome.missed), female: true, premium: true);
+      expect(find.text('Ask him to call back'), findsNothing, reason: 'Premium: she can call back');
+      await openSheet(tester, entry(outgoing: false, outcome: CallLogOutcome.missed), female: false, premium: false);
+      expect(find.text('Ask him to call back'), findsNothing, reason: 'a man');
+      await openSheet(tester, entry(outgoing: false, outcome: CallLogOutcome.answered), female: true, premium: false);
+      expect(find.text('Ask him to call back'), findsNothing, reason: 'answered');
+    });
+
+    test('it opens the chat with the message waiting in the box, never in the link', () {
+      final sheet = File('lib/features/calls/widgets/call_details_sheet.dart').readAsStringSync();
+      final router = File('lib/core/router/app_router.dart').readAsStringSync();
+      expect(sheet, contains('_message(draft: context.uiCopy(askToCallBackMessage))'));
+      expect(sheet, contains("router.push('/chat/\$matchId', extra: draft == null ? null : ChatDraft(draft))"));
+      expect(router, contains('draft: extra is ChatDraft ? extra.text : null'));
+    });
+  });
+
   // 5. With Silarah open, "Call time accepted" never reached the proposer's
   //    Calls tab: every notification type starting with call_ was routed to
   //    the call-push handler, which knows only the calling system's own

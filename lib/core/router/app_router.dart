@@ -406,11 +406,12 @@ GoRouter buildAppRouter(
         path: '/chat/:id',
         pageBuilder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
+          final extra = state.extra;
           return _slidePage(
             key: state.pageKey,
             child: NotificationRouteBackScope(
               fallbackPath: HomeTab.chats.path,
-              child: ChatScreen(conversationId: id),
+              child: ChatScreen(conversationId: id, draft: extra is ChatDraft ? extra.text : null),
             ),
           );
         },

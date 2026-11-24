@@ -1,6 +1,7 @@
 // Call details for one member (docs/voice_calling_spec.md 12.5.6): every
 // call with them, totals, Call back / Message / View profile / Plan a call,
-// and the per-chat safety controls (mute calls, block calls, report).
+// "Ask him to call back" for a free woman who missed his call (12.5.9), and
+// the per-chat safety controls (mute calls, block calls, report).
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/buttons/silarah_pressable.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
+import '../../home/screens/chat_screen.dart';
 import '../../home/screens/paywall_gate_screen.dart';
 import '../../home/widgets/report_bottom_sheet.dart';
 import '../call_api.dart';
@@ -126,7 +128,8 @@ class _CallDetailsSheetState extends State<_CallDetailsSheet> {
     );
   }
 
-  Future<void> _message() async {
+  /// Opens the chat; [draft] waits in the message box for the member to send.
+  Future<void> _message({String? draft}) async {
     final matchId = _entry.matchId;
     if (matchId == null) return;
     final router = GoRouter.of(context);
@@ -146,8 +149,17 @@ class _CallDetailsSheetState extends State<_CallDetailsSheet> {
       return;
     }
     navigator.pop();
-    unawaited(router.push('/chat/$matchId'));
+    unawaited(router.push('/chat/$matchId', extra: draft == null ? null : ChatDraft(draft)));
   }
+
+  /// A free woman who missed his call asks him to call back: a free message
+  /// (spec 8 and 12.5.9), the same one as the chat's missed-call tile.
+  bool get _canAskToCallBack {
+    final prefs = _prefs;
+    return prefs != null && prefs.iAmFemale && !prefs.iAmPremium && _entry.missedByMe;
+  }
+
+  Future<void> _askToCallBack() => _message(draft: context.uiCopy(askToCallBackMessage));
 
   void _profile() {
     final userId = _entry.otherUserId;
@@ -259,6 +271,14 @@ class _CallDetailsSheetState extends State<_CallDetailsSheet> {
                     _RoundAction(icon: Icons.person_outline_rounded, label: 'View profile', onTap: _profile),
                   ],
                 ),
+                if (_canAskToCallBack) ...[
+                  const SizedBox(height: AppDimensions.space16),
+                  CallOutlineButton(
+                    label: 'Ask him to call back',
+                    icon: Icons.mark_chat_unread_outlined,
+                    onTap: _askToCallBack,
+                  ),
+                ],
               ],
               const SizedBox(height: AppDimensions.space24),
               UiText('Calls', style: AppTypography.sectionLabel.copyWith(color: AppColors.slateMist)),

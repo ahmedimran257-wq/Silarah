@@ -61,9 +61,19 @@ const _kClosureMessages = [
   'Assalamu Alaikum. I wanted to be transparent with you rather than fade away. I do not see this progressing further, but I truly appreciate your time and wish you every happiness. May Allah bless you.',
 ];
 
+/// Text to put in the chat's message box when it opens, passed as the
+/// route's `extra` (never in the link). The member still sends it.
+class ChatDraft {
+  const ChatDraft(this.text);
+  final String text;
+}
+
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key, required this.conversationId});
+  const ChatScreen({super.key, required this.conversationId, this.draft});
   final String conversationId;
+
+  /// Put in the message box once the chat opens, like an opener.
+  final String? draft;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -133,6 +143,8 @@ class _ChatScreenState extends State<ChatScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _authorizeAndOpen();
       unawaited(_callControls.refresh());
+      final draft = widget.draft;
+      if (mounted && draft != null && draft.isNotEmpty) _useOpener(draft);
     });
   }
 
