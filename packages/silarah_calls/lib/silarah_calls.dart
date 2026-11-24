@@ -26,6 +26,10 @@ class CallEvent {
   /// ring | answer | open_call | open_calls
   String? get launchAction => data['action'] as String?;
   String? get payload => data['payload'] as String?;
+
+  /// The launch brought Silarah up from closed or from behind another app
+  /// (not from a screen that had merely turned off with Silarah in front).
+  bool get fromAnotherApp => data['fromAnotherApp'] == true;
   bool get active => data['active'] == true;
   String? get route => data['current'] as String?;
 
@@ -84,6 +88,15 @@ class SilarahCalls {
       return null;
     }
   }
+
+  // ----------------------------------------------------------------- screen
+
+  /// The phone is locked (the lock screen is up, even if Silarah shows over it).
+  Future<bool> isDeviceLocked() async => await _invoke<bool>('isDeviceLocked') ?? false;
+
+  /// Silarah steps back to where the member was: the lock screen or the
+  /// app they were using. False when there was no screen to move.
+  Future<bool> moveToBack() async => await _invoke<bool>('moveToBack') ?? false;
 
   // ------------------------------------------------------------ notifications
 

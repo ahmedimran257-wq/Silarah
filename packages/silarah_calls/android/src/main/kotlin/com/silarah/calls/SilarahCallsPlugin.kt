@@ -2,6 +2,8 @@ package com.silarah.calls
 
 import android.Manifest
 import android.app.Activity
+import android.app.Application
+import android.app.KeyguardManager
 import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
@@ -9,8 +11,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -79,15 +83,41 @@ class SilarahCallsPlugin :
         activity = binding.activity
         binding.addOnNewIntentListener(this)
         binding.addRequestPermissionsResultListener(this)
+        binding.activity.application.registerActivityLifecycleCallbacks(screenWatch)
     }
 
     private fun detach() {
+        binding?.activity?.application?.unregisterActivityLifecycleCallbacks(screenWatch)
         binding?.removeOnNewIntentListener(this)
         binding?.removeRequestPermissionsResultListener(this)
         binding = null
         activity = null
         proximity?.set(false)
         proximity = null
+    }
+
+    // Why Silarah's screen last went away: the member went to another app
+    // (true), or the phone's screen turned off with Silarah in front (false).
+    // A ring that brings Silarah back from another app returns the member
+    // there once the call is over, like a phone call (spec 12.1).
+    private var leftForAnotherApp = false
+
+    private val screenWatch = object : Application.ActivityLifecycleCallbacks {
+        override fun onActivityStopped(stopped: Activity) {
+            if (stopped !== activity) return
+            val power = stopped.getSystemService(Context.POWER_SERVICE) as PowerManager
+            leftForAnotherApp = power.isInteractive
+        }
+
+        override fun onActivityResumed(resumed: Activity) {
+            if (resumed === activity) leftForAnotherApp = false
+        }
+
+        override fun onActivityCreated(created: Activity, state: Bundle?) {}
+        override fun onActivityStarted(started: Activity) {}
+        override fun onActivityPaused(paused: Activity) {}
+        override fun onActivitySaveInstanceState(saved: Activity, state: Bundle) {}
+        override fun onActivityDestroyed(destroyed: Activity) {}
     }
 
     // Delivered before the activity is resumed again.
@@ -103,6 +133,8 @@ class SilarahCallsPlugin :
         val launch = mapOf(
             "action" to action.substringAfterLast('.').lowercase(),
             "payload" to intent.getStringExtra(CallNotifier.EXTRA_PAYLOAD),
+            // Opened from closed, or from behind another app.
+            "fromAnotherApp" to (initial || leftForAnotherApp),
         )
         // Recreating the activity must not replay the same launch.
         intent.action = Intent.ACTION_MAIN
@@ -187,6 +219,12 @@ class SilarahCallsPlugin :
                 activity?.let { CallWindow.apply(it, args["active"] == true) }
                 result.success(null)
             }
+            "isDeviceLocked" -> {
+                val keyguard = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+                result.success(keyguard.isKeyguardLocked)
+            }
+            // Back to where the member was: the lock screen or the other app.
+            "moveToBack" -> result.success(activity?.moveTaskToBack(true) ?: false)
             "setProximity" -> {
                 val current = activity
                 if (current != null) {

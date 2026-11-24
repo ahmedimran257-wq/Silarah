@@ -131,12 +131,6 @@ void main() {
           reason: 'a track rebuilt during the hold stays silent');
     });
 
-    test('Back during a call leaves the call screen; the call goes on', () {
-      final screen = File('lib/features/calls/screens/call_screen.dart').readAsStringSync();
-      expect(screen, contains('CallReturnBarHost.showsFor(_call, screenOpen: false)'));
-      expect(screen, contains('canPop: phase == CallPhase.ended || phase == CallPhase.idle'));
-    });
-
     test('tones play on the voice-call stream (call route and volume)', () {
       expect(native, contains('ToneGenerator(AudioManager.STREAM_VOICE_CALL'));
     });

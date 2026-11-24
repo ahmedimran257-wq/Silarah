@@ -21,7 +21,6 @@ import 'package:silarah/features/calls/call_log_controller.dart';
 import 'package:silarah/features/calls/calling_rules.dart';
 import 'package:silarah/features/calls/calls_hub.dart';
 import 'package:silarah/features/calls/screens/calls_tab_screen.dart';
-import 'package:silarah/features/calls/screens/call_screen.dart';
 import 'package:silarah/features/calls/widgets/call_return_bar.dart';
 import 'package:silarah/features/calls/widgets/calling_guide_sheet.dart';
 import 'package:silarah/features/calls/widgets/calls_tab_widgets.dart';
@@ -485,14 +484,18 @@ void main() {
   group('return-to-call bar (12.1)', () {
     test('shows for a ringing-out, connecting or live call off the call screen only', () {
       final call = CallController(api: CallApi(invoke: (_) async => const {}, rpc: (_, __) async => null));
-      expect(CallReturnBarHost.showsFor(call, screenOpen: false), isFalse, reason: 'idle');
+      expect(CallReturnBarHost.showsFor(call), isFalse, reason: 'idle');
       for (final phase in [CallPhase.outgoing, CallPhase.connecting, CallPhase.active]) {
         call.phase = phase;
-        expect(CallReturnBarHost.showsFor(call, screenOpen: false), isTrue, reason: '$phase');
-        expect(CallReturnBarHost.showsFor(call, screenOpen: true), isFalse, reason: '$phase on screen');
+        call.screenShown = false;
+        expect(CallReturnBarHost.showsFor(call), isTrue, reason: '$phase');
+        call.screenShown = true;
+        expect(CallReturnBarHost.showsFor(call), isFalse, reason: '$phase on screen');
       }
-      call.phase = CallPhase.incoming;
-      expect(CallReturnBarHost.showsFor(call, screenOpen: false), isFalse, reason: 'the ring has its own screen');
+      call
+        ..phase = CallPhase.incoming
+        ..screenShown = false;
+      expect(CallReturnBarHost.showsFor(call), isFalse, reason: 'the ring has its own screen');
     });
 
     testWidgets('the app below keeps its state when the bar appears', (tester) async {
@@ -500,16 +503,15 @@ void main() {
       final key = GlobalKey<_CounterState>();
       await tester.pumpWidget(_app(CallReturnBarHost(
         controller: call,
-        onOpenCall: () {},
         child: _Counter(key: key),
       )));
       key.currentState!.value = 7;
       call
         ..phase = CallPhase.outgoing
-        ..otherName = 'Aisha';
-      // Any change the bar listens to redraws it.
-      CallScreen.openCount.value++;
-      CallScreen.openCount.value--;
+        ..otherName = 'Aisha'
+        ..screenShown = true;
+      // Back on the call screen: the app shows with the bar above it.
+      await tester.runAsync(call.leaveCallScreen);
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.textContaining('Aisha · Calling'), findsOneWidget);
       expect(key.currentState!.value, 7);

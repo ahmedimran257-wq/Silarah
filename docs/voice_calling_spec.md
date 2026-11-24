@@ -287,6 +287,23 @@ so the same code runs from the FCM background isolate when Silarah is closed. It
   member is not on the call screen.
 - Not used: `stream_video_push_notification` (forces `singleInstance`; the app keeps `singleTop`).
 
+**The call screen (WhatsApp / Telegram model, 24 Nov 2026).** The call screen is a layer above the
+whole app (`CallLayer`), never a page of the app's navigation. It shows from the first ring or tap until
+the member leaves it or the call is over, over whatever is underneath, start-up included; the app keeps
+its place below it. Device findings that led here: with Silarah open and the phone asleep, a ring after
+an earlier ring had run out reached the app but no ring screen showed (status-bar icon, ringing and
+vibration only); with Silarah closed, a ring opened the app's start-up instead of the call.
+
+| Situation | What the member sees |
+|---|---|
+| Phone unlocked, using another app | Android's heads-up ring (Answer / Decline). Tapping it opens the call screen only |
+| Phone locked or asleep, or Silarah closed | The full-screen call screen over the lock screen; never Silarah's start-up or home |
+| Silarah open | The full-screen call screen over the current screen |
+| Back on a ring | Nothing: a ring waits for Answer or Decline |
+| Back during a call, phone unlocked | The app, with the return bar; the call goes on |
+| Back during a call, phone locked | Silarah steps back to the lock screen (the app is never shown over a locked phone); the call goes on, with its notification and status-bar chip |
+| A ring that brought Silarah up from closed or another app ends, its screen still up | The phone goes back to where the member was (lock screen or the other app). A ring that arrived while Silarah was in front, or a member who left the call screen, stays in Silarah |
+
 ### 12.2 Ring delivery
 
 1. Ring, cancel and answered pushes are data-only, high priority, and live only as long as the ring

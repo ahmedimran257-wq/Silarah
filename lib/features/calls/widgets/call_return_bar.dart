@@ -10,26 +10,26 @@ import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
 import '../call_controller.dart';
 import '../call_models.dart';
-import '../screens/call_screen.dart';
 
 class CallReturnBarHost extends StatelessWidget {
-  const CallReturnBarHost({super.key, required this.onOpenCall, required this.child, this.controller});
+  const CallReturnBarHost({super.key, required this.child, this.controller});
 
-  final VoidCallback onOpenCall;
   final Widget child;
   final CallController? controller;
 
-  static bool showsFor(CallController call, {required bool screenOpen}) =>
-      !screenOpen &&
+  /// A call ringing out, connecting or live while its screen is not shown.
+  /// A ring has its own screen and notification, so no bar.
+  static bool showsFor(CallController call) =>
+      !call.screenShown &&
       (call.phase == CallPhase.outgoing || call.phase == CallPhase.connecting || call.phase == CallPhase.active);
 
   @override
   Widget build(BuildContext context) {
     final call = controller ?? CallController.instance;
     return ListenableBuilder(
-      listenable: Listenable.merge([call, CallScreen.openCount]),
+      listenable: call,
       builder: (context, _) {
-        final visible = showsFor(call, screenOpen: CallScreen.isOpen);
+        final visible = showsFor(call);
         final topInset = MediaQuery.paddingOf(context).top;
         return Column(
           children: [
@@ -38,7 +38,7 @@ class CallReturnBarHost extends StatelessWidget {
               curve: Curves.easeOutCubic,
               alignment: Alignment.topCenter,
               child: visible
-                  ? _Bar(call: call, topInset: topInset, onTap: onOpenCall)
+                  ? _Bar(call: call, topInset: topInset, onTap: call.showCallScreen)
                   : const SizedBox(width: double.infinity),
             ),
             Expanded(

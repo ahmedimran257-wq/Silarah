@@ -39,7 +39,6 @@ import '../../features/home/screens/help_support_screen.dart';
 import '../../features/home/screens/photo_access_requests_screen.dart';
 import '../../features/home/screens/profile_route_screen.dart';
 import '../../features/home/screens/shortlist_screen.dart';
-import '../../features/calls/screens/call_screen.dart';
 import '../../features/verification/screens/badge_verification_screen.dart';
 import '../widgets/loaders/silarah_shimmer.dart';
 import 'home_tab.dart';
@@ -68,8 +67,6 @@ abstract final class AppRoutes {
   static const helpSupport = '/help-support';
   static const photoRequests = '/photo-requests';
   static const shortlist = '/shortlist';
-  /// The full-screen voice call (voice_calling_spec.md).
-  static const call = '/call';
 }
 
 // Screen index → route path mapping
@@ -173,7 +170,6 @@ GoRouter buildAppRouter(
           }
           if (location == AppRoutes.photoRequests ||
               location == AppRoutes.shortlist ||
-              location == AppRoutes.call ||
               location.startsWith('/profile/')) {
             return null;
           }
@@ -339,22 +335,6 @@ GoRouter buildAppRouter(
           key: state.pageKey,
           child: const SubscriptionScreen(),
         ),
-      ),
-      GoRoute(
-        path: AppRoutes.call,
-        pageBuilder: (context, state) {
-          final extra = state.extra is Map ? state.extra! as Map : const {};
-          return MaterialPage<void>(
-            key: state.pageKey,
-            fullscreenDialog: true,
-            child: CallScreen(
-              answerRequestId: state.uri.queryParameters['answer'],
-              photoUrl: extra['photoUrl']?.toString(),
-              otherUserId: extra['otherUserId']?.toString() ??
-                  state.uri.queryParameters['other'],
-            ),
-          );
-        },
       ),
       GoRoute(
         path: AppRoutes.shortlist,

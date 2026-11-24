@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
@@ -19,7 +18,6 @@ import 'call_microphone_gate.dart';
 import 'call_minutes_sheet.dart';
 import 'calling_guide_sheet.dart';
 import '../calls_hub.dart';
-import '../screens/call_screen.dart';
 
 /// Loads and refreshes the call controls of one chat.
 class ChatCallControls extends ValueNotifier<ChatCallState> {
@@ -176,19 +174,18 @@ Future<void> _placeCall(
   // The first time: how calling works, with the server's numbers.
   if (!await ensureCallingGuideSeen(context) || !context.mounted) return;
   if (!await ensureCallMicrophone(context) || !context.mounted) return;
-  final router = GoRouter.of(context);
+  // A ringing call shows its own screen above the app (CallLayer).
   final result = await CallController.instance.startOutgoing(
     toMatchId: matchId,
     name: name,
     toUserId: otherUserId,
+    photoUrl: photoUrl,
   );
   if (!context.mounted) return;
   switch (result.outcome) {
     case CallStartOutcome.ringing:
     case CallStartOutcome.glare:
-      if (!CallScreen.isOpen) {
-        unawaited(router.push('/call', extra: {'photoUrl': photoUrl, 'otherUserId': otherUserId}));
-      }
+      break;
     case CallStartOutcome.unavailable:
       _snack(context, context.uiCopyWith(neutralUnavailableCopy, {'name': name}));
       onUnavailable?.call();

@@ -36,7 +36,7 @@ import 'features/calls/call_controller.dart';
 import 'features/calls/call_notifications.dart';
 import 'features/calls/call_platform.dart';
 import 'features/calls/calls_hub.dart';
-import 'features/calls/screens/call_screen.dart';
+import 'features/calls/widgets/call_layer.dart';
 import 'core/services/presence_service.dart';
 import 'core/services/bookmark_service.dart';
 import 'core/services/compatibility_service.dart';
@@ -319,6 +319,27 @@ class _SilarahBootstrapState extends State<_SilarahBootstrap> {
   bool _brandRevealCompleted = false;
   bool _startupGateResolved = false;
 
+  @override
+  void initState() {
+    super.initState();
+    CallController.instance.addListener(_onCall);
+  }
+
+  @override
+  void dispose() {
+    CallController.instance.removeListener(_onCall);
+    super.dispose();
+  }
+
+  /// A call screen is never hidden behind start-up: a ring that opened
+  /// Silarah from closed replaces the brand reveal, as a phone call would.
+  void _onCall() {
+    if (!mounted) return;
+    setState(() {
+      if (CallController.instance.callScreenVisible) _brandRevealCompleted = true;
+    });
+  }
+
   void _completeBrandReveal() {
     if (_brandRevealCompleted || !mounted) return;
     setState(() => _brandRevealCompleted = true);
@@ -339,7 +360,8 @@ class _SilarahBootstrapState extends State<_SilarahBootstrap> {
           _BootstrapStage.ready => _startupGateResolved,
           _BootstrapStage.failed => true,
         };
-        final keepBrandLayer = !_brandRevealCompleted || !destinationReady;
+        final keepBrandLayer = !CallController.instance.callScreenVisible &&
+            (!_brandRevealCompleted || !destinationReady);
 
         // The brand layer's MaterialApp pushes Flutter's default bar style
         // (opaque black navigation bar); this region overrides it each frame.
@@ -662,8 +684,8 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
       case 'call_incoming':
         final push = await CallNotifications.handlePushData(data);
         if (push == null) return;
+        // The call screen shows over whatever the member is doing.
         CallController.instance.presentIncoming(push);
-        _openCallScreen(AppRoutes.call);
       case 'call_cancel':
       case 'call_ended':
         await CallNotifications.handlePushData(data);
@@ -685,51 +707,47 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
   /// the same stored one that decided to ring, so it holds on a cold start
   /// too, before the session has loaded.
   void _onCallLaunch(CallEvent event) {
+    debugPrint('[calls] opened by a call notification: ${event.launchAction} '
+        '(from another app: ${event.fromAnotherApp})');
     switch (event.launchAction) {
       case 'ring':
       case 'answer':
-        _onRingLaunch(event.payload, answer: event.launchAction == 'answer');
+        _onRingLaunch(
+          event.payload,
+          answer: event.launchAction == 'answer',
+          fromAnotherApp: event.fromAnotherApp,
+        );
       case 'open_call':
-        if (CallController.instance.busy) _openCallScreen(AppRoutes.call);
+        CallController.instance.showCallScreen();
       case 'open_calls':
         navigateFromPushNotification(_router, HomeTab.calls.path);
     }
   }
 
-  void _onRingLaunch(String? payload, {required bool answer}) {
+  /// The ring's call screen shows above the app at once, during start-up
+  /// too (CallLayer): the app underneath starts as usual.
+  void _onRingLaunch(String? payload, {required bool answer, required bool fromAnotherApp}) {
     final push = IncomingCallPush.fromPayload(payload);
     if (push == null) {
+      debugPrint('[calls] ring not shown: unreadable notification payload');
       CallController.instance.releaseRingWindow();
       return;
     }
     unawaited(() async {
       if (!await CallNotifications.isForSignedInUser(push)) {
+        debugPrint('[calls] ring not shown: for another account');
         CallController.instance.releaseRingWindow();
         return;
       }
       if (!push.expiresAt.isAfter(DateTime.now())) {
+        debugPrint('[calls] ring not shown: already over');
         CallController.instance.releaseRingWindow();
         // The ring is over; the missed call is in the Calls tab.
         navigateFromPushNotification(_router, HomeTab.calls.path);
         return;
       }
-      CallController.instance.presentIncoming(push);
-      _openCallScreen(answer
-          ? '${AppRoutes.call}?answer=${Uri.encodeQueryComponent(push.requestId)}'
-          : AppRoutes.call);
+      CallController.instance.presentIncoming(push, fromAnotherApp: fromAnotherApp, answer: answer);
     }());
-  }
-
-  /// Opens the call screen over whatever the member is doing. Only a cold
-  /// start (still on the start-up gate) goes through Home first.
-  void _openCallScreen(String path) {
-    if (CallScreen.isOpen) return;
-    final shown = _router.routerDelegate.currentConfiguration.uri.path;
-    if (shown.isEmpty || shown == AppRoutes.boot || shown == AppRoutes.splash) {
-      navigateFromPushNotification(_router, path);
-    } else {
-      unawaited(_router.push(path));
-    }
   }
 
   void _startPostFirstFrameWork() {
@@ -1242,7 +1260,6 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
                           onTap: _openInAppNotification,
                           // A call left in the background: one tap back.
                           child: CallReturnBarHost(
-                            onOpenCall: () => _openCallScreen(AppRoutes.call),
                             child: child ?? const SizedBox.shrink(),
                           ),
                         ),
@@ -1256,7 +1273,13 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
                       value: SilarahSystemBars.forDarkTheme(
                         themeState.activeMode.isDark,
                       ),
-                      child: AnimatedSwitcher(
+                      // The call screen above everything, start-up included
+                      // (WhatsApp/Telegram model, spec 12.1).
+                      child: Directionality(
+                        textDirection: textDir,
+                        child: CallLayer(
+                          backButtonDispatcher: _router.backButtonDispatcher,
+                          child: AnimatedSwitcher(
                         duration: AppDimensions.durationReveal,
                         switchInCurve: Curves.easeOutCubic,
                         switchOutCurve: Curves.easeInCubic,
@@ -1279,6 +1302,8 @@ class _SilarahAppState extends State<SilarahApp> with WidgetsBindingObserver {
                               child: routedApp,
                             ),
                         },
+                          ),
+                        ),
                       ),
                     );
                   },

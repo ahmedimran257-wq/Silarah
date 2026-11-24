@@ -532,7 +532,7 @@ void main() {
       // A ring that is not shown gives the lock screen back.
       final main = File('lib/main.dart').readAsStringSync();
       final handler = main.substring(main.indexOf('void _onRingLaunch('),
-          main.indexOf('void _openCallScreen('));
+          main.indexOf('void _startPostFirstFrameWork('));
       expect('releaseRingWindow()'.allMatches(handler).length, 3);
     });
 

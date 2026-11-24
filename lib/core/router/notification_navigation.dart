@@ -6,7 +6,7 @@ import 'home_tab.dart';
 /// somewhere sensible.
 String notificationHomeFallback(String path) {
   final route = Uri.parse(path).path;
-  if (route.startsWith('/chat') || route == '/call') return HomeTab.chats.path;
+  if (route.startsWith('/chat')) return HomeTab.chats.path;
   if (route.startsWith('/profile/')) return HomeTab.interests.path;
   if (route == '/notifications') return HomeTab.discover.path;
   return HomeTab.profile.path;
@@ -40,7 +40,11 @@ void navigateFromPushNotification(GoRouter router, String path) {
     final shown = delegate.currentConfiguration.uri.path;
     if (shown == '/boot') return;
     delegate.removeListener(pushOnHome);
-    if (shown == '/home') router.push(path);
+    if (shown == '/home') {
+      router.push(path);
+    } else {
+      debugPrint('[navigation] "$path" not opened: start-up went to "$shown"');
+    }
   }
 
   delegate.addListener(pushOnHome);

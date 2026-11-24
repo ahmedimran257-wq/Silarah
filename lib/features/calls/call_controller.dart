@@ -150,6 +150,59 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
   // that arrives meanwhile still takes over (startOutgoing cancels ours).
   bool _starting = false;
 
+  /// The call screen is a layer above the whole app, as in WhatsApp and
+  /// Telegram (CallLayer, spec 12.1): shown from the first ring or tap until
+  /// the member leaves it with Back (the return bar brings it back) or the
+  /// call is over. It is never a page of the app's navigation, so start-up,
+  /// tabs and pages underneath can neither hide it nor stack a second one.
+  bool screenShown = false;
+
+  /// The call screen is on screen now.
+  bool get callScreenVisible => phase != CallPhase.idle && screenShown;
+
+  /// The other member's photo when the screen that placed the call had it.
+  String? photoUrl;
+
+  // A ring brought Silarah up from closed or from another app: once the call
+  // is over, if the member never left the call screen, the phone goes back
+  // to where it was, like a phone call.
+  bool _returnWhenDone = false;
+
+  // The notification's Answer opened the call screen: the screen answers
+  // once it is up (it checks the microphone first).
+  String? _answerOnShow;
+
+  /// The request to answer that the notification's Answer asked for, once.
+  String? takeAnswerOnShow() {
+    final id = _answerOnShow;
+    _answerOnShow = null;
+    return id;
+  }
+
+  /// Brings the call screen back (the return bar, the ongoing-call
+  /// notification).
+  void showCallScreen() {
+    if (phase == CallPhase.idle || screenShown) return;
+    screenShown = true;
+    notifyListeners();
+  }
+
+  /// Back on the call screen. A ring waits for Answer or Decline. On a locked
+  /// phone Silarah steps back to the lock screen and the call goes on: the
+  /// app is never shown to someone who has not unlocked the phone. Otherwise
+  /// the app shows with the return bar above it; the member chose to stay in
+  /// Silarah, so the call no longer hands the phone back when it ends.
+  Future<void> leaveCallScreen() async {
+    if (!screenShown || phase == CallPhase.incoming) return;
+    if (phase != CallPhase.ended && await _platform.isDeviceLocked()) {
+      await _platform.moveToBack();
+      return;
+    }
+    screenShown = false;
+    _returnWhenDone = false;
+    notifyListeners();
+  }
+
   bool get busy => phase != CallPhase.idle && phase != CallPhase.ended;
   bool get holdWasFull => holdMinutes >= 60;
 
@@ -191,6 +244,7 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     required String toMatchId,
     required String name,
     String? toUserId,
+    String? photoUrl,
   }) async {
     // One call at a time, from the moment it is asked for: while the server
     // is still answering, another start would ring the other member a
@@ -218,8 +272,10 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
       matchId = toMatchId;
       otherUserId = toUserId;
       otherName = name;
+      this.photoUrl = photoUrl;
       isCaller = false;
       phase = CallPhase.connecting;
+      screenShown = true;
       notifyListeners();
       unawaited(_answer(attempt, result.requestId!));
       return result;
@@ -232,9 +288,11 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     matchId = toMatchId;
     otherUserId = toUserId;
     otherName = name;
+    this.photoUrl = photoUrl;
     isCaller = true;
     ringEndsAt = DateTime.now().add(Duration(seconds: (result.ringSeconds ?? 30).clamp(5, 120)));
     phase = CallPhase.outgoing;
+    screenShown = true;
     notifyListeners();
     unawaited(_platform.setCallWindow(true));
     // A call from the first ring: Telecom routes the ringback to the
@@ -299,11 +357,23 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
   // Incoming
   // ---------------------------------------------------------------------------
 
-  /// A ring arrived (push while open, or a tap on the notification).
-  /// Ignored while this phone is busy with any call, including this one:
-  /// a repeated push never resets an answer that is already under way.
-  void presentIncoming(IncomingCallPush push) {
-    if (busy) return;
+  /// A ring arrived (push while open, or a tap on the notification) and the
+  /// call screen shows it. A repeated ring never resets a call already under
+  /// way: for the same call it brings the screen up (and answers when the
+  /// notification's Answer asked); another call while busy is not shown.
+  /// [fromAnotherApp]: the ring brought Silarah up from closed or from
+  /// another app, so the phone goes back there when the call is over.
+  void presentIncoming(IncomingCallPush push, {bool fromAnotherApp = false, bool answer = false}) {
+    if (busy) {
+      if (push.requestId == requestId) {
+        if (answer && phase == CallPhase.incoming) _answerOnShow = push.requestId;
+        screenShown = true;
+        notifyListeners();
+      } else {
+        debugPrint('[calls] ring not shown: this phone is in another call (${phase.name})');
+      }
+      return;
+    }
     final attempt = _begin();
     _resetFields();
     incoming = push;
@@ -314,6 +384,9 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     isCaller = false;
     ringEndsAt = push.expiresAt;
     phase = CallPhase.incoming;
+    screenShown = true;
+    _returnWhenDone = fromAnotherApp;
+    _answerOnShow = answer ? push.requestId : null;
     notifyListeners();
     unawaited(_platform.setCallWindow(true));
     // Close the incoming screen if the ring ends without an answer here.
@@ -369,6 +442,7 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     }
     _pollTimer?.cancel();
     phase = CallPhase.connecting;
+    screenShown = true;
     notifyListeners();
     await _answer(_attempt, forRequestId);
   }
@@ -888,10 +962,15 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     await _platform.stopPhoneCallWatch();
     await _platform.setCallWindow(false);
     historyChanged();
+    // "Call ended" shows for a moment, then the screen goes. A call that
+    // brought Silarah up from another app or from closed, watched to the end
+    // on its screen, hands the phone back to where the member was.
     _resetTimer = Timer(const Duration(seconds: 2), () {
       if (_current(attempt) && phase == CallPhase.ended) {
+        final handBack = _returnWhenDone && screenShown;
         _resetFields();
         notifyListeners();
+        if (handBack) unawaited(_platform.moveToBack());
       }
     });
   }
@@ -926,6 +1005,10 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     incoming = null;
     ringEndsAt = null;
     endedCopy = CallEndCopy.ended;
+    screenShown = false;
+    photoUrl = null;
+    _returnWhenDone = false;
+    _answerOnShow = null;
   }
 
   static void _streamLog(

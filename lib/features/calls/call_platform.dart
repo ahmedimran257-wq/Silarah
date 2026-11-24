@@ -30,6 +30,12 @@ class CallPlatform {
 
   Future<void> setCallWindow(bool active) => _native.setCallWindow(active);
 
+  /// The lock screen is up.
+  Future<bool> isDeviceLocked() => _native.isDeviceLocked();
+
+  /// Back to the lock screen or the app the member was using.
+  Future<bool> moveToBack() => _native.moveToBack();
+
   Future<void> setProximity(bool enabled) => _native.setProximity(enabled);
 
   Future<bool> startCall({

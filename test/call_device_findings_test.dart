@@ -17,34 +17,10 @@ import 'package:silarah/features/calls/call_log.dart';
 import 'package:silarah/features/calls/call_notifications.dart';
 import 'package:silarah/features/calls/calls_hub.dart';
 import 'package:silarah/features/calls/screens/call_screen.dart';
+import 'package:silarah/features/calls/widgets/call_layer.dart';
 import 'package:silarah/features/calls/widgets/call_details_sheet.dart';
 import 'package:silarah/features/calls/widgets/call_return_bar.dart';
 import 'package:silarah/l10n/generated/app_localizations.dart';
-
-/// Stands in for the call screen: opens and closes like it does.
-class _FakeCallScreen extends StatefulWidget {
-  const _FakeCallScreen();
-
-  @override
-  State<_FakeCallScreen> createState() => _FakeCallScreenState();
-}
-
-class _FakeCallScreenState extends State<_FakeCallScreen> {
-  @override
-  void initState() {
-    super.initState();
-    CallScreen.opened();
-  }
-
-  @override
-  void dispose() {
-    CallScreen.closed();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => const Scaffold(body: Text('call screen'));
-}
 
 Map<String, Object?> _rules() => {
       'calls_enabled': true,
@@ -64,24 +40,27 @@ void main() {
   testWidgets('the return bar hides on the call screen and redraws after it', (tester) async {
     final semantics = tester.ensureSemantics();
     final call = CallController(api: CallApi(invoke: (_) async => const {}, rpc: (_, __) async => null));
-    final navigator = GlobalKey<NavigatorState>();
     await tester.pumpWidget(MaterialApp(
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         ...AppLocalizations.localizationsDelegates,
         GlobalMaterialLocalizations.delegate,
       ],
-      navigatorKey: navigator,
-      builder: (context, child) => CallReturnBarHost(controller: call, onOpenCall: () {}, child: child!),
+      builder: (context, child) => CallLayer(
+        controller: call,
+        screen: const Scaffold(body: Text('call screen')),
+        child: CallReturnBarHost(controller: call, child: child!),
+      ),
       home: const Scaffold(body: Text('home')),
     ));
 
     call
       ..phase = CallPhase.outgoing
       ..otherName = 'Aisha';
-    navigator.currentState!.push(MaterialPageRoute<void>(builder: (_) => const _FakeCallScreen()));
+    call.showCallScreen();
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull, reason: 'no listener above changed while building');
+    expect(find.text('call screen'), findsOneWidget);
     expect(find.textContaining('Tap to return'), findsNothing, reason: 'hidden on the call screen');
 
     // Connected, then the member leaves the call screen: the bar shows the
@@ -89,12 +68,13 @@ void main() {
     call
       ..phase = CallPhase.active
       ..connectedAt = DateTime.now();
-    navigator.currentState!.pop();
+    await tester.runAsync(call.leaveCallScreen);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+    expect(find.text('call screen'), findsNothing);
     expect(find.textContaining('Aisha · Tap to return to call'), findsOneWidget);
     expect(find.textContaining('Calling…'), findsNothing);
-    // Screen readers find it too (a page route used to hide it from them).
+    // Screen readers find it too.
     expect(find.bySemanticsLabel(RegExp('^Aisha, Tap to return to call')), findsOneWidget);
     semantics.dispose();
     call.dispose();
@@ -177,8 +157,11 @@ void main() {
     // A live call, so the screen stays open.
     CallController.instance
       ..phase = CallPhase.active
-      ..otherName = 'Imran';
-    addTearDown(() => CallController.instance.phase = CallPhase.idle);
+      ..otherName = 'Imran'
+      ..otherUserId = 'caller-1';
+    addTearDown(() => CallController.instance
+      ..phase = CallPhase.idle
+      ..otherUserId = null);
     await tester.pumpWidget(MaterialApp(
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
@@ -186,7 +169,6 @@ void main() {
         GlobalMaterialLocalizations.delegate,
       ],
       home: CallScreen(
-        otherUserId: 'caller-1',
         photoLoader: (ids) async {
           requested.addAll(ids);
           return const {};

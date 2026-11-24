@@ -4,9 +4,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../core/router/notification_navigation.dart';
 import '../../../core/services/profile_photo_service.dart';
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
 import '../../../core/widgets/overlays/silarah_dialog.dart';
@@ -19,41 +17,15 @@ import '../../../features/home/widgets/report_bottom_sheet.dart';
 import '../../../l10n/ui_copy.dart';
 import '../call_controller.dart';
 import '../call_models.dart';
-import '../widgets/call_return_bar.dart';
 import '../widgets/call_microphone_gate.dart';
 import '../widgets/call_minutes_sheet.dart';
-import '../../../core/router/home_tab.dart';
 
+/// The call screen, shown by CallLayer above the whole app while
+/// [CallController.screenShown]; it is never a page of the app's navigation.
 class CallScreen extends StatefulWidget {
-  const CallScreen({super.key, this.answerRequestId, this.photoUrl, this.otherUserId, this.photoLoader});
+  const CallScreen({super.key, this.controller, this.photoLoader});
 
-  /// True while a call screen is on screen, so a second ring or tap never
-  /// stacks another one on top. Observable for the return-to-call bar.
-  /// Call screens open now, counted at once (placeCall reads it).
-  static bool get isOpen => _open > 0;
-  static int _open = 0;
-
-  /// The same count for widgets that listen (the return-to-call bar). It is
-  /// updated after the frame: the call screen opens and closes while the
-  /// tree builds, and a listener above it (the bar) changed mid-build was
-  /// left stale and never redrew.
-  static final ValueNotifier<int> openCount = ValueNotifier<int>(0);
-
-  @visibleForTesting
-  static void opened() => _changeOpen(1);
-
-  @visibleForTesting
-  static void closed() => _changeOpen(-1);
-
-  static void _changeOpen(int delta) {
-    _open += delta;
-    scheduleMicrotask(() => openCount.value = _open);
-  }
-
-  /// Opened from the notification's Answer button: answer this call.
-  final String? answerRequestId;
-  final String? photoUrl;
-  final String? otherUserId;
+  final CallController? controller;
 
   /// Photo URLs this member may see, by owner id (tests swap it).
   final Future<Map<String, String>> Function(List<String> ownerUserIds)? photoLoader;
@@ -63,48 +35,45 @@ class CallScreen extends StatefulWidget {
 }
 
 class _CallScreenState extends State<CallScreen> {
-  final CallController _call = CallController.instance;
-  bool _closing = false;
+  late final CallController _call = widget.controller ?? CallController.instance;
   bool _stillTalkingShown = false;
 
   @override
   void initState() {
     super.initState();
-    CallScreen.opened();
     _call.addListener(_changed);
-    final answer = widget.answerRequestId;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _loadPhoto();
-      if (answer != null) {
-        unawaited(_answer(answer));
-      } else if (_call.phase == CallPhase.idle) {
-        // Opened for a ring that is already over: nothing to show.
-        _changed();
-      }
+      _answerIfAsked();
     });
   }
 
   @override
   void dispose() {
-    CallScreen.closed();
     _call.removeListener(_changed);
     super.dispose();
   }
 
-  String? get _otherUserId => widget.otherUserId ?? _call.otherUserId;
+  String? get _otherUserId => _call.otherUserId;
 
   String? _loadedPhotoUrl;
   String? _photoLoadedFor;
 
   String? get _photoUrl {
-    final given = widget.photoUrl;
+    final given = _call.photoUrl;
     return given != null && given.isNotEmpty ? given : _loadedPhotoUrl;
+  }
+
+  /// The notification's Answer opened or reached this screen: answer once.
+  void _answerIfAsked() {
+    final id = _call.takeAnswerOnShow();
+    if (id != null) unawaited(_answer(id));
   }
 
   /// Loads the other member's photo once their id is known.
   void _loadPhoto() {
-    final given = widget.photoUrl;
+    final given = _call.photoUrl;
     final id = _otherUserId;
     if ((given != null && given.isNotEmpty) || id == null || id.isEmpty || id == _photoLoadedFor) return;
     _photoLoadedFor = id;
@@ -126,11 +95,7 @@ class _CallScreenState extends State<CallScreen> {
   void _changed() {
     if (!mounted) return;
     _loadPhoto();
-    if (_call.phase == CallPhase.idle && !_closing) {
-      _closing = true;
-      popOrGoToFallback(GoRouter.of(context), HomeTab.chats.path);
-      return;
-    }
+    _answerIfAsked();
     if (_call.warning == CallTimeWarning.stillTalking && _call.isCaller && !_stillTalkingShown) {
       _stillTalkingShown = true;
       unawaited(_askStillTalking());
@@ -218,9 +183,7 @@ class _CallScreenState extends State<CallScreen> {
                 ListTile(
                   leading: Icon(_routeIcon(route), color: AppColors.pearlWhite),
                   title: UiText.verbatim(_routeTitle(context, route), style: AppTypography.body),
-                  trailing: route == _call.route
-                      ? Icon(Icons.check_rounded, color: AppColors.champagneGold)
-                      : null,
+                  trailing: route == _call.route ? Icon(Icons.check_rounded, color: AppColors.champagneGold) : null,
                   onTap: () => Navigator.of(sheetContext).pop(route),
                 ),
           ],
@@ -246,9 +209,8 @@ class _CallScreenState extends State<CallScreen> {
   /// "Bluetooth · Galaxy Buds": the headset's own name when Android gives it.
   String _routeTitle(BuildContext context, CallAudioRoute route) {
     final label = context.uiCopy(_routeLabel(route));
-    final name = route == CallAudioRoute.bluetooth || route == CallAudioRoute.wired
-        ? _call.routeNames[route]?.trim()
-        : null;
+    final name =
+        route == CallAudioRoute.bluetooth || route == CallAudioRoute.wired ? _call.routeNames[route]?.trim() : null;
     return name == null || name.isEmpty || name.toLowerCase() == label.toLowerCase() ? label : '$label · $name';
   }
 
@@ -279,11 +241,10 @@ class _CallScreenState extends State<CallScreen> {
     if (minutes <= 0 && _call.warning != CallTimeWarning.none) return context.uiCopy('Less than a minute left');
     return switch (_call.warning) {
       CallTimeWarning.thirtySeconds => context.uiCopy('Less than a minute left'),
-      CallTimeWarning.twoMinutes || CallTimeWarning.stillTalking =>
+      CallTimeWarning.twoMinutes ||
+      CallTimeWarning.stillTalking =>
         context.uiCopyWith('{minutes} min left', {'minutes': minutes}),
-      CallTimeWarning.none => _call.isCaller
-          ? context.uiCopyWith('{minutes} min left', {'minutes': minutes})
-          : null,
+      CallTimeWarning.none => _call.isCaller ? context.uiCopyWith('{minutes} min left', {'minutes': minutes}) : null,
     };
   }
 
@@ -293,116 +254,103 @@ class _CallScreenState extends State<CallScreen> {
     final name = _call.otherName.isEmpty ? context.uiCopy('A Silarah member') : _call.otherName;
     final meter = _meter(context);
     final warn = _call.warning != CallTimeWarning.none;
-    return PopScope(
-      // Back never drops a call by accident; End does. During a call, Back
-      // leaves this screen and the call goes on, with the return bar above
-      // the app (spec 12.1). A ring waits for Answer or Decline.
-      canPop: phase == CallPhase.ended || phase == CallPhase.idle,
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop) return;
-        if (CallReturnBarHost.showsFor(_call, screenOpen: false)) {
-          popOrGoToFallback(GoRouter.of(context), HomeTab.chats.path);
-        }
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.obsidianDeep,
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppDimensions.space24),
-            child: Column(
-              children: [
-                const SizedBox(height: AppDimensions.space16),
+    // Back never drops a call by accident; End does. Back is the call
+    // layer's: a ring waits for Answer or Decline, a call goes on behind the
+    // return bar (CallController.leaveCallScreen, spec 12.1).
+    return Scaffold(
+      backgroundColor: AppColors.obsidianDeep,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.space24),
+          child: Column(
+            children: [
+              const SizedBox(height: AppDimensions.space16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.lock_outline_rounded, size: 14, color: AppColors.slateMist),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: UiText(
+                      'Calls are private. Silarah never records them.',
+                      textAlign: TextAlign.center,
+                      style: AppTypography.caption.copyWith(color: AppColors.slateMist),
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              _Avatar(name: name, photoUrl: _photoUrl, live: phase == CallPhase.active),
+              const SizedBox(height: AppDimensions.space24),
+              UiText.verbatim(name, textAlign: TextAlign.center, style: AppTypography.userName, maxLines: 2),
+              const SizedBox(height: AppDimensions.space8),
+              Semantics(
+                liveRegion: true,
+                child: UiText.verbatim(_statusLine(context),
+                    textAlign: TextAlign.center, style: AppTypography.body.copyWith(color: AppColors.slateMist)),
+              ),
+              if (meter != null) ...[
+                const SizedBox(height: AppDimensions.space12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: warn ? AppColors.expiryAmber.withValues(alpha: .16) : AppColors.surfaceGlass,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: warn ? AppColors.expiryAmber : AppColors.cardBorder),
+                  ),
+                  child: UiText.verbatim(meter,
+                      style:
+                          AppTypography.caption.copyWith(color: warn ? AppColors.expiryAmber : AppColors.pearlWhite)),
+                ),
+              ],
+              if (_call.onHold) ...[
+                const SizedBox(height: AppDimensions.space12),
+                UiText('Another call is using your phone. Your microphone is off until it ends.',
+                    textAlign: TextAlign.center, style: AppTypography.caption.copyWith(color: AppColors.expiryAmber)),
+              ],
+              const Spacer(),
+              if (phase == CallPhase.active || phase == CallPhase.connecting)
+                _LiveControls(
+                  muted: _call.muted,
+                  route: _call.route,
+                  routeLabel: _routeLabel(_call.route),
+                  routeIcon: _routeIcon(_call.route),
+                  canAddMinutes: _call.isCaller && phase == CallPhase.active,
+                  canReport: _otherUserId != null,
+                  extending: _call.extending,
+                  onMute: _call.toggleMute,
+                  onRoute: _chooseRoute,
+                  onAddMinutes: _addMinutes,
+                  onReport: _report,
+                ),
+              const SizedBox(height: AppDimensions.space32),
+              if (phase == CallPhase.incoming)
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Icon(Icons.lock_outline_rounded, size: 14, color: AppColors.slateMist),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: UiText(
-                        'Calls are private. Silarah never records them.',
-                        textAlign: TextAlign.center,
-                        style: AppTypography.caption.copyWith(color: AppColors.slateMist),
-                      ),
+                    _RoundAction(
+                      icon: Icons.call_end_rounded,
+                      label: 'Decline',
+                      color: AppColors.softCoral,
+                      onTap: _call.decline,
+                    ),
+                    _RoundAction(
+                      icon: Icons.call_rounded,
+                      label: 'Answer',
+                      color: AppColors.verifiedTeal,
+                      onTap: () => _answer(_call.requestId!),
                     ),
                   ],
+                )
+              else if (phase != CallPhase.ended)
+                _RoundAction(
+                  icon: Icons.call_end_rounded,
+                  label: phase == CallPhase.outgoing ? 'Cancel' : 'End call',
+                  color: AppColors.softCoral,
+                  onTap: () => _call.hangUp(),
                 ),
-                const Spacer(),
-                _Avatar(name: name, photoUrl: _photoUrl, live: phase == CallPhase.active),
-                const SizedBox(height: AppDimensions.space24),
-                UiText.verbatim(name,
-                    textAlign: TextAlign.center,
-                    style: AppTypography.userName, maxLines: 2),
-                const SizedBox(height: AppDimensions.space8),
-                Semantics(
-                  liveRegion: true,
-                  child: UiText.verbatim(_statusLine(context),
-                      textAlign: TextAlign.center,
-                      style: AppTypography.body.copyWith(color: AppColors.slateMist)),
-                ),
-                if (meter != null) ...[
-                  const SizedBox(height: AppDimensions.space12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: warn ? AppColors.expiryAmber.withValues(alpha: .16) : AppColors.surfaceGlass,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: warn ? AppColors.expiryAmber : AppColors.cardBorder),
-                    ),
-                    child: UiText.verbatim(meter,
-                        style: AppTypography.caption.copyWith(
-                            color: warn ? AppColors.expiryAmber : AppColors.pearlWhite)),
-                  ),
-                ],
-                if (_call.onHold) ...[
-                  const SizedBox(height: AppDimensions.space12),
-                  UiText('Another call is using your phone. Your microphone is off until it ends.',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.caption.copyWith(color: AppColors.expiryAmber)),
-                ],
-                const Spacer(),
-                if (phase == CallPhase.active || phase == CallPhase.connecting)
-                  _LiveControls(
-                    muted: _call.muted,
-                    route: _call.route,
-                    routeLabel: _routeLabel(_call.route),
-                    routeIcon: _routeIcon(_call.route),
-                    canAddMinutes: _call.isCaller && phase == CallPhase.active,
-                    canReport: _otherUserId != null,
-                    extending: _call.extending,
-                    onMute: _call.toggleMute,
-                    onRoute: _chooseRoute,
-                    onAddMinutes: _addMinutes,
-                    onReport: _report,
-                  ),
-                const SizedBox(height: AppDimensions.space32),
-                if (phase == CallPhase.incoming)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _RoundAction(
-                        icon: Icons.call_end_rounded,
-                        label: 'Decline',
-                        color: AppColors.softCoral,
-                        onTap: _call.decline,
-                      ),
-                      _RoundAction(
-                        icon: Icons.call_rounded,
-                        label: 'Answer',
-                        color: AppColors.verifiedTeal,
-                        onTap: () => _answer(_call.requestId!),
-                      ),
-                    ],
-                  )
-                else if (phase != CallPhase.ended)
-                  _RoundAction(
-                    icon: Icons.call_end_rounded,
-                    label: phase == CallPhase.outgoing ? 'Cancel' : 'End call',
-                    color: AppColors.softCoral,
-                    onTap: () => _call.hangUp(),
-                  ),
-                const SizedBox(height: AppDimensions.space32),
-              ],
-            ),
+              const SizedBox(height: AppDimensions.space32),
+            ],
           ),
         ),
       ),
@@ -486,8 +434,7 @@ class _LiveControls extends StatelessWidget {
             busy: extending,
             onTap: onAddMinutes,
           ),
-        if (canReport)
-          _SmallAction(icon: Icons.flag_outlined, label: 'Report', active: false, onTap: onReport),
+        if (canReport) _SmallAction(icon: Icons.flag_outlined, label: 'Report', active: false, onTap: onReport),
       ],
     );
   }
@@ -532,8 +479,7 @@ class _SmallAction extends StatelessWidget {
                         padding: const EdgeInsets.all(18),
                         child: SilarahActivityIndicator(size: 22, color: AppColors.champagneGold),
                       )
-                    : Icon(icon,
-                        color: active ? AppColors.obsidianDeep : AppColors.pearlWhite),
+                    : Icon(icon, color: active ? AppColors.obsidianDeep : AppColors.pearlWhite),
               ),
               const SizedBox(height: 6),
               ExcludeSemantics(
