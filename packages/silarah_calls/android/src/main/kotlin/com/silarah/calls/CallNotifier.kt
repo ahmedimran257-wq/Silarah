@@ -158,8 +158,30 @@ internal object CallNotifier {
         ringing = args
         ringingUntil = System.currentTimeMillis() + timeoutMs
 
-        val ring = launchIntent(context, ACTION_RING, payload, id) ?: return
-        val answer = launchIntent(context, ACTION_ANSWER, payload, id + 1) ?: return
+        // The banner and the full-screen ring open the native ring screen
+        // (WhatsApp / Telegram model, spec 12.1); without one from the app
+        // (an older build), Silarah's own ring screen.
+        val ringScreen = IncomingCallActivity.intent(context, args, ringingUntil)?.let {
+            PendingIntent.getActivity(
+                context,
+                id + 3,
+                it,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+        }
+        val ring = ringScreen ?: launchIntent(context, ACTION_RING, payload, id) ?: return
+        // The banner's Answer opens the native screen already answering: a
+        // closed Silarah would otherwise show its launch window (the logo)
+        // before the call screen. WhatsApp's Answer opens its call screen too.
+        val answerScreen = IncomingCallActivity.intent(context, args, ringingUntil, answer = true)?.let {
+            PendingIntent.getActivity(
+                context,
+                id + 4,
+                it,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+        }
+        val answer = answerScreen ?: launchIntent(context, ACTION_ANSWER, payload, id + 1) ?: return
         val decline = CallActionReceiver.declineIntent(
             context,
             requestCode = id + 2,
@@ -185,7 +207,11 @@ internal object CallNotifier {
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setPublicVersion(publicVersion)
-            .setFullScreenIntent(ring, true)
+            .apply {
+                // The silenced ring is re-posted while its screen already
+                // shows: it must not open that screen again.
+                if (!silent) setFullScreenIntent(ring, true)
+            }
             .setContentIntent(ring)
             .setOngoing(true)
             .setAutoCancel(false)
@@ -243,13 +269,67 @@ internal object CallNotifier {
     /** The ring notification [notificationId] went (declined from it). */
     fun ringEnded(notificationId: Int) {
         val current = ringing?.get("requestId") as? String ?: return
-        if (ringId(current) == notificationId) ringing = null
+        if (ringId(current) == notificationId) {
+            ringing = null
+            notifyRingEnded(current)
+        }
     }
 
     fun cancelIncoming(context: Context, requestId: String) {
         if ((ringing?.get("requestId") as? String) == requestId) ringing = null
         NotificationManagerCompat.from(context).cancel(ringId(requestId))
+        notifyRingEnded(requestId)
     }
+
+    // The native ring screen listens: it closes when its ring ends anywhere
+    // (cancelled, answered elsewhere, declined from the banner). "" = all.
+    private val ringListeners = java.util.concurrent.CopyOnWriteArraySet<(String) -> Unit>()
+
+    fun addRingListener(listener: (String) -> Unit) {
+        ringListeners.add(listener)
+    }
+
+    fun removeRingListener(listener: (String) -> Unit) {
+        ringListeners.remove(listener)
+    }
+
+    private fun notifyRingEnded(requestId: String) {
+        for (listener in ringListeners) listener(requestId)
+    }
+
+    /** The ring of [requestId] is still in the status bar (it rings). */
+    fun isRingShowing(context: Context, requestId: String): Boolean {
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val id = ringId(requestId)
+        return manager.activeNotifications.any { it.id == id && it.tag == null }
+    }
+
+    /**
+     * Silarah opened to answer [payload]'s ring, from the ring screen in
+     * Silarah's own task: the app's screen comes up in that task (brought
+     * forward if it is already there) with no launch window.
+     */
+    fun answerIntent(context: Context, payload: String): Intent? {
+        val launch = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return null
+        launch.action = ACTION_ANSWER
+        launch.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        launch.putExtra(EXTRA_PAYLOAD, payload)
+        return launch
+    }
+
+    /**
+     * Where the member is, for a ring that ends without an answer and for a
+     * launch from a call notification: true once they left Silarah for
+     * another app (or Silarah has not been on screen since it started);
+     * false while Silarah is in front, also behind the lock screen. Kept by
+     * the plugin from the app's screen (SilarahCallsPlugin.screenWatch).
+     */
+    @Volatile
+    var memberLeftSilarah = true
+
+    /** The native ring screen is up: it covers the app's screen, which is not the member leaving. */
+    @Volatile
+    var ringScreenShowing = false
 
     /** One notification per caller; the count comes from the server. */
     fun showMissed(context: Context, args: Map<String, Any?>) {
@@ -312,6 +392,7 @@ internal object CallNotifier {
     fun clearAll(context: Context) {
         // Nothing of the previous account may come back on a volume key.
         ringing = null
+        notifyRingEnded("")
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         for (active in manager.activeNotifications) {
             val tag = active.tag

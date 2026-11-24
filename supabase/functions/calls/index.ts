@@ -19,6 +19,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { corsHeaders } from "../_shared/cors.ts";
 import { consumeDistributedRateLimit } from "../_shared/distributed_rate_limit.ts";
+import { ringPhotoUrl } from "../_shared/call_photo.ts";
 import {
   adminClient,
   endOnStream,
@@ -168,6 +169,8 @@ async function start(supabase: Admin, userId: string, matchId: string): Promise<
   const expiresAt = String(result.ring_expires_at);
   // Phones time the ring from "seconds left", not from this server's
   // clock: a phone whose clock is wrong must still ring for the full time.
+  // The native ring screen shows the caller's photo, as the callee may see it.
+  const callerPhoto = await ringPhotoUrl(supabase, calleeId, userId);
   const ringSeconds = Math.max(5, Math.round((Date.parse(expiresAt) - Date.now()) / 1000));
   const sent = await pushToUser(supabase, calleeId, {
     type: "call_incoming",
@@ -178,6 +181,7 @@ async function start(supabase: Admin, userId: string, matchId: string): Promise<
     decline_token: String(result.decline_token),
     expires_at: expiresAt,
     ring_seconds: String(ringSeconds),
+    ...(callerPhoto ? { caller_photo: callerPhoto } : {}),
   }, ringSeconds, { ringOnly: true });
   if (sent === 0) {
     await rpc(supabase, "call_service_mark_unreachable", { p_request_id: requestIdValue });

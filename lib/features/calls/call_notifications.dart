@@ -19,10 +19,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:silarah_calls/silarah_calls.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/cubits/theme/theme_cubit.dart';
+import '../../core/theme/app_colors.dart';
 import '../../l10n/calling_ui_copy.dart';
 
 const _signedInUserKey = 'silarah_call_push_user_v1';
 const _localeKey = 'app_locale';
+
+// Rings that ended on this phone (cancelled, answered, declined, missed),
+// newest last, shared by the app and the FCM background isolate. FCM keeps
+// no order between pushes, and a phone back online gets them together: a
+// ring push can come after its own cancel or missed-call push and must not
+// ring then (spec 9 gate 10). Request ids are never reused, so a short list
+// is enough.
+const _endedRingsKey = 'silarah_call_ended_rings_v1';
+const _endedRingsKept = 50;
 
 /// The parts of an incoming-call push the phone needs.
 class IncomingCallPush {
@@ -34,6 +45,7 @@ class IncomingCallPush {
     required this.expiresAt,
     required this.forUser,
     this.callerId = '',
+    this.callerPhoto = '',
   });
 
   final String requestId;
@@ -42,6 +54,11 @@ class IncomingCallPush {
 
   /// Who is calling (for their photo); empty from older servers.
   final String callerId;
+
+  /// A short-lived link to the caller's photo for the native ring screen,
+  /// sent only when this member may see it; empty otherwise. Not carried in
+  /// the launch payload: the app loads photos itself.
+  final String callerPhoto;
   final String declineToken;
   final DateTime expiresAt;
   final String forUser;
@@ -66,6 +83,7 @@ class IncomingCallPush {
       expiresAt: expires,
       forUser: forUser,
       callerId: data['caller_id']?.toString() ?? '',
+      callerPhoto: data['caller_photo']?.toString() ?? '',
     );
   }
 
@@ -92,6 +110,30 @@ class IncomingCallPush {
       return null;
     }
   }
+}
+
+/// The native ring screen in the member's language and theme: the same
+/// colours as the app's call screen (call_screen.dart), so the ring looks
+/// the same whether Android or the app shows it.
+RingScreen ringScreenFor(String code, SilarahThemeMode mode, {String photoUrl = ''}) {
+  final palette = SilarahPalette.forMode(mode);
+  return RingScreen(
+    statusLabel: callingCopyFor(code, 'Incoming call'),
+    connectingLabel: callingCopyFor(code, 'Connecting…'),
+    privateNote: callingCopyFor(code, 'Calls are private. Silarah never records them.'),
+    background: palette.backgroundDeep.toARGB32(),
+    text: palette.contentPrimary.toARGB32(),
+    secondaryText: palette.contentSecondary.toARGB32(),
+    accent: palette.accent.toARGB32(),
+    avatarBorder: palette.accentBorder.toARGB32(),
+    avatarFill: palette.surfaceInteractive.toARGB32(),
+    decline: palette.danger.toARGB32(),
+    onDecline: AppColors.readableOn(palette.danger).toARGB32(),
+    answer: palette.success.toARGB32(),
+    onAnswer: AppColors.readableOn(palette.success).toARGB32(),
+    darkTheme: mode.isDark,
+    photoUrl: photoUrl.isEmpty ? null : photoUrl,
+  );
 }
 
 /// Should this phone ring for [push] right now?
@@ -233,8 +275,20 @@ class CallNotifications {
     return prefs.getString(_localeKey) ?? 'en';
   }
 
+  // Call pushes are handled one at a time, in the order they came. In the
+  // app they arrive on a stream nobody waits on: without this, a cancel that
+  // came while its ring was still being read could finish first, and the
+  // ring would then show and ring to its end.
+  static Future<void> _lastPush = Future<void>.value();
+
   /// Handles a call push. Returns the push when this phone should ring.
-  static Future<IncomingCallPush?> handlePushData(Map<String, dynamic> data) async {
+  static Future<IncomingCallPush?> handlePushData(Map<String, dynamic> data) {
+    final handled = _lastPush.then((_) => _handlePushData(data));
+    _lastPush = handled.then<void>((_) {}, onError: (_) {});
+    return handled;
+  }
+
+  static Future<IncomingCallPush?> _handlePushData(Map<String, dynamic> data) async {
     final type = data['type']?.toString();
     switch (type) {
       case 'call_cancel':
@@ -243,6 +297,10 @@ class CallNotifications {
         if (requestId != null && requestId.isNotEmpty) await cancel(requestId);
         return null;
       case 'call_missed':
+        // A missed call means its ring is over: one still on screen goes,
+        // and its ring push, if it comes later, never rings.
+        final requestId = data['request_id']?.toString();
+        if (requestId != null && requestId.isNotEmpty) await cancel(requestId);
         await _showMissed(data);
         return null;
       case 'call_missed_seen':
@@ -260,8 +318,40 @@ class CallNotifications {
       debugPrint('[CallNotifications] ring dropped (not this account or expired).');
       return null;
     }
+    if (await _ringEnded(push.requestId)) {
+      debugPrint('[CallNotifications] ring dropped (this call already ended).');
+      return null;
+    }
     await showIncoming(push);
     return push;
+  }
+
+  static Future<bool> _ringEnded(String requestId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.reload();
+      return (prefs.getStringList(_endedRingsKey) ?? const []).contains(requestId);
+    } catch (error) {
+      debugPrint('[CallNotifications] ended rings unreadable: $error');
+      return false;
+    }
+  }
+
+  static Future<void> _rememberEnded(String requestId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.reload();
+      final ended = [
+        ...(prefs.getStringList(_endedRingsKey) ?? const <String>[]).where((id) => id != requestId),
+        requestId,
+      ];
+      await prefs.setStringList(
+        _endedRingsKey,
+        ended.length > _endedRingsKept ? ended.sublist(ended.length - _endedRingsKept) : ended,
+      );
+    } catch (error) {
+      debugPrint('[CallNotifications] remember ended ring failed: $error');
+    }
   }
 
   static Future<void> showIncoming(IncomingCallPush push) async {
@@ -280,7 +370,14 @@ class CallNotifications {
       apiKey: AppConfig.supabaseAnonKey,
       answerLabel: callingCopyFor(code, 'Answer'),
       declineLabel: callingCopyFor(code, 'Decline'),
+      ringScreen: ringScreenFor(code, await _themeMode(), photoUrl: push.callerPhoto),
     );
+  }
+
+  /// The member's app theme (the background isolate has no widgets).
+  static Future<SilarahThemeMode> _themeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return SilarahThemeMode.fromStorage(prefs.getString(ThemeCubit.preferenceKey));
   }
 
   static Future<void> _showMissed(Map<String, dynamic> data) async {
@@ -320,7 +417,10 @@ class CallNotifications {
     );
   }
 
+  /// The ring of [requestId] ends on this phone, and that call never rings
+  /// here again, whatever push comes later.
   static Future<void> cancel(String requestId) async {
+    await _rememberEnded(requestId);
     try {
       await _native.cancelIncoming(requestId);
     } catch (error) {

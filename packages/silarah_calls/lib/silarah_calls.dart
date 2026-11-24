@@ -54,6 +54,75 @@ class CallEvent {
   String toString() => 'CallEvent($type, $data)';
 }
 
+/// What the native ring screen shows (docs/voice_calling_spec.md 12.1): it
+/// opens before Silarah has started, so the app hands it the member's
+/// language and theme with every ring. Colours are ARGB.
+@immutable
+class RingScreen {
+  const RingScreen({
+    required this.statusLabel,
+    required this.connectingLabel,
+    required this.privateNote,
+    required this.background,
+    required this.text,
+    required this.secondaryText,
+    required this.accent,
+    required this.avatarBorder,
+    required this.avatarFill,
+    required this.decline,
+    required this.onDecline,
+    required this.answer,
+    required this.onAnswer,
+    required this.darkTheme,
+    this.photoUrl,
+  });
+
+  /// "Incoming call".
+  final String statusLabel;
+
+  /// "Connecting…": shown after Answer while Silarah opens underneath.
+  final String connectingLabel;
+
+  /// "Calls are private. Silarah never records them."
+  final String privateNote;
+  final int background;
+  final int text;
+  final int secondaryText;
+  final int accent;
+  final int avatarBorder;
+  final int avatarFill;
+  final int decline;
+  final int onDecline;
+  final int answer;
+  final int onAnswer;
+
+  /// Light status-bar icons on a dark theme.
+  final bool darkTheme;
+
+  /// A short-lived link to the caller's photo, when the member may see it.
+  final String? photoUrl;
+
+  Map<String, Object?> toArgs() => {
+        'ringStatus': statusLabel,
+        'ringConnecting': connectingLabel,
+        'ringPrivateNote': privateNote,
+        'ringColors': {
+          'background': background,
+          'text': text,
+          'secondaryText': secondaryText,
+          'accent': accent,
+          'avatarBorder': avatarBorder,
+          'avatarFill': avatarFill,
+          'decline': decline,
+          'onDecline': onDecline,
+          'answer': answer,
+          'onAnswer': onAnswer,
+        },
+        'ringDark': darkTheme,
+        if (photoUrl != null && photoUrl!.isNotEmpty) 'ringPhotoUrl': photoUrl,
+      };
+}
+
 class SilarahCalls {
   SilarahCalls._() {
     _channel.setMethodCallHandler(_onNative);
@@ -118,6 +187,7 @@ class SilarahCalls {
     required String apiKey,
     required String answerLabel,
     required String declineLabel,
+    RingScreen? ringScreen,
   }) =>
       _invoke<void>('showIncoming', {
         'answerLabel': answerLabel,
@@ -132,6 +202,7 @@ class SilarahCalls {
         'declineToken': declineToken,
         'declineEndpoint': declineEndpoint,
         'apiKey': apiKey,
+        if (ringScreen != null) ...ringScreen.toArgs(),
       });
 
   Future<void> cancelIncoming(String requestId) =>
@@ -180,6 +251,9 @@ class SilarahCalls {
   Future<void> clearAll() => _invoke<void>('clearAll');
 
   /// The call notification that opened Silarah from closed, once.
+  /// What opened Silarah (`answer`, `ring`, ...), without taking it.
+  Future<String?> peekLaunchAction() => _invoke<String>('peekLaunchAction');
+
   Future<CallEvent?> takeLaunchAction() async {
     final map = await _invoke<Map<Object?, Object?>>('takeLaunchAction');
     if (map == null) return null;

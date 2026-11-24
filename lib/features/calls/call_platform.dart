@@ -21,6 +21,9 @@ class CallPlatform {
   /// The call notification that opened Silarah from closed, once.
   Future<CallEvent?> takeLaunchAction() => _native.takeLaunchAction();
 
+  /// What opened Silarah, without taking it (start-up decides with it).
+  Future<String?> peekLaunchAction() => _native.peekLaunchAction();
+
   Future<MicrophoneStatus> microphoneStatus() => _native.microphoneStatus();
 
   Future<MicrophoneStatus> requestMicrophone() => _native.requestMicrophone();

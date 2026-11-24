@@ -20,5 +20,18 @@
         <receiver
             android:name="com.silarah.calls.CallActionReceiver"
             android:exported="false" />
+        <!-- The ring screen, native like WhatsApp's and Telegram's: shown at
+             once over the lock screen or from the ring's banner, without
+             starting Silarah. In Silarah's own task, so after Answer it stays
+             up ("Connecting…") until Silarah's call screen draws over it, with
+             no launch window in between. Decline or a missed ring returns the
+             member to where they were (IncomingCallActivity.close). -->
+        <activity
+            android:name="com.silarah.calls.IncomingCallActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/SilarahIncomingCallTheme" />
     </application>
 </manifest>

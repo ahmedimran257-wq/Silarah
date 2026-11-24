@@ -296,8 +296,10 @@ vibration only); with Silarah closed, a ring opened the app's start-up instead o
 
 | Situation | What the member sees |
 |---|---|
-| Phone unlocked, using another app | Android's heads-up ring (Answer / Decline). Tapping it opens the call screen only |
-| Phone locked or asleep, or Silarah closed | The full-screen call screen over the lock screen; never Silarah's start-up or home |
+| Phone unlocked, using another app | Android's heads-up ring (Answer / Decline). Tapping it opens the native ring screen only |
+| Phone locked or asleep, or Silarah closed | The native ring screen (`IncomingCallActivity`) over the lock screen; never Silarah's start-up or home |
+| Answer, on the ring screen or the heads-up | The native screen shows "Connecting…" (no buttons) until Silarah's call screen has drawn over it in the same task; Silarah holds its first frame until then, so no logo or launch window shows. The heads-up's Answer opens the native screen already answering, and Silarah opens only once that screen is on screen (over an empty task Android would show Silarah's launch window) |
+| Decline, on the ring screen or the heads-up | Sent at once; the phone stays (or goes back) where the member was |
 | Silarah open | The full-screen call screen over the current screen |
 | Back on a ring | Nothing: a ring waits for Answer or Decline |
 | Back during a call, phone unlocked | The app, with the return bar; the call goes on |

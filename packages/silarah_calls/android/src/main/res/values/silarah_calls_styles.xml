@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The native ring screen (IncomingCallActivity). It draws itself at once
+         in the member's own theme, so Android shows no launch preview first:
+         no logo, no colour from another theme. -->
+    <style name="SilarahIncomingCallTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Activity</item>
+    </style>
+</resources>

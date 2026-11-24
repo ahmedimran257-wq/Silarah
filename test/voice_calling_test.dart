@@ -8,6 +8,7 @@ import 'package:silarah/features/calls/call_controller.dart';
 import 'package:silarah/features/calls/call_models.dart';
 import 'package:silarah/features/calls/call_notifications.dart';
 import 'package:silarah/features/calls/call_platform.dart';
+import 'package:silarah/core/theme/app_colors.dart';
 import 'package:silarah/l10n/calling_ui_copy.dart';
 
 void main() {
@@ -192,6 +193,79 @@ void main() {
       expect(IncomingCallPush.fromPayload('not json'), isNull);
     });
 
+  });
+
+  group('native ring screen (spec 12.1, WhatsApp / Telegram model)', () {
+    test('every theme: the colours of the app call screen, in the member language', () {
+      for (final mode in SilarahThemeMode.values) {
+        final palette = SilarahPalette.forMode(mode);
+        final screen = ringScreenFor('ur', mode, photoUrl: 'https://signed/photo.jpg');
+        expect(screen.background, palette.backgroundDeep.toARGB32(), reason: mode.name);
+        expect(screen.text, palette.contentPrimary.toARGB32());
+        expect(screen.secondaryText, palette.contentSecondary.toARGB32());
+        expect(screen.decline, palette.danger.toARGB32(), reason: 'Decline is the call screen softCoral');
+        expect(screen.answer, palette.success.toARGB32(), reason: 'Answer is the call screen verifiedTeal');
+        expect(screen.avatarBorder, palette.accentBorder.toARGB32());
+        expect(screen.darkTheme, mode.isDark);
+        expect(screen.statusLabel, callingCopyFor('ur', 'Incoming call'));
+        expect(screen.privateNote, callingCopyFor('ur', 'Calls are private. Silarah never records them.'));
+        expect(screen.toArgs()['ringPhotoUrl'], 'https://signed/photo.jpg');
+      }
+      expect(ringScreenFor('en', SilarahThemeMode.oled).toArgs().containsKey('ringPhotoUrl'), isFalse,
+          reason: 'no photo the member may not see');
+    });
+
+    test('the photo link comes with the ring but never travels in the launch payload', () {
+      final push = IncomingCallPush.fromData({
+        'type': 'call_incoming',
+        'request_id': 'r1',
+        'match_id': 'm',
+        'caller_name': 'Imran',
+        'decline_token': 'a' * 48,
+        'ring_seconds': '30',
+        'for_user': 'me',
+        'caller_photo': 'https://signed/photo.jpg',
+      })!;
+      expect(push.callerPhoto, 'https://signed/photo.jpg');
+      expect(push.toPayload(), isNot(contains('signed')));
+    });
+
+    test('the banner and the full-screen ring open the native screen; it closes when the ring ends', () {
+      const kotlin = 'packages/silarah_calls/android/src/main/kotlin/com/silarah/calls';
+      final notifier = File('$kotlin/CallNotifier.kt').readAsStringSync();
+      final screen = File('$kotlin/IncomingCallActivity.kt').readAsStringSync();
+      final manifest = File('packages/silarah_calls/android/src/main/AndroidManifest.xml').readAsStringSync();
+      expect(notifier, contains('val ring = ringScreen ?: launchIntent(context, ACTION_RING, payload, id)'));
+      expect(notifier, contains('if (!silent) setFullScreenIntent(ring, true)'),
+          reason: 'the silenced re-post never opens the screen again');
+      // The banner's Answer opens the native screen already answering, so a
+      // closed Silarah shows no launch window (logo) before the call screen.
+      expect(notifier, contains('IncomingCallActivity.intent(context, args, ringingUntil, answer = true)'));
+      expect(notifier, contains('val answer = answerScreen ?: launchIntent(context, ACTION_ANSWER, payload, id + 1)'));
+      expect(screen, contains('if (intent?.getBooleanExtra(EXTRA_ANSWER, false) == true) {'));
+      final entered = screen.substring(screen.indexOf('override fun onEnterAnimationComplete()'));
+      expect(entered.substring(0, entered.indexOf('\n    }')), contains('answerIfAsked()'),
+          reason: 'Silarah opens only over a ring screen already on screen, never over an empty task');
+      for (final ends in ['fun cancelIncoming(', 'fun ringEnded(', 'fun clearAll(']) {
+        final body = notifier.substring(notifier.indexOf(ends));
+        expect(body.substring(0, body.indexOf('\n    }')), contains('notifyRingEnded('), reason: ends);
+      }
+      expect(screen, contains('CallNotifier.addRingListener(onRingEnded)'));
+      expect(screen, contains('main.postDelayed(timeUp, left)'), reason: 'closes when the ring runs out');
+      // In Silarah's own task: after Answer it stays up ("Connecting…") until
+      // Silarah's call screen draws over it (onStop), with no launch window.
+      expect(manifest, isNot(contains('android:taskAffinity="com.silarah.calls.ring"')));
+      expect(screen, contains('if (answered) finish()'));
+      final answer = screen.substring(screen.indexOf('private fun answer()'));
+      expect(answer.substring(0, answer.indexOf('\n    }')), isNot(contains('finish()')),
+          reason: 'Answer never closes the ring screen before Silarah covers it');
+      // Unanswered: back to where the member was, like WhatsApp.
+      expect(screen, contains('cameFromElsewhere = isTaskRoot || CallNotifier.memberLeftSilarah'));
+      expect(screen, contains('if (cameFromElsewhere) moveTaskToBack(true)'));
+      final main = File('lib/main.dart').readAsStringSync();
+      expect(main, contains('await _holdFirstFrameForAnsweredCall();'),
+          reason: 'Silarah draws nothing until its call screen is ready');
+    });
   });
 
   group('missed-call notifications (spec 12.3)', () {

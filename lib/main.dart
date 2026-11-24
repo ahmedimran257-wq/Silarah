@@ -164,6 +164,39 @@ Future<void> _installCrashReporting() async {
   };
 }
 
+/// Answered on the native ring screen (spec 12.1, the WhatsApp model): that
+/// screen stays up, "Connecting…", until Silarah's call screen can draw over
+/// it. Silarah holds its first frame until then, so neither Android's launch
+/// window nor the brand sequence shows in between. A safety limit releases
+/// the frame if the call never shows (start-up failed).
+Future<void> _holdFirstFrameForAnsweredCall() async {
+  if (Platform.environment.containsKey('FLUTTER_TEST')) return;
+  String? opened;
+  try {
+    opened = await CallPlatform.instance.peekLaunchAction();
+  } catch (_) {
+    return;
+  }
+  if (opened != 'answer') return;
+  final binding = WidgetsBinding.instance..deferFirstFrame();
+  final call = CallController.instance;
+  var released = false;
+  late final VoidCallback onCall;
+  void release() {
+    if (released) return;
+    released = true;
+    call.removeListener(onCall);
+    binding.allowFirstFrame();
+  }
+
+  onCall = () {
+    // Released after the frame that built the call screen.
+    if (call.callScreenVisible) binding.addPostFrameCallback((_) => release());
+  };
+  call.addListener(onCall);
+  Timer(const Duration(seconds: 10), release);
+}
+
 void main() async {
   perfStart();
   WidgetsFlutterBinding.ensureInitialized();
@@ -183,6 +216,8 @@ void main() async {
     );
   }
   final startupStartedAt = DateTime.now();
+
+  await _holdFirstFrameForAnsweredCall();
 
   // Give Flutter ownership of the screen immediately. The launch sequence
   // schedules its motion after this first frame, while preferences, Firebase
