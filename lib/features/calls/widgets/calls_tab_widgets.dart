@@ -867,7 +867,11 @@ class CallRowTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entry = row.latest;
-    final missed = row.anyMissed;
+    // The row describes its latest call (icon, result, time), so its colour
+    // does too: an answered call is never shown in the missed colour because
+    // an earlier call that day was missed. New missed calls in the group
+    // still stand out through [unseen] and the tab badge.
+    final missed = entry.missedByMe;
     final unseen = row.anyUnseen;
     final time = DateFormat.jm(_locale(context)).format(entry.createdAt);
     final name = entry.memberUnavailable ? context.uiCopy('Member unavailable') : entry.displayName;

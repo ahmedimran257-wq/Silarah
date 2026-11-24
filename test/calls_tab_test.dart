@@ -335,6 +335,25 @@ void main() {
       expect(missedName.style?.color, AppColors.softCoral, reason: 'missed in the error colour');
     });
 
+    testWidgets('a collapsed row is coloured by the call it shows, the latest', (tester) async {
+      tester.view.physicalSize = const Size(390, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await pump(tester, [
+        // Latest: answered incoming; earlier the same day: a missed call.
+        _row('a', now, talk: 77, used: 2),
+        _row('b', now.subtract(const Duration(minutes: 1)), outcome: 'missed'),
+        // Latest: an outgoing call they did not answer.
+        _row('c', now.subtract(const Duration(minutes: 2)), other: 'u2', name: 'Bilal', direction: 'outgoing',
+            outcome: 'missed'),
+        _row('d', now.subtract(const Duration(minutes: 3)), other: 'u2', name: 'Bilal', outcome: 'missed'),
+      ]);
+      final answered = tester.widget<Text>(find.textContaining('Abdul A. (2)'));
+      expect(answered.style?.color, isNot(AppColors.softCoral), reason: 'shows "Incoming · 1:17"');
+      final noAnswer = tester.widget<Text>(find.textContaining('Bilal A. (2)'));
+      expect(noAnswer.style?.color, isNot(AppColors.softCoral), reason: 'shows "No answer" on my own call');
+    });
+
     testWidgets('someone who blocked me: "Member unavailable", no photo, no call back', (tester) async {
       tester.view.physicalSize = const Size(390, 1600);
       tester.view.devicePixelRatio = 1;
