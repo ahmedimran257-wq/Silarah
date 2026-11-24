@@ -1,6 +1,11 @@
 // Calls tab, tab names, the calling gate and "How calling works"
 // (docs/voice_calling_spec.md 12.5, 12.6, 13).
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -72,14 +77,21 @@ Map<String, Object?> _row(
       'unseen': unseen,
     };
 
-Widget _app(Widget child, {String locale = 'en'}) => MaterialApp(
+Widget _app(Widget child, {String locale = 'en', double textScale = 1, GlobalKey? captureKey}) => MaterialApp(
       locale: Locale(locale),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         ...AppLocalizations.localizationsDelegates,
         GlobalMaterialLocalizations.delegate,
       ],
-      home: Scaffold(body: child),
+      builder: (context, app) {
+        final scaled = MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: app!,
+        );
+        return captureKey == null ? scaled : RepaintBoundary(key: captureKey, child: scaled);
+      },
+      home: Scaffold(backgroundColor: AppColors.obsidianNight, body: child),
     );
 
 void main() {
@@ -266,7 +278,7 @@ void main() {
   group('Calls tab', () {
     final now = DateTime.now();
     Future<CallsHub> pump(WidgetTester tester, List<Map<String, Object?>> rows,
-        {String locale = 'en', TextDirection? direction}) async {
+        {String locale = 'en', TextDirection? direction, double textScale = 1, GlobalKey? captureKey}) async {
       final api = CallApi(
         invoke: (_) async => const {},
         rpc: (name, params) async => switch (name) {
@@ -295,6 +307,8 @@ void main() {
       await tester.pumpWidget(_app(
         CallsTabScreen(controller: controller, hub: hub),
         locale: locale,
+        textScale: textScale,
+        captureKey: captureKey,
       ));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 800));
@@ -338,6 +352,67 @@ void main() {
     testWidgets('empty history explains itself', (tester) async {
       await pump(tester, const []);
       expect(find.text('Your calls will appear here'), findsOneWidget);
+    });
+
+    // Gate 13: the largest system font (Android's 200%) at 360 dp, in every
+    // language. The bottom bar ignores font scaling; the tab's content scales.
+    for (final code in _locales) {
+      testWidgets('largest font at 360 dp ($code)', (tester) async {
+        tester.view.physicalSize = const Size(360, 2400);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        await pump(tester, [
+          _row('a', now, outcome: 'missed', name: 'Abdulrahman Mohammed Al-Farouqi', unseen: true),
+          _row('b', now.subtract(const Duration(minutes: 5)),
+              other: 'u2', name: 'Bilal', direction: 'outgoing', talk: 3599, used: 60),
+          _row('c', now.subtract(const Duration(days: 1)), unavailable: true),
+        ], locale: code, textScale: 2);
+        expect(tester.takeException(), isNull);
+        expect(find.byType(CallsTabScreen), findsOneWidget);
+      });
+    }
+
+    testWidgets('screenshots for the gate 13 record', (tester) async {
+      final output = Platform.environment['SILARAH_CALLS_CAPTURE'];
+      if (output == null) return;
+      await tester.runAsync(() async {
+        for (final family in ['Inter', 'PlayfairDisplay']) {
+          await (FontLoader(family)..addFont(rootBundle.load('assets/fonts/$family.ttf'))).load();
+        }
+        await (FontLoader('MaterialIcons')..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf')))
+            .load();
+      });
+      Future<void> shot(String name, {required String locale, double textScale = 1}) async {
+        final capture = GlobalKey();
+        tester.view.physicalSize = const Size(360, 1500);
+        tester.view.devicePixelRatio = 1;
+        await pump(tester, [
+          _row('a', now, outcome: 'missed', name: 'Abdulrahman', unseen: true),
+          _row('b', now.subtract(const Duration(minutes: 5)),
+              other: 'u2', name: 'Bilal', direction: 'outgoing', talk: 125, used: 3),
+          _row('c', now.subtract(const Duration(days: 1)), unavailable: true),
+        ], locale: locale, textScale: textScale, captureKey: capture);
+        expect(tester.takeException(), isNull);
+        final boundary = capture.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+        await tester.runAsync(() async {
+          final image = await boundary.toImage(pixelRatio: 2);
+          final data = await image.toByteData(format: ui.ImageByteFormat.png);
+          await File('$output/$name.png').writeAsBytes(data!.buffer.asUint8List());
+          image.dispose();
+        });
+      }
+
+      addTearDown(tester.view.reset);
+      addTearDown(() => AppColors.activate(SilarahThemeMode.values.first));
+      for (final mode in SilarahThemeMode.values) {
+        AppColors.activate(mode);
+        await shot('theme_${mode.name}', locale: 'en');
+      }
+      AppColors.activate(SilarahThemeMode.values.first);
+      // Latin-script languages: the test renderer has their glyphs.
+      for (final code in ['en', 'de', 'fr', 'id', 'ms', 'tr']) {
+        await shot('font200_$code', locale: code, textScale: 2);
+      }
     });
 
     for (final mode in SilarahThemeMode.values) {

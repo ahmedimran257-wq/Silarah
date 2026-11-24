@@ -220,21 +220,30 @@ class CallMinutesCard extends StatelessWidget {
                         strokeWidth: 4,
                         trackColor: AppColors.progressBarBase,
                       ),
+                      // The ring is a fixed picture: its number shrinks to fit
+                      // inside it at large text sizes. The same numbers are
+                      // spelled out beside it and in the card's label.
                       ExcludeSemantics(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            UiText.verbatim(
-                              '$total',
-                              style: AppTypography.screenTitle.copyWith(
-                                fontSize: 20,
-                                height: 1,
-                                color: AppColors.pearlWhite,
-                              ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                UiText.verbatim(
+                                  '$total',
+                                  style: AppTypography.screenTitle.copyWith(
+                                    fontSize: 20,
+                                    height: 1,
+                                    color: AppColors.pearlWhite,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                UiText('min', style: AppTypography.caption.copyWith(fontSize: 10, height: 1)),
+                              ],
                             ),
-                            const SizedBox(height: 2),
-                            UiText('min', style: AppTypography.caption.copyWith(fontSize: 10, height: 1)),
-                          ],
+                          ),
                         ),
                       ),
                     ],
@@ -413,7 +422,8 @@ class CallOutlineButton extends StatelessWidget {
               Icon(icon, size: 16, color: color),
               const SizedBox(width: AppDimensions.space6),
             ],
-            Flexible(child: UiText(label, style: AppTypography.caption.copyWith(color: color, fontWeight: FontWeight.w600))),
+            Flexible(
+                child: UiText(label, style: AppTypography.caption.copyWith(color: color, fontWeight: FontWeight.w600))),
           ],
         ),
       ),
@@ -658,7 +668,8 @@ class _CallPlanCardState extends State<CallPlanCard> {
                   ),
                   const SizedBox(width: AppDimensions.space8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppDimensions.space10, vertical: AppDimensions.space4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppDimensions.space10, vertical: AppDimensions.space4),
                     decoration: BoxDecoration(
                       color: callable ? AppColors.goldGlow : AppColors.surfaceGlassHover,
                       borderRadius: BorderRadius.circular(AppDimensions.radiusChip),
@@ -833,6 +844,10 @@ String callRowDetail(BuildContext context, CallLogEntry entry) {
   return parts.join(' · ');
 }
 
+/// From this text size on (Android's "Large" font and up) a history row puts
+/// the time under the name.
+const callRowLargeTextScale = 1.3;
+
 class CallRowTile extends StatelessWidget {
   const CallRowTile({
     super.key,
@@ -859,6 +874,10 @@ class CallRowTile extends StatelessWidget {
     final detail = callRowDetail(context, entry);
     final title = row.count > 1 ? '$name (${row.count})' : name;
     final rtl = Directionality.of(context) == TextDirection.rtl;
+    // With large text the time moves under the name, so the name keeps the
+    // row's width instead of breaking mid-word (gate 13: largest font).
+    final largeText = MediaQuery.textScalerOf(context).scale(1) >= callRowLargeTextScale;
+    final timeText = UiText.verbatim(time, style: AppTypography.caption.copyWith(color: AppColors.slateMist));
 
     final tile = Semantics(
       button: true,
@@ -903,16 +922,22 @@ class CallRowTile extends StatelessWidget {
                       const SizedBox(height: 3),
                       UiText.verbatim(
                         detail,
-                        maxLines: 2,
+                        maxLines: largeText ? 3 : 2,
                         style: AppTypography.caption.copyWith(
                           color: missed ? AppColors.softCoral.withValues(alpha: .85) : AppColors.slateMist,
                         ),
                       ),
+                      if (largeText) ...[
+                        const SizedBox(height: 3),
+                        timeText,
+                      ],
                     ],
                   ),
                 ),
-                const SizedBox(width: AppDimensions.space8),
-                UiText.verbatim(time, style: AppTypography.caption.copyWith(color: AppColors.slateMist)),
+                if (!largeText) ...[
+                  const SizedBox(width: AppDimensions.space8),
+                  timeText,
+                ],
                 if (onCallBack != null)
                   SilarahPressable(
                     semanticLabel: context.uiCopy('Call back'),
