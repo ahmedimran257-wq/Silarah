@@ -135,9 +135,37 @@ Future<void> startCallFromChat(
   );
 }
 
+// A call being placed from a tap: the guide, the microphone, the server and
+// opening the call screen. A second tap meanwhile is the same call.
+bool _placingCall = false;
+
 /// Places a call and explains every outcome the server can give. Used by
 /// the chat header and the Calls tab; the server decides who may call.
 Future<void> placeCall(
+  BuildContext context, {
+  required String matchId,
+  required String name,
+  String? photoUrl,
+  String? otherUserId,
+  VoidCallback? onUnavailable,
+}) async {
+  if (_placingCall) return;
+  _placingCall = true;
+  try {
+    await _placeCall(
+      context,
+      matchId: matchId,
+      name: name,
+      photoUrl: photoUrl,
+      otherUserId: otherUserId,
+      onUnavailable: onUnavailable,
+    );
+  } finally {
+    _placingCall = false;
+  }
+}
+
+Future<void> _placeCall(
   BuildContext context, {
   required String matchId,
   required String name,

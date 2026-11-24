@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -308,6 +309,34 @@ void main() {
       await controller.startOutgoing(toMatchId: 'm', name: 'A');
       final second = await controller.startOutgoing(toMatchId: 'n', name: 'B');
       expect(second.outcome, CallStartOutcome.busySelf);
+      await controller.hangUp();
+    });
+
+    test('a second tap while the server is still answering the first rings once', () async {
+      final calls = <Map<String, Object?>>[];
+      final answer = Completer<Map<String, dynamic>>();
+      final controller = CallController(
+        api: CallApi(
+          invoke: (body) {
+            calls.add(body);
+            return body['action'] == 'start' ? answer.future : Future.value({'outcome': 'cancelled'});
+          },
+          rpc: (_, __) async => null,
+        ),
+      );
+      final first = controller.startOutgoing(toMatchId: 'm', name: 'Aisha');
+      final second = await controller.startOutgoing(toMatchId: 'm', name: 'Aisha');
+      expect(second.outcome, CallStartOutcome.busySelf);
+      answer.complete({
+        'outcome': 'ringing',
+        'request_id': 'r1',
+        'ring_expires_at': DateTime.now().add(const Duration(seconds: 30)).toIso8601String(),
+      });
+      expect((await first).outcome, CallStartOutcome.ringing);
+      // The first call goes on ringing: never cancelled, never asked twice.
+      expect(calls.map((c) => c['action']), ['start']);
+      expect(controller.phase, CallPhase.outgoing);
+      expect(controller.requestId, 'r1');
       await controller.hangUp();
     });
   });

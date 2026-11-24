@@ -146,6 +146,10 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
   int _shownMinutesLeft = -1;
   StreamSubscription<CallEvent>? _platformEvents;
 
+  // A call asked of the server that has no answer yet. Not [busy]: a ring
+  // that arrives meanwhile still takes over (startOutgoing cancels ours).
+  bool _starting = false;
+
   bool get busy => phase != CallPhase.idle && phase != CallPhase.ended;
   bool get holdWasFull => holdMinutes >= 60;
 
@@ -188,9 +192,18 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     required String name,
     String? toUserId,
   }) async {
-    if (busy) return const CallStartResult(CallStartOutcome.busySelf);
+    // One call at a time, from the moment it is asked for: while the server
+    // is still answering, another start would ring the other member a
+    // second time and drop the first call.
+    if (busy || _starting) return const CallStartResult(CallStartOutcome.busySelf);
     final attempt = _begin();
-    final result = await _api.start(toMatchId);
+    _starting = true;
+    final CallStartResult result;
+    try {
+      result = await _api.start(toMatchId);
+    } finally {
+      _starting = false;
+    }
     if (!_current(attempt) || busy) {
       // Something else (an incoming call) took over while we asked.
       if (result.requestId != null && result.outcome == CallStartOutcome.ringing) {
