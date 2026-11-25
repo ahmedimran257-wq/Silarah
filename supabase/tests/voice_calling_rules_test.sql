@@ -307,10 +307,21 @@ BEGIN
   r := pg_temp.usr(w1, 'SELECT public.get_my_call_wallet()');
   PERFORM pg_temp.ok('free member: no included minutes, no packs', (r->>'can_buy_packs')::boolean = false
     AND (r->>'included_minutes')::int = 0, r::text);
+  -- 337: an older run's period is still open (used up); the refund must hit
+  -- the newest period, the one the refunded purchase paid for.
+  INSERT INTO private.call_included_periods(user_id, period_start, period_end, granted_minutes, used_minutes)
+  SELECT m3, cp.period_start - interval '3 days', cp.period_end - interval '3 days', 30, 30
+  FROM private.call_included_periods cp
+  WHERE cp.user_id = m3 AND cp.period_start <= now() AND cp.period_end > now()
+  ORDER BY cp.period_start DESC LIMIT 1;
   r := pg_temp.svc(format('SELECT public.call_service_forfeit_included(%L, %L)', m3, 'rf-1'));
   SELECT * INTO w FROM private.call_wallet_state(m3);
   PERFORM pg_temp.ok('Premium refund removes the period''s included minutes',
     (r->>'applied')::boolean AND w.included_remaining = 0, r::text);
+  PERFORM pg_temp.ok('the refund hits the newest open period, not an older used-up one',
+    (r->>'minutes')::int = -30
+    AND (SELECT forfeited_at IS NULL FROM private.call_included_periods
+         WHERE user_id = m3 AND used_minutes = 30 AND period_end > now()), r::text);
 
   -- ---- Member controls (spec 8) --------------------------------------------
   PERFORM pg_temp.reset_calls();
