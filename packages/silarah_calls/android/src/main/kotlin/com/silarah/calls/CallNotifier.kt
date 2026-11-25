@@ -6,6 +6,11 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.os.Build
@@ -13,6 +18,7 @@ import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
+import androidx.core.graphics.drawable.IconCompat
 
 /**
  * Call notifications (docs/voice_calling_spec.md 12.1–12.3). Texts arrive
@@ -102,6 +108,48 @@ internal object CallNotifier {
         return RING_ID_BASE + value % 99_999_999
     }
 
+    /**
+     * The status-bar icon of the ring and of a call in progress: a handset,
+     * as in WhatsApp, so Android's call chip shows a phone. Silarah's
+     * crescent shrinks there to a sliver that reads as "!" (seen on the
+     * OnePlus, 25 Nov 2026).
+     */
+    val callIcon: Int get() = R.drawable.silarah_calls_ic_call
+
+    /** The status-bar icon of a missed call. */
+    val missedCallIcon: Int get() = R.drawable.silarah_calls_ic_call_missed
+
+    /**
+     * The call person: their name and a picture, their initial on a round
+     * tile drawn here (no network). Android shows the picture in the call
+     * notification, and some phones (OxygenOS) in the status-bar call chip,
+     * which showed a "!" without one. WhatsApp always gives its call person
+     * a picture.
+     */
+    fun callPerson(name: String): Person =
+        Person.Builder().setName(name).setIcon(initialIcon(name)).setImportant(true).build()
+
+    private fun initialIcon(name: String): IconCompat {
+        val size = 128
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = AVATAR_COLOR }
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f, paint)
+        val initial = name.trim().take(1).uppercase()
+        if (initial.isNotEmpty()) {
+            paint.color = Color.WHITE
+            paint.textSize = size * 0.46f
+            paint.textAlign = Paint.Align.CENTER
+            paint.typeface = Typeface.DEFAULT_BOLD
+            canvas.drawText(initial, size / 2f, size / 2f - (paint.descent() + paint.ascent()) / 2f, paint)
+        }
+        return IconCompat.createWithBitmap(bitmap)
+    }
+
+    // Silarah's rose, readable under white.
+    private const val AVATAR_COLOR = 0xFF9C2F55.toInt()
+
+    /** Silarah's own icon, for its other notifications (plan reminders). */
     fun smallIcon(context: Context): Int {
         val id = context.resources.getIdentifier("ic_stat_silarah", "drawable", context.packageName)
         return if (id != 0) id else context.applicationInfo.icon
@@ -191,16 +239,16 @@ internal object CallNotifier {
             endpoint = (args["declineEndpoint"] as? String).orEmpty(),
             apiKey = (args["apiKey"] as? String).orEmpty(),
         )
-        val person = Person.Builder().setName(name).setImportant(true).build()
+        val person = callPerson(name)
         // On a locked screen whose settings hide private content, Android
         // shows this version: no name.
         val publicVersion = NotificationCompat.Builder(context, CHANNEL_INCOMING)
-            .setSmallIcon(smallIcon(context))
+            .setSmallIcon(callIcon)
             .setContentTitle(publicTitle)
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .build()
         fun base() = NotificationCompat.Builder(context, CHANNEL_INCOMING)
-            .setSmallIcon(smallIcon(context))
+            .setSmallIcon(callIcon)
             .setContentTitle(title)
             .setContentText(body)
             .setCategory(NotificationCompat.CATEGORY_CALL)
@@ -340,11 +388,11 @@ internal object CallNotifier {
         val open = launchIntent(context, ACTION_OPEN_CALLS, payload, tag.hashCode()) ?: return
         val count = ((args["count"] as? Number)?.toInt() ?: 1).coerceAtLeast(1)
         val publicVersion = NotificationCompat.Builder(context, CHANNEL_MISSED)
-            .setSmallIcon(smallIcon(context))
+            .setSmallIcon(missedCallIcon)
             .setContentTitle((args["publicTitle"] as? String).orEmpty())
             .build()
         val notification = NotificationCompat.Builder(context, CHANNEL_MISSED)
-            .setSmallIcon(smallIcon(context))
+            .setSmallIcon(missedCallIcon)
             .setContentTitle((args["title"] as? String).orEmpty())
             .setContentText((args["body"] as? String).orEmpty())
             .setCategory(NotificationCompat.CATEGORY_MISSED_CALL)

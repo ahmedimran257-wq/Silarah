@@ -361,6 +361,26 @@ void main() {
     await tester.pump();
   });
 
+  // 9. 25 Nov 2026: during a call the OnePlus status-bar chip showed
+  //    Silarah's crescent shrunk to a sliver that read as "!". Like
+  //    WhatsApp, call notifications carry a handset, missed calls a
+  //    missed-call arrow.
+  test('the ring and the call show a handset in the status bar, a missed call its arrow', () {
+    const kotlin = 'packages/silarah_calls/android/src/main/kotlin/com/silarah/calls';
+    final notifier = File('$kotlin/CallNotifier.kt').readAsStringSync();
+    final service = File('$kotlin/CallService.kt').readAsStringSync();
+    final ring = notifier.substring(notifier.indexOf('fun showIncoming('), notifier.indexOf('private fun wakeScreenForRing'));
+    expect(RegExp(r'\.setSmallIcon\(callIcon\)').allMatches(ring).length, 2, reason: 'ring and its lock-screen version');
+    expect(ring, isNot(contains('smallIcon(context)')));
+    final missed = notifier.substring(notifier.indexOf('fun showMissed('), notifier.indexOf('fun showPlanReminder('));
+    expect(RegExp(r'\.setSmallIcon\(missedCallIcon\)').allMatches(missed).length, 2);
+    expect(service, contains('.setSmallIcon(CallNotifier.callIcon)'));
+    for (final icon in ['silarah_calls_ic_call', 'silarah_calls_ic_call_missed']) {
+      expect(File('packages/silarah_calls/android/src/main/res/drawable/$icon.xml').readAsStringSync(),
+          contains('android:fillColor="#FFFFFFFF"'), reason: '$icon: one colour, as Android draws it from alpha');
+    }
+  });
+
   // 5. With Silarah open, "Call time accepted" never reached the proposer's
   //    Calls tab: every notification type starting with call_ was routed to
   //    the call-push handler, which knows only the calling system's own

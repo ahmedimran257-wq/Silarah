@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.Person
 import androidx.core.app.ServiceCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -83,12 +82,12 @@ class CallService : Service() {
 
     private fun buildNotification(): Notification {
         CallNotifier.ensureChannels(this)
-        val person = Person.Builder().setName(state.name.ifEmpty { state.title }).setImportant(true).build()
+        val person = CallNotifier.callPerson(state.name.ifEmpty { state.title })
         val hangUp = CallActionReceiver.actionIntent(this, CallActionReceiver.ACTION_HANG_UP, 41_011)
         val mute = CallActionReceiver.actionIntent(this, CallActionReceiver.ACTION_TOGGLE_MUTE, 41_012)
         val open = CallNotifier.launchIntent(this, CallNotifier.ACTION_OPEN_CALL, null, 41_013)
         val builder = NotificationCompat.Builder(this, CallNotifier.CHANNEL_ONGOING)
-            .setSmallIcon(CallNotifier.smallIcon(this))
+            .setSmallIcon(CallNotifier.callIcon)
             .setContentTitle(state.name.ifEmpty { state.title })
             .setContentText(state.text)
             .setStyle(NotificationCompat.CallStyle.forOngoingCall(person, hangUp).setIsVideo(false))
