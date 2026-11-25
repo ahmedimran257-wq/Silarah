@@ -1,10 +1,10 @@
-# Voice calling — legal updates (DRAFT for the owner's approval)
+# Voice calling — legal updates (APPROVED by the owner, 25 Nov 2026; policy bundle 2.7.0)
 
-Status: **draft only.** `lib/core/legal/legal_documents.dart`, `site/` and the consent version are
-unchanged. After you approve this text, it goes into the app and the website as Privacy Policy 2.6.0,
-Refund Policy and Terms updates, in the same release that turns calling on, with renewed acceptance where
-required (the app already supports this: `call_settings.calling_consent_version`, spec 6.5). The Play
-Data safety form is submitted only after the new Privacy Policy is live.
+Status: **approved and applied** as policy bundle **2.7.0** (2.6.0 is the separate US/Canada bundle on
+`expansion/us-canada`). The text below is in `lib/core/legal/legal_documents.dart` and the `site/` pages, and
+migration 335 lets the server accept 2.7.0 consents. It reaches members only with the calling release
+(app + migrations + website deploy together). The Play Data safety form is submitted only after the new
+Privacy Policy is live.
 
 Each addition sits inside the existing policies, which already cover the DPDP Act legal bases (consent
 or a section 7 legitimate use), the IT Rules 2021 180-day preservation duty, the grievance officer and
@@ -19,7 +19,7 @@ like (Google refunds take minutes back; what a caller can learn; what is kept af
 
 ---
 
-## A. Privacy Policy 2.6.0 — changes
+## A. Privacy Policy 2.7.0 — changes
 
 ### 2. Data you provide — add
 
