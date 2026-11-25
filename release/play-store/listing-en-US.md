@@ -29,7 +29,7 @@ Muslim matrimony for nikah: find your rishta with private photos & wali mode
 
 Silarah is a Muslim matrimony and marriage app for single Muslims and their families in India who are looking for a life partner for nikah. Profiles are built around faith, family and marriage intentions, so every introduction starts serious and stays respectful.
 
-From Hyderabad and Lucknow to Mumbai, Delhi, Bengaluru and Kolkata, meet Muslim brides and grooms from every sect, community and mother tongue, Sunni or Shia, Urdu, Hindi, Telugu or Bengali speaking.
+From Hyderabad and Lucknow to Mumbai, Delhi, Bengaluru and Kolkata, meet Muslim brides and grooms for shaadi and nikah from every sect, community and mother tongue, Sunni or Shia, Urdu, Hindi, Telugu or Bengali speaking.
 
 Search for yourself, or create a matrimony profile for your son, daughter, brother or sister. Either way, you decide who sees your photos and who can talk to you.
 
@@ -52,6 +52,7 @@ SAFE AND RESPECTFUL BY DESIGN
 • Photos are safety-checked on your phone before they are published
 • Block or report anyone, at any time
 • Pause discovery whenever you need a break, or delete your account permanently
+• Share Silarah with family and friends, or rate it on Google Play, right from Settings
 • Premium Incognito Discovery hides you from general search while keeping your existing matches
 
 PREMIUM
