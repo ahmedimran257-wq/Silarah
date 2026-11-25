@@ -223,8 +223,10 @@ such charges anyway. It is the one case that is not Silarah's mistake but still 
 
 1. **Stream data processing agreement**: accept Stream's DPA in the Stream dashboard (free, part of their
    terms) and confirm the production app's region is India (Mumbai), as on staging.
-2. **Translated notices**: publish the calling sections in Hindi, Urdu and Bengali as well as English
-   (DPDP s.5(3)). I can prepare these from the approved English text.
+2. **Translated notices** (done): the calling, minute-pack and refund terms are in Hindi, Urdu and
+   Bengali in `lib/core/legal/legal_translations.dart`, shown on the policy screen above the English text
+   when the app is in that language (the English text prevails). A test fails if the English bundle
+   version moves without them.
 3. **Before May 2027 (DPDP Rule 8(3))**: change account deletion so call records are kept 1 year from
    the call (access-restricted) instead of being deleted at once. The policy wording above already
    allows this, so only the code changes then.
