@@ -12,7 +12,6 @@ class CallingRules {
     required this.includedPeriodDays,
     required this.maxCallMinutes,
     required this.ringSeconds,
-    required this.maxPackRefunds,
     required this.minMinutesToCall,
     required this.planMinLeadMinutes,
     required this.planMaxDaysAhead,
@@ -30,7 +29,6 @@ class CallingRules {
   final int includedPeriodDays;
   final int maxCallMinutes;
   final int ringSeconds;
-  final int maxPackRefunds;
   final int minMinutesToCall;
   final int planMinLeadMinutes;
   final int planMaxDaysAhead;
@@ -50,7 +48,6 @@ class CallingRules {
       includedPeriodDays: n('included_period_days'),
       maxCallMinutes: n('max_call_minutes'),
       ringSeconds: n('ring_seconds'),
-      maxPackRefunds: n('max_pack_refunds'),
       minMinutesToCall: n('min_minutes_to_call'),
       planMinLeadMinutes: n('plan_min_lead_minutes'),
       planMaxDaysAhead: n('plan_max_days_ahead'),
@@ -69,7 +66,6 @@ class CallingRules {
         'period_days': includedPeriodDays,
         'max_call': maxCallMinutes,
         'ring': ringSeconds,
-        'refunds': maxPackRefunds,
         'min_to_call': minMinutesToCall,
         'lead': planMinLeadMinutes,
         'days_ahead': planMaxDaysAhead,

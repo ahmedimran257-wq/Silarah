@@ -296,7 +296,11 @@ BEGIN
   r := pg_temp.svc(format('SELECT public.call_service_request(%L, %L)', m1, k_m1w1));
   PERFORM pg_temp.ok('negative balance blocks calling', r->>'outcome' = 'balance_negative', r::text);
   r := pg_temp.usr(m1, 'SELECT public.get_my_call_wallet()');
-  PERFORM pg_temp.ok('after 2 refunds packs cannot be bought', (r->>'can_buy_packs')::boolean = false, r::text);
+  -- 334: no purchase limit; a member below zero can always top up.
+  PERFORM pg_temp.ok('after 2 refunds a premium member can still top up', (r->>'can_buy_packs')::boolean, r::text);
+  PERFORM pg_temp.svc(format('SELECT public.call_service_credit_pack(%L,%L,%L,%L)', m1, 'e6', 'GPA.3', 'silarah_calls_20'));
+  SELECT * INTO w FROM private.call_wallet_state(m1);
+  PERFORM pg_temp.ok('a top-up pays back the refunded minutes first', w.pack_minutes = 5, w::text);
   r := pg_temp.usr(m3, 'SELECT public.get_my_call_wallet()');
   PERFORM pg_temp.ok('premium member can buy packs; 30 included', (r->>'can_buy_packs')::boolean
     AND (r->>'included_minutes')::int = 30 AND jsonb_array_length(r->'packs') = 4, r::text);

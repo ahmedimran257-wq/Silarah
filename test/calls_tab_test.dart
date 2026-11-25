@@ -41,7 +41,6 @@ CallingRules _rules({bool on = true, int limit = 3, int included = 30}) => Calli
       'included_period_days': 30,
       'max_call_minutes': 60,
       'ring_seconds': 30,
-      'max_pack_refunds': 2,
       'min_minutes_to_call': 1,
       'plan_min_lead_minutes': 10,
       'plan_max_days_ahead': 7,

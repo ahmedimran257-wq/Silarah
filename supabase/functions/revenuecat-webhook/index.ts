@@ -774,12 +774,12 @@ async function notifyPack(
     removed: {
       type: "call_minutes_refunded",
       title: "Call minutes removed",
-      body: `${count} call minutes were removed after a refund.`,
+      body: `${count} call minutes were removed because Google Play refunded your minute pack.`,
     },
     restored: {
       type: "call_minutes_added",
       title: "Call minutes restored",
-      body: `${count} call minutes were given back because the refund was reversed.`,
+      body: `${count} call minutes were given back because Google Play reversed the refund.`,
     },
   }[kind];
   const { error } = await supabase.rpc("queue_notification", {

@@ -39,7 +39,8 @@ const List<CallingGuideSection> callingGuideSections = [
       'Premium includes {included} call minutes every {period_days} days. Unused minutes do not carry over.',
       'Minute packs never expire, but you need Premium to use them.',
       'Only the caller\'s minutes are used, per started minute. A call lasts up to {max_call} minutes at a time.',
-      'If a pack is refunded, its minutes are removed. After {refunds} refunds, packs can no longer be bought.',
+      'Minute packs are non-refundable, except as set out in the Refund Policy.',
+      'If Google Play refunds a pack, its minutes are removed. If you had used them, add minutes before calling again.',
     ],
   ),
   (

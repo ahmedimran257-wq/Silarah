@@ -16,6 +16,7 @@ import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
 import '../../../l10n/ui_copy.dart';
+import '../../home/screens/legal_doc_screen.dart';
 import '../../home/screens/paywall_gate_screen.dart';
 import '../call_api.dart';
 import '../call_models.dart';
@@ -226,7 +227,7 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: AppDimensions.space8),
                         child: UiText(
-                          'Your pack balance is below zero after a refund. Add minutes to call again.',
+                          'Your pack balance is below zero because Google Play refunded a pack. Add minutes to call again.',
                           style: AppTypography.caption.copyWith(color: AppColors.expiryAmber),
                         ),
                       ),
@@ -235,15 +236,7 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
                           textAlign: TextAlign.center,
                           style: AppTypography.bodyMedium.copyWith(color: AppColors.verifiedTeal)),
                     const SizedBox(height: AppDimensions.space8),
-                    if (!wallet.canBuyPacks)
-                      // A Premium member who cannot buy: the refund limit.
-                      UiText.verbatim(
-                          context.uiCopyWith(
-                              'After {refunds} refunded packs, minute packs can no longer be bought on this account. Your included minutes still work.',
-                              {'refunds': CallsHub.instance.rules.value?.maxPackRefunds ?? 0}),
-                          textAlign: TextAlign.center,
-                          style: AppTypography.caption.copyWith(color: AppColors.slateMist))
-                    else
+                    if (wallet.canBuyPacks)
                       for (final pack in wallet.packs)
                         _PackTile(
                           minutes: pack.minutes,
@@ -256,6 +249,22 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
                     UiText("Calls need an active Premium plan. Only the caller's minutes are used; answering is always free.",
                         textAlign: TextAlign.center,
                         style: AppTypography.caption.copyWith(color: AppColors.slateMist)),
+                    // Shown before purchase (Consumer Protection E-Commerce
+                    // Rules): packs are non-refundable, with the policy a tap away.
+                    if (wallet.canBuyPacks) ...[
+                      const SizedBox(height: AppDimensions.space4),
+                      UiText('Minute packs are non-refundable, except as set out in the Refund Policy.',
+                          textAlign: TextAlign.center,
+                          style: AppTypography.caption.copyWith(color: AppColors.slateMist)),
+                      Center(
+                        child: TextButton(
+                          key: const ValueKey('call-packs-refund-policy'),
+                          onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => const LegalDocScreen(type: 'refund-policy'))),
+                          child: const UiText('Refund Policy'),
+                        ),
+                      ),
+                    ],
                   ],
                   if (_notice != null) ...[
                     const SizedBox(height: AppDimensions.space12),

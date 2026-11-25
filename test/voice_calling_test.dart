@@ -85,7 +85,8 @@ void main() {
         'pack_minutes': -15,
         'held_minutes': 0,
         'available_minutes': 0,
-        'can_buy_packs': false,
+        // 334: below zero, the member can still top up.
+        'can_buy_packs': true,
         'packs': [
           {'product_id': 'silarah_calls_20', 'minutes': 20},
           {'product_id': 'silarah_calls_350', 'minutes': 350},

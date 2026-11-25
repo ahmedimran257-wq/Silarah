@@ -106,8 +106,11 @@ privacy-safe names and missed calls.
 - Purchase → `NON_RENEWING_PURCHASE` webhook; server credits minutes. Dedupe on event `id` and unique
   store `transaction_id`. Minutes are never granted from the app.
 - Refund → `CANCELLATION` for a non-renewing product (separate path from subscriptions): remove the
-  minutes; balance may go negative and blocks calling until topped up; after 2 refunds the member can
-  no longer buy packs. Needs Google Real-Time Developer Notifications connected in RevenueCat.
+  minutes; balance may go negative and blocks calling until topped up (the next pack makes up the
+  difference first). No purchase limit (334): a Premium member can always top up, so a refund never
+  leaves a dead end; the refund count is kept for records and safety review. Silarah itself refunds only
+  its own mistakes (Refund Policy). Needs Google Real-Time Developer Notifications connected in
+  RevenueCat.
 - Premium refunded → that period's included minutes removed.
 - Pack product IDs added to the webhook allow-list.
 
@@ -437,7 +440,7 @@ reads are bounded pages.
   is open, the tab disappears and `/calls` links land on Chats; a call already live ends by the server's
   rules (section 4.5). Turning it on shows everything again on the next refresh or resume.
 - **One source of numbers.** Unanswered-call limit, included minutes and period, longest call, ring
-  time, refund limit, minimum minutes to call, planned-call lead / horizon / window / reminder / limits
+  time, minimum minutes to call, planned-call lead / horizon / window / reminder / limits
   and log retention all live in `private.call_settings`; copy uses placeholders, never fixed numbers.
 - **"How calling works"** is shown once before a member's first call and from the Calls tab (ⓘ), the
   minutes sheet, call settings and Help: who can call whom, minutes (included, packs, per started
@@ -445,7 +448,7 @@ reads are bounded pages.
   call rule in plain words, reporting, no recording, Guardian sees times only, planned calls.
 - **Explained where it applies**, never a code: the unanswered-call limit (the number and when they can
   call again), Premium needed (calls paywall), minutes out (packs sheet) and warnings in the call,
-  callee not taking calls (neutral), negative balance after a refund, the refund purchase limit, Calls
+  callee not taking calls (neutral), negative balance after a Google Play refund, packs non-refundable (before purchase), Calls
   off (what callers see), notifications off (Calls tab prompt), planned call expired ("Missed scheduled
   call"), calling paused (switch or brake).
 - **Premium screen** lists private voice calls with the included minutes for men and women (women: they

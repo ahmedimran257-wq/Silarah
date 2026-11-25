@@ -29,7 +29,6 @@ Map<String, Object?> _rules() => {
       'included_period_days': 30,
       'max_call_minutes': 60,
       'ring_seconds': 30,
-      'max_pack_refunds': 2,
       'min_minutes_to_call': 1,
     };
 

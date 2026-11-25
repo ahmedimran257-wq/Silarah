@@ -273,7 +273,7 @@ class CallMinutesCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       UiText.verbatim(
                         negative
-                            ? context.uiCopy('Top up to call again: a refund took more minutes than you had.')
+                            ? context.uiCopy('Top up to call again: a Google Play refund removed more minutes than you had.')
                             : context.uiCopyWith('{minutes} pack minutes', {'minutes': overview.packMinutes}),
                         style: AppTypography.caption.copyWith(
                           color: negative ? AppColors.softCoral : AppColors.slateMist,

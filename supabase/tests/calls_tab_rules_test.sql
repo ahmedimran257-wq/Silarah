@@ -567,7 +567,7 @@ BEGIN
   PERFORM pg_temp.ok('rules RPC carries the server numbers',
     (r->>'unanswered_call_limit')::int = 4 AND (r->>'included_minutes')::int = 45
     AND (r->>'max_call_minutes')::int = 60 AND (r->>'ring_seconds')::int = 30
-    AND (r->>'max_pack_refunds')::int = 2 AND (r->>'plan_window_minutes')::int = 30
+    AND NOT r ? 'max_pack_refunds' AND (r->>'plan_window_minutes')::int = 30
     AND (r->>'log_retention_months')::int = 12 AND r ? 'calls_enabled', r::text);
   UPDATE private.call_settings SET unanswered_call_limit = 3, included_minutes = 30;
   r := pg_temp.usr(NULL, 'SELECT public.get_calling_rules()');
