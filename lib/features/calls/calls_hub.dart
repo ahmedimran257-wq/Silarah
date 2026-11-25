@@ -119,7 +119,12 @@ class CallsHub extends ChangeNotifier with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _active) {
-      unawaited(refresh());
+      // Calls may have come while Silarah was in the background, where a
+      // missed call's push is handled outside the app: the overview, the
+      // Calls tab's history and an open chat all reload (one signal; this
+      // hub refreshes on it), so the list is current when the member comes
+      // back, as in WhatsApp. Before, only the badge was (25 Nov 2026).
+      CallController.historyChanged();
       if (_member) unawaited(reportRingCapability());
     }
   }

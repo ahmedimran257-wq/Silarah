@@ -344,6 +344,23 @@ void main() {
     });
   });
 
+  // 8. 25 Nov 2026: a missed call that came while Silarah was in the
+  //    background showed in the badge and the Missed filter, but the Calls
+  //    tab's list stayed as it was when the member came back.
+  testWidgets('coming back to Silarah reloads the call history, not only the badge', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final hub = CallsHub(api: CallApi(invoke: (_) async => const {}, rpc: (_, __) async => null));
+    await hub.start();
+    addTearDown(hub.stop);
+    final before = CallController.historyVersion.value;
+    hub.didChangeAppLifecycleState(AppLifecycleState.resumed);
+    expect(CallController.historyVersion.value, before + 1,
+        reason: 'the history, open chats and this overview reload on one signal');
+    hub.didChangeAppLifecycleState(AppLifecycleState.paused);
+    expect(CallController.historyVersion.value, before + 1, reason: 'only on coming back');
+    await tester.pump();
+  });
+
   // 5. With Silarah open, "Call time accepted" never reached the proposer's
   //    Calls tab: every notification type starting with call_ was routed to
   //    the call-push handler, which knows only the calling system's own
