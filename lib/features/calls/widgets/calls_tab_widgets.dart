@@ -1049,47 +1049,249 @@ class CallDayHeader extends StatelessWidget {
   }
 }
 
-/// Loading placeholder shaped like the real rows.
+/// Loading placeholder shaped like the real rows, in Silarah's premium
+/// placeholder motion (the same breathing as Discover's profile card, never a
+/// light sweeping across the list). Each row is a little quieter than the one
+/// above, so the list fades out instead of ending in a hard edge; the gold
+/// mark sits where each row's call button will be.
 class CallsListSkeleton extends StatelessWidget {
-  const CallsListSkeleton({super.key});
+  const CallsListSkeleton({super.key, this.rows = 5});
+
+  final int rows;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       label: context.uiCopy('Loading calls'),
-      child: SilarahShimmer(
-        child: Column(
-          children: [
-            for (var i = 0; i < 5; i++)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppDimensions.space8),
-                child: Container(
-                  padding: const EdgeInsets.all(AppDimensions.space14),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceGlass,
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusCard - 6),
-                    border: Border.all(color: AppColors.cardBorder),
-                  ),
-                  child: Row(
-                    children: [
-                      const ShimmerBox(width: 48, height: 48, radius: 24),
-                      const SizedBox(width: AppDimensions.space12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ShimmerBox(width: 90.0 + (i % 3) * 30, height: 13),
-                            const SizedBox(height: AppDimensions.space8),
-                            ShimmerBox(width: 140.0 - (i % 2) * 30, height: 11),
-                          ],
-                        ),
-                      ),
-                      const ShimmerBox(width: 40, height: 11),
-                    ],
+      liveRegion: true,
+      child: ExcludeSemantics(
+        child: SilarahBreathing(
+          builder: (context, pulse) => Column(
+            children: [
+              for (var i = 0; i < rows; i++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppDimensions.space8),
+                  child: Opacity(
+                    opacity: 1 - i * .14,
+                    child: _CallRowPlaceholder(index: i, pulse: pulse),
                   ),
                 ),
-              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One row of [CallsListSkeleton], the size and frame of [CallRowTile].
+class _CallRowPlaceholder extends StatelessWidget {
+  const _CallRowPlaceholder({required this.index, required this.pulse});
+
+  final int index;
+  final double pulse;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGlass,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusCard - 6),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        AppDimensions.space14,
+        AppDimensions.space12,
+        AppDimensions.space8,
+        AppDimensions.space12,
+      ),
+      child: Row(
+        children: [
+          _PlaceholderAvatar(size: 48, pulse: pulse),
+          const SizedBox(width: AppDimensions.space12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SilarahLoaderBar(width: 96.0 + (index % 3) * 26, height: 13, opacity: .30 + pulse * .08),
+                const SizedBox(height: AppDimensions.space8),
+                SilarahLoaderBar(width: 132.0 - (index % 2) * 28, height: 10, opacity: .20 + pulse * .07),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppDimensions.space8),
+          SilarahLoaderBar(width: 40, height: 10, opacity: .20 + pulse * .07),
+          SizedBox(
+            width: AppDimensions.minTouchTarget,
+            height: AppDimensions.minTouchTarget,
+            child: Center(child: _GoldMark(pulse: pulse)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A round avatar placeholder with the faint gold ring of the real avatar.
+class _PlaceholderAvatar extends StatelessWidget {
+  const _PlaceholderAvatar({required this.size, required this.pulse});
+
+  final double size;
+  final double pulse;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.slateMist.withValues(alpha: .16 + pulse * .06),
+          border: Border.all(color: AppColors.champagneGold.withValues(alpha: .12 + pulse * .10)),
+        ),
+      );
+}
+
+/// The small glowing gold point of Silarah's placeholders (Discover's
+/// focal mark), standing in for a gold control that is on its way.
+class _GoldMark extends StatelessWidget {
+  const _GoldMark({required this.pulse});
+
+  final double pulse;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: 7,
+        height: 7,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.champagneGold.withValues(alpha: .40 + pulse * .34),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.champagneGold.withValues(alpha: .06 + pulse * .08),
+              blurRadius: 10,
+              spreadRadius: 2,
+            ),
           ],
+        ),
+      );
+}
+
+/// The minutes card while the overview loads: the card's own frame and gold
+/// border, the minutes ring as a breathing gold outline, and the button.
+class CallMinutesCardPlaceholder extends StatelessWidget {
+  const CallMinutesCardPlaceholder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ExcludeSemantics(
+      child: SilarahBreathing(
+        builder: (context, pulse) => Container(
+          padding: const EdgeInsets.all(AppDimensions.space16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppDimensions.radiusCard),
+            gradient: LinearGradient(
+              begin: AlignmentDirectional.topStart,
+              end: AlignmentDirectional.bottomEnd,
+              colors: [AppColors.surfacePanelTop, AppColors.surfaceGlass],
+            ),
+            border: Border.all(color: AppColors.goldBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        width: 4,
+                        color: AppColors.champagneGold.withValues(alpha: .14 + pulse * .14),
+                      ),
+                    ),
+                    child: _GoldMark(pulse: pulse),
+                  ),
+                  const SizedBox(width: AppDimensions.space16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SilarahLoaderBar(width: 118, height: 15, opacity: .30 + pulse * .08),
+                        const SizedBox(height: AppDimensions.space10),
+                        SilarahLoaderBar(width: 172, height: 10, opacity: .20 + pulse * .07),
+                        const SizedBox(height: AppDimensions.space8),
+                        SilarahLoaderBar(width: 136, height: 10, opacity: .18 + pulse * .07),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppDimensions.space16),
+              Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.champagneGold.withValues(alpha: .08 + pulse * .06),
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
+                  border: Border.all(color: AppColors.champagneGold.withValues(alpha: .12 + pulse * .08)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The call list in a member's details sheet while it loads: the sheet's
+/// card with attempt rows (direction mark, result, date), breathing.
+class CallAttemptsPlaceholder extends StatelessWidget {
+  const CallAttemptsPlaceholder({super.key, this.rows = 3});
+
+  final int rows;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: context.uiCopy('Loading calls'),
+      liveRegion: true,
+      child: ExcludeSemantics(
+        child: SilarahBreathing(
+          builder: (context, pulse) => Container(
+            decoration: BoxDecoration(
+              color: AppColors.surfaceGlass,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: Column(
+              children: [
+                for (var i = 0; i < rows; i++) ...[
+                  if (i > 0) Divider(height: 1, color: AppColors.divider),
+                  Opacity(
+                    opacity: 1 - i * .18,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.space14,
+                        vertical: AppDimensions.space14,
+                      ),
+                      child: Row(
+                        children: [
+                          _GoldMark(pulse: pulse),
+                          const SizedBox(width: AppDimensions.space16),
+                          SilarahLoaderBar(width: 92.0 + (i % 2) * 24, height: 12, opacity: .28 + pulse * .08),
+                          const Spacer(),
+                          SilarahLoaderBar(width: 104, height: 10, opacity: .18 + pulse * .07),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );

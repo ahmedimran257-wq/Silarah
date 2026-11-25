@@ -240,9 +240,7 @@ class _CallsTabScreenState extends State<CallsTabScreen> {
                               ],
                             ],
                           ] else
-                            const SilarahShimmer(
-                              child: ShimmerBox(width: double.infinity, height: 112, radius: AppDimensions.radiusCard),
-                            ),
+                            const CallMinutesCardPlaceholder(),
                           const SizedBox(height: AppDimensions.space16),
                         ],
                       ),

@@ -15,7 +15,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/buttons/silarah_pressable.dart';
-import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
 import '../../home/screens/chat_screen.dart';
 import '../../home/screens/paywall_gate_screen.dart';
@@ -284,7 +283,7 @@ class _CallDetailsSheetState extends State<_CallDetailsSheet> {
               UiText('Calls', style: AppTypography.sectionLabel.copyWith(color: AppColors.slateMist)),
               const SizedBox(height: AppDimensions.space8),
               if (_loading)
-                const SilarahShimmer(child: ShimmerBox(width: double.infinity, height: 120, radius: 16))
+                const CallAttemptsPlaceholder()
               else
                 Container(
                   decoration: BoxDecoration(

@@ -142,7 +142,7 @@ class _CallingGuideSheetState extends State<_CallingGuideSheet> {
           child: ConstrainedBox(
             constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * .62),
             child: rules == null
-                ? const SilarahShimmer(child: ShimmerBox(width: double.infinity, height: 220, radius: 16))
+                ? const _GuidePlaceholder()
                 : ListView(
                     shrinkWrap: true,
                     children: [
@@ -153,6 +153,67 @@ class _CallingGuideSheetState extends State<_CallingGuideSheet> {
           ),
         );
       },
+    );
+  }
+}
+
+/// The guide while the rules load: its sections' gold icon circles and
+/// lines, in Silarah's breathing placeholder motion.
+class _GuidePlaceholder extends StatelessWidget {
+  const _GuidePlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: context.uiCopy('Loading'),
+      liveRegion: true,
+      child: ExcludeSemantics(
+        child: SilarahBreathing(
+          builder: (context, pulse) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < 4; i++)
+                Opacity(
+                  opacity: 1 - i * .16,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: AppDimensions.space16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.goldGlow,
+                            border: Border.all(color: AppColors.champagneGold.withValues(alpha: .10 + pulse * .12)),
+                          ),
+                        ),
+                        const SizedBox(width: AppDimensions.space12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SilarahLoaderBar(width: 120.0 + (i % 2) * 30, height: 13, opacity: .30 + pulse * .08),
+                              const SizedBox(height: AppDimensions.space8),
+                              FractionallySizedBox(
+                                widthFactor: .92,
+                                alignment: AlignmentDirectional.centerStart,
+                                child: SilarahLoaderBar(width: double.infinity, height: 10, opacity: .20 + pulse * .07),
+                              ),
+                              const SizedBox(height: AppDimensions.space6),
+                              SilarahLoaderBar(width: 150.0 - (i % 3) * 24, height: 10, opacity: .18 + pulse * .07),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
