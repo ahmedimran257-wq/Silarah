@@ -15,6 +15,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:silarah_calls/silarah_calls.dart';
 
@@ -323,7 +324,58 @@ class CallNotifications {
       return null;
     }
     await showIncoming(push);
+    _sendReceipt(push);
     return push;
+  }
+
+  // Receipts still on their way. The FCM background handler waits for them:
+  // Android may stop Silarah as soon as it returns. The open app does not,
+  // so its call screen never waits for the network.
+  static final Set<Future<void>> _receipts = {};
+
+  /// Every ring receipt sent from this isolate has finished.
+  static Future<void> receiptsSent() => Future.wait(_receipts.toList());
+
+  /// Where receipts go; a test sets it (builds without a server have none).
+  @visibleForTesting
+  static String? receiptEndpoint;
+
+  /// How a receipt reaches the server; a test replaces it.
+  @visibleForTesting
+  static Future<int> Function(Uri url, Map<String, String> headers, String body) post =
+      (url, headers, body) async =>
+          (await http.post(url, headers: headers, body: body).timeout(const Duration(seconds: 8))).statusCode;
+
+  static void _sendReceipt(IncomingCallPush push) {
+    final receipt = _ringDelivered(push);
+    _receipts.add(receipt);
+    unawaited(receipt.whenComplete(() => _receipts.remove(receipt)));
+  }
+
+  /// Tells the server this phone shows the ring: the caller's screen turns
+  /// "Calling…" into "Ringing…", and only a ring that arrived counts towards
+  /// the unanswered-call limit (migration 332). Proven with the ring's own
+  /// token, like the notification's Decline, so it works with no session.
+  /// One retry: a phone that just got the push has a connection.
+  static Future<void> _ringDelivered(IncomingCallPush push) async {
+    final endpoint = receiptEndpoint ??
+        (AppConfig.supabaseUrl.isEmpty ? '' : '${AppConfig.supabaseUrl}/functions/v1/calls');
+    if (endpoint.isEmpty || push.declineToken.isEmpty) return;
+    final url = Uri.parse(endpoint);
+    final headers = {'Content-Type': 'application/json', 'apikey': AppConfig.supabaseAnonKey};
+    final body = jsonEncode({
+      'action': 'ring_delivered',
+      'request_id': push.requestId,
+      'token': push.declineToken,
+    });
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        if (await post(url, headers, body) == 200) return;
+      } catch (error) {
+        debugPrint('[CallNotifications] ring receipt not sent: $error');
+      }
+      if (attempt == 0) await Future<void>.delayed(const Duration(seconds: 2));
+    }
   }
 
   static Future<bool> _ringEnded(String requestId) async {

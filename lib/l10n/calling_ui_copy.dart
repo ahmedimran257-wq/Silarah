@@ -2,6 +2,8 @@
 // Generated from one table so every language has every line; keep the
 // {placeholders} exactly as in English.
 
+import 'digits.dart';
+
 const Map<String, Map<String, String>> callingUiCopy = {
   'ar': {
     'A Silarah member': 'عضو في Silarah',
@@ -74,6 +76,8 @@ const Map<String, Map<String, String>> callingUiCopy = {
     'Report': 'إبلاغ',
     'Ring': 'رنين',
     'Ringing…': 'جارٍ الرنين…',
+    'Calling…': 'جارٍ الاتصال…',
+    "Couldn't reach their phone. It may be offline.": "تعذّر الوصول إلى الهاتف الآخر. ربما يكون غير متصل بالإنترنت.",
     'See Premium': 'عرض Premium',
     'Show incoming calls on the lock screen': 'إظهار المكالمات الواردة على شاشة القفل',
     'Silarah uses your microphone only during a call you start or answer. Calls are never recorded.': 'تستخدم Silarah الميكروفون فقط أثناء مكالمة تبدؤها أو ترد عليها. لا تُسجَّل المكالمات أبدًا.',
@@ -332,6 +336,8 @@ const Map<String, Map<String, String>> callingUiCopy = {
     'Report': 'রিপোর্ট',
     'Ring': 'রিং',
     'Ringing…': 'রিং হচ্ছে…',
+    'Calling…': 'কল করা হচ্ছে…',
+    "Couldn't reach their phone. It may be offline.": "অন্য ফোনে পৌঁছানো যায়নি। সম্ভবত সেটি অফলাইনে আছে।",
     'See Premium': 'Premium দেখুন',
     'Show incoming calls on the lock screen': 'লক স্ক্রিনে ইনকামিং কল দেখান',
     'Silarah uses your microphone only during a call you start or answer. Calls are never recorded.': 'Silarah শুধু আপনার শুরু করা বা ধরা কলের সময় মাইক্রোফোন ব্যবহার করে। কল কখনো রেকর্ড হয় না।',
@@ -590,6 +596,8 @@ const Map<String, Map<String, String>> callingUiCopy = {
     'Report': 'Melden',
     'Ring': 'Klingeln',
     'Ringing…': 'Es klingelt…',
+    'Calling…': 'Wird angerufen…',
+    "Couldn't reach their phone. It may be offline.": "Das andere Telefon war nicht erreichbar. Es ist vielleicht offline.",
     'See Premium': 'Premium ansehen',
     'Show incoming calls on the lock screen': 'Eingehende Anrufe auf dem Sperrbildschirm zeigen',
     'Silarah uses your microphone only during a call you start or answer. Calls are never recorded.': 'Silarah nutzt dein Mikrofon nur während eines Anrufs, den du startest oder annimmst. Anrufe werden nie aufgezeichnet.',
@@ -848,6 +856,8 @@ const Map<String, Map<String, String>> callingUiCopy = {
     'Report': 'Signaler',
     'Ring': 'Sonnerie',
     'Ringing…': 'Ça sonne…',
+    'Calling…': 'Appel en cours…',
+    "Couldn't reach their phone. It may be offline.": "L'autre téléphone est injoignable. Il est peut-être hors ligne.",
     'See Premium': 'Voir Premium',
     'Show incoming calls on the lock screen': 'Afficher les appels entrants sur l\'écran verrouillé',
     'Silarah uses your microphone only during a call you start or answer. Calls are never recorded.': 'Silarah utilise votre micro uniquement pendant un appel que vous passez ou acceptez. Les appels ne sont jamais enregistrés.',
@@ -1106,6 +1116,8 @@ const Map<String, Map<String, String>> callingUiCopy = {
     'Report': 'रिपोर्ट करें',
     'Ring': 'घंटी',
     'Ringing…': 'घंटी बज रही है…',
+    'Calling…': 'कॉल की जा रही है…',
+    "Couldn't reach their phone. It may be offline.": "दूसरे फ़ोन तक नहीं पहुँच सके। शायद वह ऑफ़लाइन है।",
     'See Premium': 'Premium देखें',
     'Show incoming calls on the lock screen': 'लॉक स्क्रीन पर इनकमिंग कॉल दिखाएँ',
     'Silarah uses your microphone only during a call you start or answer. Calls are never recorded.': 'Silarah आपका माइक्रोफ़ोन सिर्फ़ उस कॉल के दौरान इस्तेमाल करता है जो आप शुरू करते या उठाते हैं। कॉल कभी रिकॉर्ड नहीं होतीं।',
@@ -1364,6 +1376,8 @@ const Map<String, Map<String, String>> callingUiCopy = {
     'Report': 'Laporkan',
     'Ring': 'Berdering',
     'Ringing…': 'Berdering…',
+    'Calling…': 'Memanggil…',
+    "Couldn't reach their phone. It may be offline.": "Ponsel penerima tidak dapat dihubungi. Mungkin sedang offline.",
     'See Premium': 'Lihat Premium',
     'Show incoming calls on the lock screen': 'Tampilkan panggilan masuk di layar kunci',
     'Silarah uses your microphone only during a call you start or answer. Calls are never recorded.': 'Silarah memakai mikrofon Anda hanya selama panggilan yang Anda mulai atau jawab. Panggilan tidak pernah direkam.',
@@ -1622,6 +1636,8 @@ const Map<String, Map<String, String>> callingUiCopy = {
     'Report': 'Laporkan',
     'Ring': 'Berdering',
     'Ringing…': 'Berdering…',
+    'Calling…': 'Memanggil…',
+    "Couldn't reach their phone. It may be offline.": "Telefon penerima tidak dapat dihubungi. Mungkin sedang di luar talian.",
     'See Premium': 'Lihat Premium',
     'Show incoming calls on the lock screen': 'Paparkan panggilan masuk pada skrin kunci',
     'Silarah uses your microphone only during a call you start or answer. Calls are never recorded.': 'Silarah menggunakan mikrofon anda hanya semasa panggilan yang anda mulakan atau jawab. Panggilan tidak pernah dirakam.',
@@ -1880,6 +1896,8 @@ const Map<String, Map<String, String>> callingUiCopy = {
     'Report': 'Bildir',
     'Ring': 'Çal',
     'Ringing…': 'Çalıyor…',
+    'Calling…': 'Aranıyor…',
+    "Couldn't reach their phone. It may be offline.": "Diğer telefona ulaşılamadı. Çevrimdışı olabilir.",
     'See Premium': 'Premium\'u gör',
     'Show incoming calls on the lock screen': 'Gelen aramaları kilit ekranında göster',
     'Silarah uses your microphone only during a call you start or answer. Calls are never recorded.': 'Silarah mikrofonunuzu yalnızca başlattığınız veya yanıtladığınız bir arama sırasında kullanır. Aramalar asla kaydedilmez.',
@@ -2138,6 +2156,8 @@ const Map<String, Map<String, String>> callingUiCopy = {
     'Report': 'رپورٹ کریں',
     'Ring': 'گھنٹی',
     'Ringing…': 'گھنٹی بج رہی ہے…',
+    'Calling…': 'کال کی جا رہی ہے…',
+    "Couldn't reach their phone. It may be offline.": "دوسرے فون تک رسائی نہیں ہو سکی۔ شاید وہ آف لائن ہے۔",
     'See Premium': 'Premium دیکھیں',
     'Show incoming calls on the lock screen': 'لاک اسکرین پر آنے والی کالز دکھائیں',
     'Silarah uses your microphone only during a call you start or answer. Calls are never recorded.': 'Silarah آپ کا مائیکروفون صرف اس کال کے دوران استعمال کرتا ہے جو آپ شروع کریں یا اٹھائیں۔ کالز کبھی ریکارڈ نہیں ہوتیں۔',
@@ -2329,7 +2349,7 @@ const Map<String, Map<String, String>> callingUiCopy = {
 
 /// For places without a BuildContext (the background ring notification).
 String callingCopyFor(String languageCode, String source) =>
-    callingUiCopy[languageCode]?[source] ?? source;
+    localizeDigits(callingUiCopy[languageCode]?[source] ?? source, languageCode);
 
 /// The app's right-to-left languages.
 const rightToLeftLanguages = {'ar', 'ur'};
@@ -2352,5 +2372,5 @@ String callingCopyWith(String languageCode, String source, Map<String, Object> v
   values.forEach((name, value) {
     text = text.replaceAll('{$name}', rtl ? isolateBidi('$value') : '$value');
   });
-  return text;
+  return localizeDigits(text, languageCode);
 }

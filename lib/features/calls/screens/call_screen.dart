@@ -222,7 +222,7 @@ class _CallScreenState extends State<CallScreen> {
       };
 
   String _statusLine(BuildContext context) => switch (_call.phase) {
-        CallPhase.outgoing => context.uiCopy('Ringing…'),
+        CallPhase.outgoing => context.uiCopy(_call.outgoingStatus),
         CallPhase.incoming => context.uiCopy('Incoming call'),
         CallPhase.connecting => context.uiCopy('Connecting…'),
         CallPhase.active => _call.onHold

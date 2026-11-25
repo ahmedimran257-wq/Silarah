@@ -294,6 +294,56 @@ void main() {
     });
   });
 
+  // 7. Gate 3 (25 Nov 2026): after the caller added minutes, the callee's
+  //    phone still warned at the old time and hung up for both at the old
+  //    limit; only the caller's phone learned the new numbers.
+  group('added minutes reach the callee', () {
+    ({CallController call, List<String> asked}) live({required bool caller}) {
+      final asked = <String>[];
+      final call = CallController(
+        api: CallApi(
+          invoke: (body) async {
+            asked.add(body['action'].toString());
+            return {'outcome': 'active', 'hold_minutes': 60, 'max_duration_seconds': 3630};
+          },
+          rpc: (_, __) async => null,
+        ),
+      )
+        ..requestId = 'r1'
+        ..isCaller = caller
+        ..phase = CallPhase.active
+        ..holdMinutes = 30
+        ..maxDurationSeconds = 1830;
+      return (call: call, asked: asked);
+    }
+
+    testWidgets('the callee takes the new paid time and limit when Stream raises the limit', (tester) async {
+      final (:call, :asked) = live(caller: false);
+      call.streamLimitChanged(1806); // first seen, after both joined
+      expect(asked, isEmpty);
+      call.streamLimitChanged(3606); // the caller added minutes
+      await tester.pump();
+      expect(asked, ['status']);
+      expect(call.holdMinutes, 60);
+      expect(call.maxDurationSeconds, 3630);
+    });
+
+    testWidgets('a limit that shrinks, or the caller\'s own phone, asks for nothing', (tester) async {
+      final callee = live(caller: false);
+      callee.call
+        ..streamLimitChanged(1830)
+        ..streamLimitChanged(1806); // tightened once both joined
+      final caller = live(caller: true);
+      caller.call
+        ..streamLimitChanged(1806)
+        ..streamLimitChanged(3606); // its own extend() already took the numbers
+      await tester.pump();
+      expect(callee.asked, isEmpty);
+      expect(caller.asked, isEmpty);
+      expect(callee.call.maxDurationSeconds, 1830);
+    });
+  });
+
   // 5. With Silarah open, "Call time accepted" never reached the proposer's
   //    Calls tab: every notification type starting with call_ was routed to
   //    the call-push handler, which knows only the calling system's own

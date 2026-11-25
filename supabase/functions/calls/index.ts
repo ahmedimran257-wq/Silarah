@@ -4,7 +4,8 @@
 // POST { action, ... } with the member's Supabase access token, except
 // `decline_token`, which the incoming-call notification's Decline button
 // sends without a session (it proves itself with a single-use token that
-// reached only the callee's own devices).
+// reached only the callee's own devices), and `ring_delivered`, the ring's
+// receipt from the callee's phone, proven with the same token.
 //
 //   start         { match_id }                -> ring the other member
 //   status        { request_id }              -> ringing / connecting / active / ended
@@ -13,9 +14,10 @@
 //   end           { request_id, reason }      -> cancel / decline / hang up
 //   extend        { request_id }              -> add minutes to a live call (caller)
 //   decline_token { request_id, token }       -> Decline from the notification
+//   ring_delivered { request_id, token }      -> the callee's phone shows the ring
 //
-// Deployed with --no-verify-jwt; every action except decline_token checks
-// the access token itself through Supabase Auth.
+// Deployed with --no-verify-jwt; every action except decline_token and
+// ring_delivered checks the access token itself through Supabase Auth.
 import { createClient } from "@supabase/supabase-js";
 import { corsHeaders } from "../_shared/cors.ts";
 import { consumeDistributedRateLimit } from "../_shared/distributed_rate_limit.ts";
@@ -101,6 +103,28 @@ Deno.serve(async (req) => {
       if (result.outcome === "declined") {
         await signalDeclined(supabase, requestId, String(result.callee_id));
       }
+      return reply({ outcome: result.outcome });
+    }
+
+    // 332: the ring reached the callee's phone. The caller's screen turns
+    // "Calling…" into "Ringing…", and only a ring that arrived counts towards
+    // the unanswered-call limit. Sent with Silarah closed too, so no session.
+    if (action === "ring_delivered") {
+      const token = typeof body.token === "string" ? body.token : "";
+      if (!UUID.test(requestId) || !/^[0-9a-f]{48}$/.test(token)) {
+        return reply({ outcome: "not_found" });
+      }
+      const limit = await consumeDistributedRateLimit(supabase, {
+        scope: "call_ring_delivered",
+        subject: requestId,
+        maxRequests: 10,
+        windowSeconds: 600,
+      });
+      if (!limit.allowed) return reply({ outcome: "not_found" });
+      const result = await rpc<Record<string, unknown>>(supabase, "call_service_ring_delivered", {
+        p_request_id: requestId,
+        p_token: token,
+      });
       return reply({ outcome: result.outcome });
     }
 
@@ -221,6 +245,8 @@ async function join(
   if (info.outcome !== "active" || !withToken) {
     return reply({
       outcome: info.outcome,
+      // 332: whether the ring reached the callee's phone (caller's screen).
+      delivered: info.delivered ?? null,
       max_duration_seconds: info.max_duration_seconds ?? null,
       hold_minutes: info.hold_minutes ?? null,
       accepted_at: info.accepted_at ?? null,

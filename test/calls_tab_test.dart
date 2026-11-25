@@ -28,6 +28,7 @@ import 'package:silarah/features/calls/widgets/calls_tab_widgets.dart';
 import 'package:silarah/features/home/screens/subscription_screen.dart';
 import 'package:silarah/features/home/widgets/silarah_bottom_nav.dart';
 import 'package:silarah/l10n/calling_ui_copy.dart';
+import 'package:silarah/l10n/digits.dart';
 import 'package:silarah/l10n/ui_copy.dart';
 import 'package:silarah/l10n/generated/app_localizations.dart';
 
@@ -272,7 +273,7 @@ void main() {
           await tester.pump();
           expect(find.byIcon(Icons.call_outlined), findsOneWidget);
           final label = tester.widgetList<Text>(find.byType(Text)).map((t) => t.data ?? '').join('\n');
-          expect(label, contains('45'), reason: 'minutes come from the server');
+          expect(label, contains(localizeDigits('45', code)), reason: 'minutes come from the server');
           expect(tester.takeException(), isNull);
         });
       }

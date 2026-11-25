@@ -99,6 +99,8 @@ Future<void> silarahFirebaseMessagingBackgroundHandler(
     await CallNotifications.handlePushData(
       Map<String, dynamic>.from(message.data),
     );
+    // The ring's receipt (the caller's "Ringing…") before Android may stop us.
+    await CallNotifications.receiptsSent();
   }
 }
 

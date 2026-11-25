@@ -81,6 +81,8 @@ privacy-safe names and missed calls.
 - Stream's limit starts as hold + 30 s (connect allowance). When both members are in (migration 327)
   it becomes hold + the real connect time + 2 s, and "Add minutes" builds on that, so paid talk time is
   never longer than the hold, whatever the app does. The caller's phone also ends the call at 0.
+  "Add minutes" raises Stream's limit, which Stream sends to both phones; the callee's phone then reads
+  the new hold and limit from the server, so its countdown, warnings and backstop follow (gate 3).
 - Held minutes stay unavailable until the call is settled, so a missed webhook can never under-charge.
 - Settlement sources: Stream webhooks (`call.session_participant_joined` / `_left` with
   `duration_seconds`, `call.session_ended`, `call.ended`); fallback job reads Stream's call record for
@@ -195,6 +197,9 @@ privacy-safe names and missed calls.
   block calls from this person. Missed and refused calls show in the chat ("📞 tried to call you");
   free women get "Ask him to call back" (free message) and "Call back" (Premium paywall).
 - Harassment: 3 unanswered calls to the same person in 24 h → calling them blocked until the next day.
+  Only calls that reached her phone count (declined, or missed or cancelled after her phone showed the
+  ring), plus calls she refused by her settings (calls off, silent, quiet hours). A call to a phone with
+  its data off never counts (332, found on the phones 25 Nov 2026).
   Report from the call screen. No recording, ever.
 - Guardian mode: Guardian sees call time and length only; never blocks calls.
 - Call history in the chat and in the data export; deleted with the account.
@@ -308,6 +313,12 @@ vibration only); with Silarah closed, a ring opened the app's start-up instead o
 
 ### 12.2 Ring delivery
 
+0. Calling, then Ringing (WhatsApp model, 332). The callee's phone sends a receipt the moment it shows
+   the ring (open, in the background or closed), proven with the ring's own Decline token, so no
+   session is needed. The caller sees "Calling…" until the receipt arrives and "Ringing…" after, on the
+   call screen and the status-bar notification. A ring that runs out without a receipt ends as
+   "Couldn't reach their phone. It may be offline."; every other unanswered ending stays "Not
+   answered", so the caller never learns whether it was declined, silenced or refused.
 1. Ring, cancel and answered pushes are data-only, high priority, and live only as long as the ring
    (TTL = ring time, 30 s). A phone that comes online later never rings for an old call.
 2. Before ringing, the phone checks the ring is for the signed-in account and has not expired (on this

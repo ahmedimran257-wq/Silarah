@@ -70,6 +70,26 @@ class CallApi {
     return json['outcome']?.toString() ?? 'unknown';
   }
 
+  /// The caller's view of a ring: its state, and whether it reached the
+  /// other member's phone ("Calling…" until it did, "Ringing…" after).
+  Future<({String outcome, bool delivered})> ringStatus(String requestId) async {
+    final json = await _invoke({'action': 'status', 'request_id': requestId});
+    return (outcome: json['outcome']?.toString() ?? 'unknown', delivered: json['delivered'] == true);
+  }
+
+  /// A live call's paid minutes and time limit now: they grow when the
+  /// caller adds minutes.
+  Future<({String outcome, int? maxDurationSeconds, int? holdMinutes})> liveLimits(
+    String requestId,
+  ) async {
+    final json = await _invoke({'action': 'status', 'request_id': requestId});
+    return (
+      outcome: json['outcome']?.toString() ?? 'unknown',
+      maxDurationSeconds: (json['max_duration_seconds'] as num?)?.toInt(),
+      holdMinutes: (json['hold_minutes'] as num?)?.toInt(),
+    );
+  }
+
   Future<({String outcome, CallJoinInfo? info})> accept(
     String requestId, {
     String? deviceId,

@@ -34,6 +34,8 @@ abstract final class CallEndCopy {
   static const declined = 'Call declined';
   static const missed = 'Missed call';
   static const timeUp = 'Your call minutes ran out.';
+  // 332: the ring never reached the other phone (its data was off).
+  static const unreachable = "Couldn't reach their phone. It may be offline.";
 }
 
 /// Where the call's audio goes after the devices changed (spec 12.9), the
@@ -128,6 +130,10 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
   /// End of the ring on this phone's own clock.
   DateTime? ringEndsAt;
 
+  /// The caller's ring reached the other member's phone: "Calling…" until it
+  /// does, "Ringing…" after, like WhatsApp (332).
+  bool ringDelivered = false;
+
   int _attempt = 0;
   sv.StreamVideo? _client;
   sv.Call? _call;
@@ -138,6 +144,8 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
   Timer? _otherGoneTimer;
   Timer? _reconnectTimer;
   CallTimeWarning _lastWarning = CallTimeWarning.none;
+  // The call's time limit on Stream, as last seen on this phone.
+  int _streamLimitSeen = 0;
   bool _serviceWanted = false;
   bool _serviceRunning = false;
   bool _observing = false;
@@ -303,6 +311,13 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     return result;
   }
 
+  /// How an outgoing call that did not connect ends for the caller. A ring
+  /// that ran out without ever reaching the other phone says so (the screen
+  /// said "Calling…" all along); every other ending stays "Not answered", so
+  /// the caller is never told whether it was declined, silenced or refused.
+  String _unanswered(String outcome) =>
+      outcome == 'missed' && !ringDelivered ? CallEndCopy.unreachable : CallEndCopy.notAnswered;
+
   /// A push said the other side answered: check now instead of waiting.
   void nudge(String forRequestId) {
     if (forRequestId == requestId && phase == CallPhase.outgoing) unawaited(_poll(_attempt));
@@ -318,11 +333,17 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
       if (ends != null && DateTime.now().isAfter(ends.add(const Duration(seconds: 3)))) {
         _pollTimer?.cancel();
         await _api.end(id, reason: 'timeout');
-        if (_current(attempt)) await _finish(attempt, CallEndCopy.notAnswered);
+        if (_current(attempt)) await _finish(attempt, _unanswered('missed'));
         return;
       }
-      final status = await _api.status(id);
+      final ring = await _api.ringStatus(id);
+      final status = ring.outcome;
       if (!_current(attempt) || phase != CallPhase.outgoing) return;
+      if (ring.delivered && !ringDelivered) {
+        ringDelivered = true;
+        notifyListeners();
+        unawaited(_refreshOngoing(textChanged: true));
+      }
       switch (status) {
         case 'ringing':
         case 'connecting':
@@ -346,7 +367,7 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
           // declined, cancelled, missed, failed, unavailable, ended:
           // the caller is never told which.
           _pollTimer?.cancel();
-          await _finish(attempt, CallEndCopy.notAnswered);
+          await _finish(attempt, _unanswered(status));
       }
     } finally {
       _polling = false;
@@ -627,8 +648,40 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
         }
       });
     }
+    final streamLimit = state.settings.limits.maxDurationSeconds;
+    if (streamLimit != null) streamLimitChanged(streamLimit);
     // Audio levels change many times a second; only real changes redraw.
     if (changed) notifyListeners();
+  }
+
+  /// Stream's time limit for the call, seen on this phone. When the caller
+  /// adds minutes the server raises it and Stream tells both phones; the
+  /// callee then takes the new paid time and limit from the server. Before,
+  /// only the caller's phone learned them, and the callee's phone warned at
+  /// the old time and hung up for both at the old limit (gate 3, 25 Nov
+  /// 2026). The limit also shrinks once both have joined (paid time never
+  /// longer than the hold): that is not more time, so nothing to adopt.
+  @visibleForTesting
+  void streamLimitChanged(int seconds) {
+    final raised = _streamLimitSeen > 0 && seconds > _streamLimitSeen;
+    _streamLimitSeen = seconds;
+    if (raised && !isCaller && phase == CallPhase.active) unawaited(_adoptLiveLimits(_attempt));
+  }
+
+  Future<void> _adoptLiveLimits(int attempt) async {
+    final id = requestId;
+    if (id == null) return;
+    try {
+      final now = await _api.liveLimits(id);
+      if (!_current(attempt) || phase != CallPhase.active || now.outcome != 'active') return;
+      final hold = now.holdMinutes;
+      final limit = now.maxDurationSeconds;
+      if (hold != null && hold > holdMinutes) holdMinutes = hold;
+      if (limit != null && limit > maxDurationSeconds) maxDurationSeconds = limit;
+      notifyListeners();
+    } catch (error) {
+      debugPrint('[calls] the added minutes could not be read: $error');
+    }
   }
 
   void _onTick(int attempt) {
@@ -784,6 +837,9 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  /// The outgoing call's line on the call screen and the notification.
+  String get outgoingStatus => ringDelivered ? 'Ringing…' : 'Calling…';
+
   /// Minutes left as the ongoing notification shows them: the caller's only
   /// (the callee never pays), -1 when not shown.
   int _minutesLeftForNotice() =>
@@ -791,7 +847,7 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
 
   String _ongoingText(String code) {
     if (connectedAt == null) {
-      return callingCopyFor(code, phase == CallPhase.outgoing ? 'Ringing…' : 'Connecting…');
+      return callingCopyFor(code, phase == CallPhase.outgoing ? outgoingStatus : 'Connecting…');
     }
     final minutes = _minutesLeftForNotice();
     if (minutes < 0) return callingCopyFor(code, 'Silarah voice call');
@@ -799,10 +855,12 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Timer start, mute and minutes left on the ongoing notification.
-  Future<void> _refreshOngoing({bool connected = false}) async {
+  /// [textChanged]: its line changed without the minutes ("Calling…" to
+  /// "Ringing…").
+  Future<void> _refreshOngoing({bool connected = false, bool textChanged = false}) async {
     if (!_serviceRunning) return;
     final minutes = _minutesLeftForNotice();
-    if (!connected && minutes == _shownMinutesLeft) return;
+    if (!connected && !textChanged && minutes == _shownMinutesLeft) return;
     _shownMinutesLeft = minutes;
     final code = await CallNotifications.languageCode();
     await _platform.updateCall(
@@ -1001,11 +1059,13 @@ class CallController extends ChangeNotifier with WidgetsBindingObserver {
     routeNames = const {};
     availableRoutes = const {CallAudioRoute.earpiece, CallAudioRoute.speaker};
     _lastWarning = CallTimeWarning.none;
+    _streamLimitSeen = 0;
     connectedAt = null;
     maxDurationSeconds = 0;
     holdMinutes = 0;
     incoming = null;
     ringEndsAt = null;
+    ringDelivered = false;
     endedCopy = CallEndCopy.ended;
     screenShown = false;
     photoUrl = null;

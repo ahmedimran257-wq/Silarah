@@ -4,6 +4,7 @@ import 'package:silarah/l10n/generated/app_localizations.dart';
 import 'package:silarah/l10n/generated/app_localizations_en.dart';
 import 'package:silarah/l10n/billing_legal_ui_copy.dart';
 import 'package:silarah/l10n/calling_ui_copy.dart';
+import 'package:silarah/l10n/digits.dart';
 import 'package:silarah/l10n/discover_rank_ui_copy.dart';
 import 'package:silarah/l10n/legal_access_ui_copy.dart';
 import 'package:silarah/l10n/photo_guide_ui_copy.dart';
@@ -9850,9 +9851,12 @@ class UiText extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = _translate ? UiCopy.localize(context, data) : data;
     final direction = textDirection ?? Directionality.maybeOf(context);
+    // Decided on the text as written: Arabic digits are right-to-left
+    // characters and would change a Latin run's direction.
     final ltrRun = direction != null && needsLtrRun(text, direction);
+    final language = locale?.languageCode ?? Localizations.maybeLocaleOf(context)?.languageCode ?? '';
     return Text(
-      text,
+      localizeDigits(text, language),
       style: style,
       strutStyle: strutStyle,
       textAlign: ltrRun ? mirroredAlign(textAlign) : textAlign,
