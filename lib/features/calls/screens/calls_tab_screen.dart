@@ -19,6 +19,7 @@ import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import '../../../core/widgets/silarah_empty_state.dart';
 import '../../home/screens/paywall_gate_screen.dart';
 import '../call_api.dart';
+import '../call_pack_pending.dart';
 import '../call_log.dart';
 import '../call_log_controller.dart';
 import '../call_platform.dart';
@@ -54,6 +55,8 @@ class _CallsTabScreenState extends State<CallsTabScreen> {
   void initState() {
     super.initState();
     unawaited(_log.load().then((_) => _openInitialPeer()));
+    // A minute-pack payment still pending from earlier shows on the card.
+    unawaited(CallPackPending.instance.load());
   }
 
   @override
@@ -78,7 +81,7 @@ class _CallsTabScreenState extends State<CallsTabScreen> {
   }
 
   Future<void> _refresh() async {
-    await Future.wait([_hub.refresh(), _log.load(quiet: true)]);
+    await Future.wait([_hub.refresh(), _log.load(quiet: true), CallPackPending.instance.load()]);
   }
 
   Future<void> _openDetails(CallLogRow row) async {

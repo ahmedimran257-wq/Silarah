@@ -16,6 +16,7 @@ import '../../../core/widgets/loaders/silarah_blur_image.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import '../call_log.dart';
 import '../call_models.dart';
+import '../call_pack_pending.dart';
 
 String _locale(BuildContext context) => Localizations.localeOf(context).toLanguageTag();
 
@@ -278,6 +279,35 @@ class CallMinutesCard extends StatelessWidget {
                         style: AppTypography.caption.copyWith(
                           color: negative ? AppColors.softCoral : AppColors.slateMist,
                         ),
+                      ),
+                      // A pack payment Google Play has not confirmed yet
+                      // (UPI, slow card): shown until the minutes land.
+                      ValueListenableBuilder<PendingPackPayment?>(
+                        valueListenable: CallPackPending.instance.current,
+                        builder: (context, pending, _) {
+                          if (pending == null) return const SizedBox.shrink();
+                          if (overview.packMinutes > pending.balanceBefore) {
+                            WidgetsBinding.instance.addPostFrameCallback(
+                                (_) => CallPackPending.instance.settleWith(overview.packMinutes));
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            key: const ValueKey('call-minutes-payment-pending'),
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              children: [
+                                Icon(Icons.hourglass_top_rounded, size: 14, color: AppColors.expiryAmber),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: UiText.verbatim(
+                                    context.uiCopyWith('Payment pending · {minutes} minutes', {'minutes': pending.minutes}),
+                                    style: AppTypography.caption.copyWith(color: AppColors.expiryAmber),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),

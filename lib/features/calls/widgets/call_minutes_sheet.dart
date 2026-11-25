@@ -20,6 +20,7 @@ import '../../home/screens/legal_doc_screen.dart';
 import '../../home/screens/paywall_gate_screen.dart';
 import '../call_api.dart';
 import '../call_models.dart';
+import '../call_pack_pending.dart';
 import '../calls_hub.dart';
 import 'calling_guide_sheet.dart';
 import 'calls_tab_widgets.dart';
@@ -55,18 +56,59 @@ class _CallMinutesSheet extends StatefulWidget {
   State<_CallMinutesSheet> createState() => _CallMinutesSheetState();
 }
 
+/// Where a pack purchase is, shown live at the top of the sheet (like Play's
+/// own order status): never a silent spinner or a line at the bottom.
+enum PackBuyStage { idle, opening, confirming, added, pending, slow, failed, accountNotReady }
+
 class _CallMinutesSheetState extends State<_CallMinutesSheet> {
   CallWallet? _wallet;
   Map<String, StoreProduct> _products = const {};
   bool _loading = true;
   String? _buying;
-  bool _added = false;
-  String? _notice;
+  PackBuyStage _stage = PackBuyStage.idle;
+  int _stageMinutes = 0;
+  CallPack? _retryPack;
+  bool _watchingPending = false;
 
   @override
   void initState() {
     super.initState();
     unawaited(_load());
+  }
+
+  @override
+  void dispose() {
+    _watchingPending = false;
+    super.dispose();
+  }
+
+  /// A payment still pending from earlier (UPI, slow card): show it, and
+  /// keep checking while the sheet is open so it flips to "added" live.
+  Future<void> _resumePending(CallWallet wallet) async {
+    await CallPackPending.instance.load();
+    final pending = CallPackPending.instance.current.value;
+    if (pending == null || !mounted) return;
+    if (await CallPackPending.instance.settleWith(wallet.packMinutes)) return;
+    setState(() {
+      _stage = PackBuyStage.pending;
+      _stageMinutes = pending.minutes;
+    });
+    if (_watchingPending) return;
+    _watchingPending = true;
+    while (mounted && _watchingPending && _stage == PackBuyStage.pending) {
+      await Future<void>.delayed(const Duration(seconds: 5));
+      if (!mounted || _stage != PackBuyStage.pending) break;
+      final now = await CallApi.instance.wallet();
+      if (!mounted || now == null) continue;
+      if (await CallPackPending.instance.settleWith(now.packMinutes)) {
+        HapticFeedback.mediumImpact();
+        setState(() {
+          _wallet = now;
+          _stage = PackBuyStage.added;
+        });
+      }
+    }
+    _watchingPending = false;
   }
 
   Future<void> _load() async {
@@ -89,6 +131,7 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
       _products = products;
       _loading = false;
     });
+    if (wallet != null && wallet.premium) unawaited(_resumePending(wallet));
   }
 
   Future<void> _buy(CallPack pack) async {
@@ -97,13 +140,16 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
     final before = _wallet?.packMinutes ?? 0;
     setState(() {
       _buying = pack.productId;
-      _notice = null;
+      _stage = PackBuyStage.opening;
+      _stageMinutes = pack.minutes;
+      _retryPack = null;
     });
     if (!await callPackBuyerConfirmed(SupabaseService.currentUserId, () => Purchases.appUserID)) {
       if (!mounted) return;
       setState(() {
         _buying = null;
-        _notice = "We couldn't confirm your account with Google Play yet. Please try again in a moment. You were not charged.";
+        _stage = PackBuyStage.accountNotReady;
+        _retryPack = pack;
       });
       return;
     }
@@ -112,32 +158,42 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
     } on PlatformException catch (error) {
       final code = storeErrorCode(error);
       if (!mounted) return;
+      if (code == PurchasesErrorCode.paymentPendingError) {
+        // UPI and other delayed payments: Play charges once, later.
+        await CallPackPending.instance.save(pack.minutes, before);
+      }
+      if (!mounted) return;
       setState(() {
         _buying = null;
-        _notice = switch (code) {
-          PurchasesErrorCode.purchaseCancelledError => null,
-          // UPI and other delayed payments: the store charges once, later.
-          PurchasesErrorCode.paymentPendingError =>
-            "Your payment is pending. Minutes are added automatically when it completes; you won't be charged twice.",
-          _ => 'The purchase could not be completed. You were not charged twice.',
-        };
+        switch (code) {
+          case PurchasesErrorCode.purchaseCancelledError:
+            _stage = PackBuyStage.idle;
+          case PurchasesErrorCode.paymentPendingError:
+            _stage = PackBuyStage.pending;
+          default:
+            _stage = PackBuyStage.failed;
+            _retryPack = pack;
+        }
       });
+      if (_stage == PackBuyStage.pending && _wallet != null) unawaited(_resumePending(_wallet!));
       return;
     }
     // Play charged; the server adds the minutes when RevenueCat tells it
     // (usually seconds). Wait for the balance to move.
     if (!mounted) return;
-    setState(() => _notice = 'Payment received. Your minutes will appear in a few seconds.');
+    setState(() => _stage = PackBuyStage.confirming);
     for (var attempt = 0; attempt < 20 && mounted; attempt++) {
       await Future<void>.delayed(const Duration(seconds: 3));
       final wallet = await CallApi.instance.wallet();
       if (!mounted) return;
       if (wallet != null && wallet.packMinutes > before) {
+        HapticFeedback.mediumImpact();
+        await CallPackPending.instance.settleWith(wallet.packMinutes);
+        if (!mounted) return;
         setState(() {
           _wallet = wallet;
-          _added = true;
           _buying = null;
-          _notice = null;
+          _stage = PackBuyStage.added;
         });
         if (widget.duringCall) Navigator.of(context).pop(true);
         return;
@@ -146,7 +202,7 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
     if (!mounted) return;
     setState(() {
       _buying = null;
-      _notice = 'Your minutes are on their way. They will appear shortly; you will not be charged again.';
+      _stage = PackBuyStage.slow;
     });
   }
 
@@ -212,6 +268,11 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
                       child: const UiText('See Premium'),
                     ),
                   ] else ...[
+                    PackBuyStatus(
+                      stage: _stage,
+                      minutes: _stageMinutes,
+                      onRetry: _retryPack == null ? null : () => _buy(_retryPack!),
+                    ),
                     _BalanceRow(
                       label: 'Included with Premium',
                       value: context.uiCopyWith('{minutes} min', {'minutes': wallet.includedMinutes}),
@@ -220,8 +281,9 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
                     _BalanceRow(
                       label: 'Pack minutes',
                       value: context.uiCopyWith('{minutes} min', {'minutes': wallet.packMinutes}),
-                      detail: context.uiCopy('Pack minutes never expire; you need Premium to use them.'),
+                      detail: context.uiCopy('Pack minutes never expire. They work while you have Premium.'),
                       warn: wallet.negative,
+                      highlight: _stage == PackBuyStage.added,
                     ),
                     if (wallet.negative)
                       Padding(
@@ -231,10 +293,6 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
                           style: AppTypography.caption.copyWith(color: AppColors.expiryAmber),
                         ),
                       ),
-                    if (_added)
-                      UiText('Minutes added',
-                          textAlign: TextAlign.center,
-                          style: AppTypography.bodyMedium.copyWith(color: AppColors.verifiedTeal)),
                     const SizedBox(height: AppDimensions.space8),
                     if (wallet.canBuyPacks)
                       for (final pack in wallet.packs)
@@ -246,7 +304,7 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
                           onTap: () => _buy(pack),
                         ),
                     const SizedBox(height: AppDimensions.space8),
-                    UiText("Calls need an active Premium plan. Only the caller's minutes are used; answering is always free.",
+                    UiText("Only the caller's minutes are used, per started minute. Answering never uses minutes.",
                         textAlign: TextAlign.center,
                         style: AppTypography.caption.copyWith(color: AppColors.slateMist)),
                     // Shown before purchase (Consumer Protection E-Commerce
@@ -266,12 +324,6 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
                       ),
                     ],
                   ],
-                  if (_notice != null) ...[
-                    const SizedBox(height: AppDimensions.space12),
-                    UiText(_notice!,
-                        textAlign: TextAlign.center,
-                        style: AppTypography.caption.copyWith(color: AppColors.champagneGold)),
-                  ],
                 ],
               ),
       ),
@@ -280,11 +332,14 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
 }
 
 class _BalanceRow extends StatelessWidget {
-  const _BalanceRow({required this.label, required this.value, this.detail, this.warn = false});
+  const _BalanceRow({required this.label, required this.value, this.detail, this.warn = false, this.highlight = false});
   final String label;
   final String value;
   final String? detail;
   final bool warn;
+
+  /// Minutes just added: the number turns green.
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
@@ -302,9 +357,17 @@ class _BalanceRow extends StatelessWidget {
               ],
             ),
           ),
-          UiText.verbatim(value,
-              style: AppTypography.bodyMedium.copyWith(
-                  color: warn ? AppColors.expiryAmber : AppColors.champagneGold)),
+          AnimatedSwitcher(
+            duration: AppDimensions.durationReveal,
+            child: UiText.verbatim(value,
+                key: ValueKey(value),
+                style: AppTypography.bodyMedium.copyWith(
+                    color: warn
+                        ? AppColors.expiryAmber
+                        : highlight
+                            ? AppColors.verifiedTeal
+                            : AppColors.champagneGold)),
+          ),
         ],
       ),
     );
@@ -329,7 +392,10 @@ class _PackTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppDimensions.space8),
-      child: Material(
+      child: AnimatedOpacity(
+        duration: AppDimensions.durationReveal,
+        opacity: enabled || busy ? 1 : 0.45,
+        child: Material(
         color: AppColors.surfaceGlass,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
@@ -359,6 +425,96 @@ class _PackTile extends StatelessWidget {
           ),
         ),
       ),
+      ),
     );
   }
 }
+
+/// The live purchase status at the top of the minutes sheet.
+class PackBuyStatus extends StatelessWidget {
+  const PackBuyStatus({super.key, required this.stage, required this.minutes, this.onRetry});
+  final PackBuyStage stage;
+  final int minutes;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final values = {'minutes': minutes};
+    final (String? text, Color color, Widget? lead) = switch (stage) {
+      PackBuyStage.idle => (null, AppColors.slateMist, null),
+      PackBuyStage.opening =>
+        (context.uiCopy('Opening Google Play…'), AppColors.champagneGold, const SilarahActivityIndicator(size: 18)),
+      PackBuyStage.confirming => (
+          context.uiCopyWith('Payment received · adding {minutes} minutes…', values),
+          AppColors.champagneGold,
+          const SilarahActivityIndicator(size: 18)
+        ),
+      PackBuyStage.added => (
+          context.uiCopyWith('{minutes} minutes added', values),
+          AppColors.verifiedTeal,
+          Icon(Icons.check_circle_rounded, color: AppColors.verifiedTeal, size: 20)
+        ),
+      PackBuyStage.pending => (
+          context.uiCopyWith(
+              'Payment pending. Your {minutes} minutes are added automatically when Google Play confirms it.', values),
+          AppColors.expiryAmber,
+          Icon(Icons.hourglass_top_rounded, color: AppColors.expiryAmber, size: 20)
+        ),
+      PackBuyStage.slow => (
+          context.uiCopy('Your minutes are on their way. They will appear shortly; you will not be charged again.'),
+          AppColors.expiryAmber,
+          Icon(Icons.schedule_rounded, color: AppColors.expiryAmber, size: 20)
+        ),
+      PackBuyStage.failed => (
+          context.uiCopy("Payment didn't go through. You weren't charged."),
+          AppColors.softCoral,
+          Icon(Icons.error_outline_rounded, color: AppColors.softCoral, size: 20)
+        ),
+      PackBuyStage.accountNotReady => (
+          context.uiCopy(
+              "We couldn't confirm your account with Google Play yet. Please try again in a moment. You were not charged."),
+          AppColors.softCoral,
+          Icon(Icons.error_outline_rounded, color: AppColors.softCoral, size: 20)
+        ),
+    };
+    final retry = onRetry != null && (stage == PackBuyStage.failed || stage == PackBuyStage.accountNotReady);
+    return AnimatedSize(
+      duration: AppDimensions.durationReveal,
+      alignment: Alignment.topCenter,
+      child: AnimatedSwitcher(
+        duration: AppDimensions.durationReveal,
+        child: text == null
+            ? const SizedBox(width: double.infinity, key: ValueKey('pack-status-idle'))
+            : Container(
+                key: ValueKey('pack-status-${stage.name}'),
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: AppDimensions.space16),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
+                  border: Border.all(color: color.withValues(alpha: 0.45)),
+                ),
+                child: Semantics(
+                  liveRegion: true,
+                  child: Row(
+                    children: [
+                      if (lead != null) ...[lead, const SizedBox(width: 12)],
+                      Expanded(
+                        child: UiText.verbatim(text, style: AppTypography.bodyMedium.copyWith(color: color)),
+                      ),
+                      if (retry)
+                        TextButton(
+                          key: const ValueKey('pack-status-retry'),
+                          onPressed: onRetry,
+                          child: UiText(context.uiCopy('Try again')),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+      ),
+    );
+  }
+}
+
