@@ -134,6 +134,30 @@ class _CallSettingsSectionState extends State<CallSettingsSection> with WidgetsB
                       style: AppTypography.caption.copyWith(color: AppColors.slateMist)),
                 ),
               Divider(color: AppColors.divider, height: 1),
+              // Calls follow the member's quiet hours (Settings > Notifications);
+              // callers are told it is quiet hours and when calls ring again.
+              BlocBuilder<NotificationPrefsCubit, NotificationPrefsState>(
+                buildWhen: (a, b) =>
+                    a.quietStartHour != b.quietStartHour || a.quietEndHour != b.quietEndHour,
+                builder: (context, prefs) {
+                  final labels = MaterialLocalizations.of(context);
+                  final h24 = MediaQuery.alwaysUse24HourFormatOf(context);
+                  String at(int hour) =>
+                      labels.formatTimeOfDay(TimeOfDay(hour: hour % 24, minute: 0), alwaysUse24HourFormat: h24);
+                  return ListTile(
+                    leading: Icon(Icons.bedtime_outlined, color: AppColors.champagneGold),
+                    title: UiText('Quiet hours', style: AppTypography.body),
+                    subtitle: UiText.verbatim(
+                      context.uiCopyWith(
+                        "Calls don't ring from {start} to {end}. Callers are told it's your quiet hours and when calls ring again.",
+                        {'start': at(prefs.quietStartHour), 'end': at(prefs.quietEndHour)},
+                      ),
+                      style: AppTypography.caption.copyWith(color: AppColors.slateMist),
+                    ),
+                  );
+                },
+              ),
+              Divider(color: AppColors.divider, height: 1),
               BlocBuilder<NotificationPrefsCubit, NotificationPrefsState>(
                 buildWhen: (a, b) => a.missedCall != b.missedCall,
                 builder: (context, prefs) => SwitchListTile.adaptive(

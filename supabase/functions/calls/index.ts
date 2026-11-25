@@ -180,11 +180,20 @@ async function start(supabase: Admin, userId: string, matchId: string): Promise<
     p_match_id: matchId,
   });
   if (result.outcome !== "ringing") {
-    // Never pass internal reasons to the caller (spec 4.1).
+    // Never pass internal reasons to the caller (spec 4.1), except quiet
+    // hours (333): the caller is told, with when calls ring again. What may
+    // be told is decided in one place, call_service_unrung_notice.
+    const notice = result.outcome === "unavailable" && typeof result.request_id === "string"
+      ? await rpc<Record<string, unknown>>(supabase, "call_service_unrung_notice", {
+        p_caller: userId,
+        p_request_id: result.request_id,
+      })
+      : {};
     return reply({
       outcome: result.outcome,
       request_id: result.request_id ?? null,
       retry_after: result.retry_after ?? null,
+      ...(notice.reason === "quiet_hours" ? { reason: "quiet_hours", quiet_until: notice.quiet_until } : {}),
     });
   }
 

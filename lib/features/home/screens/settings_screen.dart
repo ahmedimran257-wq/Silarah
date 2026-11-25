@@ -327,7 +327,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: Icons.bedtime_outlined,
                   label: l10n.settings_notify_quietHours,
                   value:
-                      '${_fmtHour(prefs.quietStartHour)} – ${_fmtHour(prefs.quietEndHour)}',
+                      '${_fmtHour(context, prefs.quietStartHour)} – ${_fmtHour(context, prefs.quietEndHour)}',
                   onTap: () => _changeQuietHours(context, prefs),
                 ),
               ]),
@@ -586,7 +586,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  static String _fmtHour(int h) => '${h.toString().padLeft(2, '0')}:00';
+  /// An hour in the phone's own time format (12 or 24 hours), the same
+  /// as the Calls section's quiet-hours line.
+  static String _fmtHour(BuildContext context, int h) => MaterialLocalizations.of(context).formatTimeOfDay(
+        TimeOfDay(hour: h % 24, minute: 0),
+        alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+      );
 
   static String _digestFrequencyLabel(
     AppLocalizations l10n,

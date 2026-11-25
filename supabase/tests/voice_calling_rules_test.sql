@@ -325,6 +325,20 @@ BEGIN
   r := pg_temp.svc(format('SELECT public.call_service_request(%L, %L)', m1, k_m1w1));
   PERFORM pg_temp.ok('quiet hours: not rung', r->>'outcome' = 'unavailable'
     AND (SELECT reason FROM private.call_requests WHERE id = (r->>'request_id')::uuid) = 'quiet_hours', r::text);
+  -- 333: the caller is told about quiet hours, and when calls ring again.
+  r := pg_temp.svc(format('SELECT public.call_service_unrung_notice(%L, %L)', m1, (r->>'request_id')::uuid));
+  PERFORM pg_temp.ok('quiet hours: the caller is told, with when calls ring again',
+    r->>'reason' = 'quiet_hours' AND (r->>'quiet_until')::timestamptz > now(), r::text);
+  r := pg_temp.svc(format('SELECT public.call_service_unrung_notice(%L, %L)', m1,
+    (SELECT id FROM private.call_requests WHERE caller_id = m1 AND reason = 'calls_off'
+     ORDER BY created_at DESC LIMIT 1)));
+  PERFORM pg_temp.ok('calls off: the caller is told nothing more', r = '{}'::jsonb, r::text);
+  r := pg_temp.svc(format('SELECT public.call_service_request(%L, %L)', m1, k_m1w1));
+  PERFORM pg_temp.ok('quiet hours never count towards the limit', r->>'outcome' = 'unavailable', r::text);
+  UPDATE public.notification_prefs SET quiet_start = time '00:00', quiet_end = time '00:00' WHERE user_id = w1;
+  PERFORM pg_temp.usr(w1, 'SELECT to_jsonb(public.set_my_call_mode(''silent''))');
+  r := pg_temp.svc(format('SELECT public.call_service_request(%L, %L)', m1, k_m1w1));
+  PERFORM pg_temp.usr(w1, 'SELECT to_jsonb(public.set_my_call_mode(''ring''))');
   r := pg_temp.svc(format('SELECT public.call_service_request(%L, %L)', m1, k_m1w1));
   PERFORM pg_temp.ok('3 unanswered calls in 24 h: blocked until tomorrow',
     r->>'outcome' = 'limit_reached' AND (r->>'retry_after')::timestamptz > now(), r::text);

@@ -98,6 +98,24 @@ void _snack(BuildContext context, String text) {
   ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: UiText.verbatim(text)));
 }
 
+/// The caller is told the other member's quiet hours, and when calls ring
+/// again on the caller's own clock ("tomorrow" when that is another day here),
+/// so they know when to call instead of trying again and again (333).
+String quietHoursCopy(BuildContext context, String name, DateTime quietUntil, {DateTime? now}) {
+  final until = quietUntil.toLocal();
+  final today = (now ?? DateTime.now()).toLocal();
+  final locale = Localizations.localeOf(context).toLanguageTag();
+  // The phone's own time format, 12 or 24 hours.
+  final time = (MediaQuery.alwaysUse24HourFormatOf(context) ? DateFormat.Hm(locale) : DateFormat.jm(locale)).format(until);
+  final sameDay = until.year == today.year && until.month == today.month && until.day == today.day;
+  return context.uiCopyWith(
+    sameDay
+        ? '{name} has quiet hours now. Calls ring again at {time}.'
+        : '{name} has quiet hours now. Calls ring again tomorrow at {time}.',
+    {'name': name, 'time': time},
+  );
+}
+
 /// The call button in the chat header.
 Future<void> startCallFromChat(
   BuildContext context, {
@@ -187,7 +205,13 @@ Future<void> _placeCall(
     case CallStartOutcome.glare:
       break;
     case CallStartOutcome.unavailable:
-      _snack(context, context.uiCopyWith(neutralUnavailableCopy, {'name': name}));
+      final quietUntil = result.quietUntil;
+      _snack(
+        context,
+        quietUntil == null
+            ? context.uiCopyWith(neutralUnavailableCopy, {'name': name})
+            : quietHoursCopy(context, name, quietUntil),
+      );
       onUnavailable?.call();
     case CallStartOutcome.premiumRequired:
       await PaywallGateSheet.show(context, gate: PremiumGate.calls);

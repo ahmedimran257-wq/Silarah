@@ -57,8 +57,13 @@ privacy-safe names and missed calls.
    Premium, male side Premium, callee call setting, quiet hours, harassment cap, caller not already in
    a call, balance ≥ 1 minute, global switch on. Glare (callee is calling the caller) → merge into the
    existing request. Busy callee → missed call.
-   - If the callee is a free man, or has Calls off / Silent / quiet hours: no ringing, the caller sees
-     the same neutral message ("isn't taking calls right now"), the callee gets a missed-call note.
+   - If the callee is a free man, or has Calls off / Silent: no ringing, the caller sees the same
+     neutral message ("isn't taking calls right now"), the callee gets a missed-call note.
+   - Quiet hours (hers, or the default 11 PM - 8 AM in her time zone): no ringing, and the caller is
+     told so, with when calls ring again on the caller's own clock ("Aisha has quiet hours now. Calls
+     ring again at 8:00 AM."); the callee gets a missed-call note. Her own refusals (calls blocked or
+     muted for him, calls off, silent) are checked first, so "quiet hours" never reveals one (333).
+     Her calling settings say callers are told this.
 2. Server creates `call_requests` row (status ringing, 30 s timeout) and sends a high-priority FCM
    incoming-call push to all the callee's devices (heads-up notification with Answer/Decline; full-
    screen only if the member grants it; Android 14+ Play revokes full-screen intent for non-calling apps).
@@ -197,9 +202,11 @@ privacy-safe names and missed calls.
   block calls from this person. Missed and refused calls show in the chat ("📞 tried to call you");
   free women get "Ask him to call back" (free message) and "Call back" (Premium paywall).
 - Harassment: 3 unanswered calls to the same person in 24 h → calling them blocked until the next day.
-  Only calls that reached her phone count (declined, or missed or cancelled after her phone showed the
-  ring), plus calls she refused by her settings (calls off, silent, quiet hours). A call to a phone with
-  its data off never counts (332, found on the phones 25 Nov 2026).
+  Only calls that reached her count: declined; missed or cancelled after her phone showed the ring
+  (332); and calls she refused by her own choice (calls off, silent, calls from him muted or blocked).
+  Never counted (333): a phone with its data off, quiet hours, her being on another call, no phone able
+  to ring, her account unavailable, his plan, her calling terms - none of those disturbed her or was
+  her answer to him.
   Report from the call screen. No recording, ever.
 - Guardian mode: Guardian sees call time and length only; never blocks calls.
 - Call history in the chat and in the data export; deleted with the account.

@@ -37,7 +37,7 @@ enum CallStartOutcome {
 }
 
 class CallStartResult {
-  const CallStartResult(this.outcome, {this.requestId, this.ringSeconds, this.retryAfter});
+  const CallStartResult(this.outcome, {this.requestId, this.ringSeconds, this.retryAfter, this.quietUntil});
   final CallStartOutcome outcome;
   final String? requestId;
 
@@ -45,6 +45,10 @@ class CallStartResult {
   /// (never compared with the server's clock).
   final int? ringSeconds;
   final DateTime? retryAfter;
+
+  /// The call did not ring because it is the other member's quiet hours:
+  /// when calls ring again (333). The only refusal a caller is told about.
+  final DateTime? quietUntil;
 }
 
 /// Join details for a live call. The Stream token never leaves memory.

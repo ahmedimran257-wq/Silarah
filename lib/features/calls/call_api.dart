@@ -61,6 +61,7 @@ class CallApi {
       requestId: json['request_id']?.toString(),
       ringSeconds: (json['ring_seconds'] as num?)?.toInt(),
       retryAfter: DateTime.tryParse(json['retry_after']?.toString() ?? ''),
+      quietUntil: json['reason'] == 'quiet_hours' ? DateTime.tryParse(json['quiet_until']?.toString() ?? '') : null,
     );
   }
 
