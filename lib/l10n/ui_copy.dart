@@ -10,6 +10,7 @@ import 'package:silarah/l10n/legal_access_ui_copy.dart';
 import 'package:silarah/l10n/photo_guide_ui_copy.dart';
 import 'package:silarah/l10n/photo_moderation_ui_copy.dart';
 import 'package:silarah/l10n/account_polish_ui_copy.dart';
+import 'package:silarah/l10n/app_shell_ui_copy.dart';
 import 'package:silarah/l10n/premium_discovery_ui_copy.dart';
 import 'package:silarah/l10n/premium_relationship_ui_copy.dart';
 import 'package:silarah/l10n/pricing_ui_copy.dart';
@@ -37,6 +38,7 @@ class UiCopy {
         photoGuideUiCopy[languageCode]?[source] ??
         photoModerationUiCopy[languageCode]?[source] ??
         accountPolishUiCopy[languageCode]?[source] ??
+        appShellUiCopy[languageCode]?[source] ??
         premiumDiscoveryUiCopy[languageCode]?[source] ??
         premiumRelationshipUiCopy[languageCode]?[source] ??
         pricingUiCopy[languageCode]?[source] ??
@@ -60,6 +62,7 @@ class UiCopy {
       photoGuideUiCopy[languageCode]?.containsKey(source) == true ||
       photoModerationUiCopy[languageCode]?.containsKey(source) == true ||
       accountPolishUiCopy[languageCode]?.containsKey(source) == true ||
+      appShellUiCopy[languageCode]?.containsKey(source) == true ||
       premiumDiscoveryUiCopy[languageCode]?.containsKey(source) == true ||
       premiumRelationshipUiCopy[languageCode]?.containsKey(source) == true ||
       pricingUiCopy[languageCode]?.containsKey(source) == true ||

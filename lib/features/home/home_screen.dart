@@ -288,6 +288,14 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return HomeTabBackScope(
       currentTab: current,
       onReturnToPrimaryTab: () => _selectTab(HomeTab.discover),
+      onExitArmed: () => ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(
+          key: const ValueKey('press-back-again-to-exit'),
+          content: UiText(context.uiCopy('Press back again to exit')),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        )),
       child: BlocListener<SubscriptionCubit, SubscriptionState>(
         listenWhen: (previous, current) =>
             previous.isSubscribed != current.isSubscribed,

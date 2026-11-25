@@ -20,6 +20,7 @@ import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 import '../../../core/cubits/locale/locale_cubit.dart';
@@ -47,6 +48,9 @@ import '../../../core/services/my_account_snapshot.dart';
 import '../../../core/services/supabase_service.dart';
 import '../../../core/services/wali_mode_service.dart';
 import '../../../core/legal/legal_documents.dart';
+import '../../../core/legal/public_site_links.dart';
+import '../../../core/services/platform_action_service.dart';
+import '../../../core/services/referral_service.dart';
 import 'legal_doc_screen.dart';
 import 'privacy_requests_screen.dart';
 import 'subscription_screen.dart';
@@ -370,6 +374,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onTap: () => _showLanguageSheet(context, lang),
                   );
                 },
+              ),
+              _Divider(),
+              // Closed-test feedback: share and rate from Settings.
+              _NavTile(
+                key: const ValueKey('settings-share-silarah'),
+                icon: Icons.ios_share_rounded,
+                label: context.uiCopy('Share Silarah'),
+                onTap: () => _shareSilarah(context),
+              ),
+              _Divider(),
+              _NavTile(
+                key: const ValueKey('settings-rate-silarah'),
+                icon: Icons.star_outline_rounded,
+                label: context.uiCopy('Rate Silarah'),
+                value: context.uiCopy('On Google Play'),
+                onTap: () => _rateSilarah(context),
               ),
               _Divider(),
               _InfoTile(
@@ -2487,6 +2507,44 @@ class _DividerFull extends StatelessWidget {
       Divider(color: AppColors.divider, height: 1);
 }
 
+/// Shares Silarah with the member's invite code (referral credit), like the
+/// Invite screen; without a code (offline, signed out) the link alone.
+Future<void> _shareSilarah(BuildContext context) async {
+  final l10n = AppLocalizations.of(context);
+  final fallback = '${context.uiCopy('Get Silarah:')} ${PublicSiteLinks.origin}';
+  final code = SupabaseService.isInitialized
+      ? await ReferralService.instance.getCodeOrNull()
+      : null;
+  await PlatformActionService.instance.shareText(
+    text: code == null ? fallback : l10n.referral_shareText(code),
+    subject: l10n.referral_shareSubject,
+  );
+}
+
+/// Opens Silarah's Play Store listing. Google advises against triggering the
+/// in-app review card from a button (it may not show), so this goes to the
+/// listing, where rating always works.
+Future<void> _rateSilarah(BuildContext context) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final failed = context.uiCopy('Google Play could not be opened.');
+  for (final uri in [
+    PublicSiteLinks.googlePlayAppListing,
+    PublicSiteLinks.googlePlayWebListing,
+  ]) {
+    try {
+      if (await launchUrl(uri, mode: LaunchMode.externalApplication)) return;
+    } catch (_) {
+      // No handler for this link: try the next.
+    }
+  }
+  messenger
+    ..clearSnackBars()
+    ..showSnackBar(SnackBar(
+      content: UiText(failed),
+      behavior: SnackBarBehavior.floating,
+    ));
+}
+
 class _NavTile extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -2496,6 +2554,7 @@ class _NavTile extends StatelessWidget {
   final Color? labelColor;
 
   const _NavTile({
+    super.key,
     required this.icon,
     required this.label,
     required this.onTap,

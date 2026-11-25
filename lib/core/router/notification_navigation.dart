@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'home_tab.dart';
@@ -97,34 +99,78 @@ class NotificationRouteBackScope extends StatelessWidget {
   }
 }
 
-/// Keeps Android Back predictable when a notification opens a secondary home
-/// tab as the app's root destination.
+/// Android Back on the Home tabs.
 ///
 /// Bottom-navigation tabs are not navigator pages. Allowing the platform Back
 /// action to pop the root while Messages, Interests, or Profile is selected can
-/// expose the activity's launch surface on some Android builds. Return to
-/// Discover first; a second Back from Discover retains the normal Android exit
-/// behavior.
-class HomeTabBackScope extends StatelessWidget {
+/// expose the activity's launch surface on some Android builds, so Back first
+/// returns to Discover. On Discover the first Back only shows "Press back again
+/// to exit" ([onExitArmed]); a second Back within [exitWindow] leaves the app,
+/// so a stray press never closes it (closed-test feedback, 25 Nov 2026).
+class HomeTabBackScope extends StatefulWidget {
   const HomeTabBackScope({
     super.key,
     required this.currentTab,
     required this.onReturnToPrimaryTab,
     required this.child,
+    this.onExitArmed,
+    this.exitWindow = const Duration(seconds: 2),
   });
 
   final HomeTab currentTab;
   final VoidCallback onReturnToPrimaryTab;
   final Widget child;
 
+  /// Tell the member a second Back leaves (a short snack bar).
+  final VoidCallback? onExitArmed;
+  final Duration exitWindow;
+
+  @override
+  State<HomeTabBackScope> createState() => _HomeTabBackScopeState();
+}
+
+class _HomeTabBackScopeState extends State<HomeTabBackScope> {
+  Timer? _exitWindow;
+
+  bool get _exitArmed => _exitWindow?.isActive ?? false;
+
+  @override
+  void didUpdateWidget(HomeTabBackScope old) {
+    super.didUpdateWidget(old);
+    // Leaving Discover disarms: the next Back there asks again.
+    if (old.currentTab != widget.currentTab) _disarm();
+  }
+
+  void _disarm() {
+    _exitWindow?.cancel();
+    _exitWindow = null;
+  }
+
+  @override
+  void dispose() {
+    _exitWindow?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final onDiscover = widget.currentTab == HomeTab.discover;
     return PopScope(
-      canPop: currentTab == HomeTab.discover,
+      canPop: onDiscover && _exitArmed,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && currentTab != HomeTab.discover) onReturnToPrimaryTab();
+        if (didPop) return;
+        if (!onDiscover) {
+          widget.onReturnToPrimaryTab();
+          return;
+        }
+        setState(() {
+          _exitWindow = Timer(widget.exitWindow, () {
+            if (mounted) setState(_disarm);
+          });
+        });
+        widget.onExitArmed?.call();
       },
-      child: child,
+      child: widget.child,
     );
   }
 }
