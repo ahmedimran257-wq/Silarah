@@ -89,9 +89,17 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
     final pending = CallPackPending.instance.current.value;
     if (pending == null || !mounted) return;
     if (await CallPackPending.instance.settleWith(wallet.packMinutes)) return;
+    await _watchPending(pending.minutes, pending.balanceBefore);
+  }
+
+  /// Shows the payment as pending and checks the balance until it rises
+  /// above [before]. Compares with its own starting balance: the Calls tab
+  /// card may clear the shared record first when it sees the minutes land.
+  Future<void> _watchPending(int minutes, int before) async {
+    if (!mounted) return;
     setState(() {
       _stage = PackBuyStage.pending;
-      _stageMinutes = pending.minutes;
+      _stageMinutes = minutes;
     });
     if (_watchingPending) return;
     _watchingPending = true;
@@ -100,7 +108,9 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
       if (!mounted || _stage != PackBuyStage.pending) break;
       final now = await CallApi.instance.wallet();
       if (!mounted || now == null) continue;
-      if (await CallPackPending.instance.settleWith(now.packMinutes)) {
+      if (now.packMinutes > before) {
+        await CallPackPending.instance.settleWith(now.packMinutes);
+        if (!mounted) break;
         HapticFeedback.mediumImpact();
         setState(() {
           _wallet = now;
@@ -175,7 +185,7 @@ class _CallMinutesSheetState extends State<_CallMinutesSheet> {
             _retryPack = pack;
         }
       });
-      if (_stage == PackBuyStage.pending && _wallet != null) unawaited(_resumePending(_wallet!));
+      if (_stage == PackBuyStage.pending) unawaited(_watchPending(pack.minutes, before));
       return;
     }
     // Play charged; the server adds the minutes when RevenueCat tells it

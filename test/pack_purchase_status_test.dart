@@ -76,6 +76,10 @@ void main() {
     expect(sheet, isNot(contains('charged twice')));
     expect(sheet, contains('CallPackPending.instance.save(pack.minutes, before)'));
     expect(sheet, contains('PackBuyStatus('));
+    // The sheet watches against its own starting balance: the Calls tab card
+    // may clear the shared record first (found on the OnePlus, 25 Nov).
+    expect(sheet, contains('if (now.packMinutes > before)'));
+    expect(sheet, contains('unawaited(_watchPending(pack.minutes, before))'));
     expect(sheet, isNot(contains("you need Premium to use them")));
   });
 }
