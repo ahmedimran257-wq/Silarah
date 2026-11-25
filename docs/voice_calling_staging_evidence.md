@@ -162,3 +162,22 @@ test.
 | 48110: swipe down closes the call list; View profile opens Aisha's profile | pass |
 | 48110: ordinary phone call to the OnePlus during a Silarah call: hold silent both ways, Silarah call resumed | pass (owner) |
 | 48110: caller hangs up: both phones AUDIO_MODE_NORMAL, no Telecom call; 374 s settled as 7 min of a 13-min hold; Stream limit 784 s (connect 2 s + 2 s) | pass |
+
+## Gate 5 — Stream minutes vs talk time (25 Nov 2026, read-only)
+
+Stream dashboard (organisation usage, Video, current month; the production app has had no calls)
+against staging `private.call_sessions`, per UTC day. Stream counts minutes per participant, so the
+comparison is talk time x 2.
+
+| UTC day | Sessions | Talk time | Talk x 2 | Stream audio minutes | Charged to callers |
+|---|---|---|---|---|---|
+| 22 Nov | 6 | 693 s | 23.1 min | 20 | 13 min |
+| 23 Nov | 8 | 1564 s | 52.1 min | 46 | 29 min |
+| 24 Nov | 6 | 129 s | 4.3 min | 4 | 6 min |
+| 25 Nov | 11 | 1074 s | 35.8 min | 32 | 22 min |
+
+Pass: Stream never bills more than the connected time (it bills about 10% less), so ringing is not
+billed (the Stream call is created only after Answer). Callers are charged per started minute, always
+at or above Stream's minutes. Open, minor: the dashboard also lists 6 "livestream" audio minutes
+(1-3 a day) next to the 102 call minutes; check on the first Stream invoice which price applies.
+
