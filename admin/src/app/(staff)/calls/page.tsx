@@ -202,6 +202,13 @@ export default async function CallsPage({ searchParams }: { searchParams: Promis
         <section className="card">
           <div className="card-head"><h2>Adjust pack minutes</h2><span className="muted">Support cases only · recorded in the ledger and audit log</span></div>
           <form action={adjustCallMinutes} className="card-body stack">
+            {/* Found in gate 6 (25 Nov 2026): a Play Console refund without
+                "Remove entitlement" never reaches Silarah, so the minutes stay. */}
+            <p className="muted">
+              Refunding a minute pack in Play Console (Order management)? Always tick <strong>Remove entitlement</strong>:
+              Google then tells Silarah and the pack&apos;s minutes come off automatically within minutes. If a pack was
+              refunded without it, remove its minutes here (for example −20 for a 20-minute pack) and note the order ID.
+            </p>
             <input type="hidden" name="returnTo" value={returnTo} />
             <label className="field">Member ID
               <input name="userId" className="input mono" required defaultValue={memberId ?? ""} pattern="[0-9a-fA-F-]{36}" />

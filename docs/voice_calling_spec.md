@@ -138,6 +138,11 @@ privacy-safe names and missed calls.
 - A refund applies only against the **recorded purchase of that store transaction**, to the member who
   received it, for that purchase's minutes. A refund with no purchase yet is stored
   (`call_pack_pending_refunds`) and netted the moment the purchase arrives. Each refund counts once.
+- Staff refunds in Play Console must tick **Remove entitlement**: Google sends no notice for a refund
+  that leaves the pack owned (gate 6, 25 Nov 2026: such a refund never reached RevenueCat), so the
+  minutes would stay. If it was missed, remove the minutes with admin "Adjust pack minutes" (the card
+  says so). License testers' purchases are SANDBOX events and count only for the IDs in
+  `REVENUECAT_SANDBOX_TESTER_IDS`; real closed testers' purchases are production events.
 - `REFUND_REVERSED` / `UNCANCELLATION` of a pack gives the minutes back once per transaction and lowers
   the refund count. A reversed refund that was still waiting is dropped, so the purchase counts in full.
 - A pack refunded during a live call: the call finishes from its hold; the balance then goes negative
