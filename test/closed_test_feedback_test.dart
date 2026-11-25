@@ -115,6 +115,10 @@ void main() {
         File('lib/features/home/screens/legal_doc_screen.dart').readAsStringSync();
     expect(screen, contains(r'\u2066${LegalDocuments.effectiveDate}\u2069'));
     expect(screen, contains(r'\u2066${LegalDocuments.version}\u2069'));
+    final settings =
+        File('lib/features/home/screens/settings_screen.dart').readAsStringSync();
+    expect(settings,
+        contains(r'\u2066${info.version} (${info.buildNumber})\u2069'));
   });
 
   test('the new copy is translated in every language', () {

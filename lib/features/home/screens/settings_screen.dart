@@ -130,7 +130,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadAppVersion() async {
     final info = await PackageInfo.fromPlatform();
     if (mounted) {
-      setState(() => _appVersion = '${info.version} (${info.buildNumber})');
+      // An isolated left-to-right run: in Urdu and Arabic it otherwise reads
+      // "(50130) 1.0.0".
+      setState(() =>
+          _appVersion = '\u2066${info.version} (${info.buildNumber})\u2069');
     }
   }
 
