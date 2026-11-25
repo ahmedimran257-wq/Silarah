@@ -266,6 +266,12 @@ BEGIN
     private.call_refresh_month_cap() <= cap0 - 30, cap0::text);
   PERFORM pg_temp.ok('revoking the grant ends the run',
     (pg_temp.wallet(m2)->>'included_anchor_at') IS NULL, pg_temp.wallet(m2)::text);
+  -- 336: staff undo the revoke: the same run carries on (no fresh minutes).
+  UPDATE private.test_premium_grants SET revoked_at = NULL WHERE user_id = m2;
+  PERFORM pg_temp.ok('undoing a grant revoke continues the same run',
+    (pg_temp.wallet(m2)->>'included_anchor_at')::timestamptz = now() - interval '3 days',
+    pg_temp.wallet(m2)::text);
+  UPDATE private.test_premium_grants SET revoked_at = now() WHERE user_id = m2;
 
   -- ---- 6.2 Pack refunds ----------------------------------------------------------
   r := pg_temp.refund(m3::text, 'tx-early', 'ev-ref-early');
