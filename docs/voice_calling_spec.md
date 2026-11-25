@@ -28,7 +28,8 @@ Cost basis (verified 22 Nov 2026):
 - Calls only between members with an active match who have not blocked each other.
 - The man on the call must have Premium at all times (`has_active_premium`, grace counts). If the caller
   or the male callee loses Premium mid-call, the server ends the call.
-- Only the caller's minutes are used. Answering is always free.
+- Only the caller's minutes are used; answering never uses minutes. Women answer without Premium; a man
+  needs Premium to answer too, so "answering is always free" is said to women only.
 - Included minutes: 30 every 30 days counted from the member's Premium start (annual and 3-month plans
   get 30 per 30-day period). Not rolled over. Used before pack minutes.
 - Pack minutes never expire, but can only be used while Premium is active (stated before purchase:

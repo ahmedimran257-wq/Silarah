@@ -153,9 +153,12 @@ class _DocumentHeader extends StatelessWidget {
           ),
           const SizedBox(height: AppDimensions.space14),
           UiText(
+            // The date and version are left-to-right runs: isolated, they
+            // keep their order inside Urdu and Arabic ("25 November 2026",
+            // not "November 2026 25").
             '${context.uiCopy('Effective')} '
-            '${LegalDocuments.effectiveDate}  •  '
-            '${context.uiCopy('Version')} ${LegalDocuments.version}',
+            '\u2066${LegalDocuments.effectiveDate}\u2069  •  '
+            '${context.uiCopy('Version')} \u2066${LegalDocuments.version}\u2069',
             style: AppTypography.caption,
           ),
         ],

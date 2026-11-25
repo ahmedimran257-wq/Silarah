@@ -86,6 +86,11 @@ class _PaywallGateContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final forFeature = gate == PremiumGate.feature;
     final forCalls = gate == PremiumGate.calls;
+    // Women answer calls without Premium; a man needs it to answer too, so
+    // "answering is always free" is only true for women (Terms 8).
+    final authState = context.read<AuthCubit>().state;
+    final female =
+        authState is AuthAuthenticated && authState.gender == 'female';
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceMid,
@@ -144,7 +149,9 @@ class _PaywallGateContent extends StatelessWidget {
 
           UiText(
             forCalls
-                ? 'Premium members call their matches inside Silarah, with no phone numbers shared. Answering a call is always free.'
+                ? female
+                    ? 'Premium members call their matches inside Silarah, with no phone numbers shared. Answering a call is always free.'
+                    : 'Premium members call and answer their matches inside Silarah, with no phone numbers shared.'
                 : forFeature
                     ? 'Browse without a daily limit and get the tools that help you decide with care.'
                     : 'Women can message their matches at no cost.\nMen unlock conversations with Silarah Premium.',

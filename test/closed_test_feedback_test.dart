@@ -91,6 +91,32 @@ void main() {
         'com.silarah.app');
   });
 
+  test('only women are told answering is free; men need Premium to answer', () {
+    final paywall =
+        File('lib/features/home/screens/paywall_gate_screen.dart').readAsStringSync();
+    final women = paywall.indexOf('Answering a call is always free.');
+    final men = paywall.indexOf(
+        'Premium members call and answer their matches inside Silarah, with no phone numbers shared.');
+    expect(women, greaterThan(0));
+    expect(men, greaterThan(women), reason: 'the men line is the other branch');
+    expect(paywall.substring(paywall.lastIndexOf('female', women), women),
+        contains('?'), reason: 'the free-answer line sits behind the female check');
+    for (final lang in ['ar', 'bn', 'de', 'fr', 'hi', 'id', 'ms', 'tr', 'ur']) {
+      expect(
+          UiCopy.hasTranslation(lang,
+              'Premium members call and answer their matches inside Silarah, with no phone numbers shared.'),
+          isTrue,
+          reason: lang);
+    }
+  });
+
+  test('policy date and version keep their order in Urdu and Arabic', () {
+    final screen =
+        File('lib/features/home/screens/legal_doc_screen.dart').readAsStringSync();
+    expect(screen, contains(r'\u2066${LegalDocuments.effectiveDate}\u2069'));
+    expect(screen, contains(r'\u2066${LegalDocuments.version}\u2069'));
+  });
+
   test('the new copy is translated in every language', () {
     final keys = appShellUiCopy['hi']!.keys.toSet();
     expect(
