@@ -349,7 +349,8 @@ void main() {
       final controller = CallLogController(api: api, photos: (_) async => const {});
       addTearDown(controller.dispose);
       await tester.pumpWidget(_app(
-        CallsTabScreen(controller: controller, hub: hub),
+        // A fresh screen per pump: the recorder pumps several in one test.
+        CallsTabScreen(key: UniqueKey(), controller: controller, hub: hub),
         locale: locale,
         textScale: textScale,
         captureKey: captureKey,
