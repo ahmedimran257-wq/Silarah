@@ -885,6 +885,9 @@ class CallRowTile extends StatelessWidget {
     // row's width instead of breaking mid-word (gate 13: largest font).
     final largeText = MediaQuery.textScalerOf(context).scale(1) >= callRowLargeTextScale;
     final timeText = UiText.verbatim(time, style: AppTypography.caption.copyWith(color: AppColors.slateMist));
+    final nameStyle = (unseen ? AppTypography.bodyMedium : AppTypography.body).copyWith(
+      color: missed ? AppColors.softCoral : AppColors.pearlWhite,
+    );
 
     final tile = Semantics(
       button: true,
@@ -918,13 +921,24 @@ class CallRowTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      UiText.verbatim(
-                        title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: (unseen ? AppTypography.bodyMedium : AppTypography.body).copyWith(
-                          color: missed ? AppColors.softCoral : AppColors.pearlWhite,
-                        ),
+                      // Like WhatsApp and Telegram: the name keeps one line
+                      // and ends in "…" when it does not fit, never broken
+                      // mid-word (gate 13, largest font); the count stays
+                      // whole beside it. The details sheet shows the full name.
+                      // "Member unavailable" is words, not a name: it wraps
+                      // between them rather than lose its meaning.
+                      Row(
+                        children: [
+                          Flexible(
+                            child: UiText.verbatim(
+                              name,
+                              maxLines: entry.memberUnavailable ? 2 : 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: nameStyle,
+                            ),
+                          ),
+                          if (row.count > 1) UiText.verbatim(' (${row.count})', maxLines: 1, style: nameStyle),
+                        ],
                       ),
                       const SizedBox(height: 3),
                       UiText.verbatim(

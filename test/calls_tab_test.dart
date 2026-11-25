@@ -1,5 +1,6 @@
 // Calls tab, tab names, the calling gate and "How calling works"
 // (docs/voice_calling_spec.md 12.5, 12.6, 13).
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -77,8 +78,12 @@ Map<String, Object?> _row(
       'unseen': unseen,
     };
 
-Widget _app(Widget child, {String locale = 'en', double textScale = 1, GlobalKey? captureKey}) => MaterialApp(
+Widget _app(Widget child,
+        {String locale = 'en', double textScale = 1, GlobalKey? captureKey, List<String>? fontFallback}) =>
+    MaterialApp(
       locale: Locale(locale),
+      // Screenshots only: the test renderer has no Arabic-script glyphs.
+      theme: fontFallback == null ? null : ThemeData(fontFamilyFallback: fontFallback),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         ...AppLocalizations.localizationsDelegates,
@@ -307,18 +312,27 @@ void main() {
   group('Calls tab', () {
     final now = DateTime.now();
     Future<CallsHub> pump(WidgetTester tester, List<Map<String, Object?>> rows,
-        {String locale = 'en', TextDirection? direction, double textScale = 1, GlobalKey? captureKey}) async {
+        {String locale = 'en',
+        TextDirection? direction,
+        double textScale = 1,
+        GlobalKey? captureKey,
+        List<String>? fontFallback,
+        bool loading = false}) async {
+      // [loading]: the history never arrives, so the tab shows its placeholders.
+      final never = Completer<Object?>();
       final api = CallApi(
         invoke: (_) async => const {},
-        rpc: (name, params) async => switch (name) {
-          'get_my_call_log' => rows,
-          'get_my_call_plans' => const [],
-          _ => null,
-        },
+        rpc: (name, params) => loading
+            ? never.future
+            : Future.value(switch (name) {
+                'get_my_call_log' => rows,
+                'get_my_call_plans' => const [],
+                _ => null,
+              }),
       );
-      final hub = CallsHub(api: api)
-        ..rules.value = _rules()
-        ..overview = CallOverview.fromJson(const {
+      final hub = CallsHub(api: api)..rules.value = _rules();
+      if (!loading) {
+        hub.overview = CallOverview.fromJson(const {
           'calls_enabled': true,
           'premium': true,
           'female': false,
@@ -331,6 +345,7 @@ void main() {
           'unseen_missed': 2,
           'plans': [],
         });
+      }
       final controller = CallLogController(api: api, photos: (_) async => const {});
       addTearDown(controller.dispose);
       await tester.pumpWidget(_app(
@@ -338,6 +353,7 @@ void main() {
         locale: locale,
         textScale: textScale,
         captureKey: captureKey,
+        fontFallback: fontFallback,
       ));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 800));
@@ -357,10 +373,11 @@ void main() {
       expect(find.text('72'), findsOneWidget, reason: 'available minutes');
       expect(find.textContaining('You talked 2 h 15 m this month'), findsOneWidget);
       expect(find.text('TODAY'), findsOneWidget);
-      expect(find.textContaining('Abdul A. (2)'), findsOneWidget);
+      expect(find.text('Abdul A.'), findsOneWidget);
+      expect(find.text(' (2)'), findsOneWidget, reason: 'the count beside the name, never cut off');
       expect(find.textContaining('2:05'), findsOneWidget);
       expect(find.textContaining('3 min used'), findsOneWidget);
-      final missedName = tester.widget<Text>(find.textContaining('Abdul A. (2)'));
+      final missedName = tester.widget<Text>(find.text('Abdul A.'));
       expect(missedName.style?.color, AppColors.softCoral, reason: 'missed in the error colour');
     });
 
@@ -377,9 +394,9 @@ void main() {
             outcome: 'missed'),
         _row('d', now.subtract(const Duration(minutes: 3)), other: 'u2', name: 'Bilal', outcome: 'missed'),
       ]);
-      final answered = tester.widget<Text>(find.textContaining('Abdul A. (2)'));
+      final answered = tester.widget<Text>(find.text('Abdul A.'));
       expect(answered.style?.color, isNot(AppColors.softCoral), reason: 'shows "Incoming · 1:17"');
-      final noAnswer = tester.widget<Text>(find.textContaining('Bilal A. (2)'));
+      final noAnswer = tester.widget<Text>(find.text('Bilal A.'));
       expect(noAnswer.style?.color, isNot(AppColors.softCoral), reason: 'shows "No answer" on my own call');
     });
 
@@ -430,7 +447,16 @@ void main() {
         await (FontLoader('MaterialIcons')..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf')))
             .load();
       });
-      Future<void> shot(String name, {required String locale, double textScale = 1}) async {
+      // Arabic and Urdu need a font with their glyphs, which the test renderer
+      // lacks: SILARAH_CALLS_RTL_FONT names one (e.g. Windows' Segoe UI).
+      final rtlFont = Platform.environment['SILARAH_CALLS_RTL_FONT'];
+      if (rtlFont != null) {
+        await tester.runAsync(() async {
+          final bytes = await File(rtlFont).readAsBytes();
+          await (FontLoader('RtlScript')..addFont(Future.value(ByteData.sublistView(bytes)))).load();
+        });
+      }
+      Future<void> shot(String name, {required String locale, double textScale = 1, bool loading = false}) async {
         final capture = GlobalKey();
         tester.view.physicalSize = const Size(360, 1500);
         tester.view.devicePixelRatio = 1;
@@ -439,7 +465,12 @@ void main() {
           _row('b', now.subtract(const Duration(minutes: 5)),
               other: 'u2', name: 'Bilal', direction: 'outgoing', talk: 125, used: 3),
           _row('c', now.subtract(const Duration(days: 1)), unavailable: true),
-        ], locale: locale, textScale: textScale, captureKey: capture);
+        ],
+            locale: locale,
+            textScale: textScale,
+            captureKey: capture,
+            loading: loading,
+            fontFallback: rtlFont == null ? null : const ['RtlScript']);
         expect(tester.takeException(), isNull);
         final boundary = capture.currentContext!.findRenderObject()! as RenderRepaintBoundary;
         await tester.runAsync(() async {
@@ -455,11 +486,18 @@ void main() {
       for (final mode in SilarahThemeMode.values) {
         AppColors.activate(mode);
         await shot('theme_${mode.name}', locale: 'en');
+        await shot('loading_${mode.name}', locale: 'en', loading: true);
       }
       AppColors.activate(SilarahThemeMode.values.first);
       // Latin-script languages: the test renderer has their glyphs.
       for (final code in ['en', 'de', 'fr', 'id', 'ms', 'tr']) {
         await shot('font200_$code', locale: code, textScale: 2);
+      }
+      if (rtlFont != null) {
+        for (final code in ['ar', 'ur']) {
+          await shot('rtl_$code', locale: code);
+          await shot('rtl_font200_$code', locale: code, textScale: 2);
+        }
       }
     });
 
