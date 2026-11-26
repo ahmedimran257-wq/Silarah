@@ -416,6 +416,18 @@ class SilarahCallsPlugin :
         @JvmStatic
         fun onVolumeKey(context: Context): Boolean = CallNotifier.silenceIncoming(context)
 
+        /**
+         * Silarah's screen, already running, is about to be brought over a
+         * locked phone by an answered ring: let it show over the lock screen
+         * before it comes to the front. Set only once it is in front (on the
+         * new intent), the lock screen showed for a moment between the ring
+         * screen and the call screen (found frame by frame, 26 Nov 2026).
+         * A Silarah that is not running sets it as it starts (onCreate).
+         */
+        fun prepareCallWindow() {
+            instances.firstNotNullOfOrNull { it.activity }?.let { CallWindow.apply(it, true) }
+        }
+
         fun emit(type: String, data: Map<String, Any?>): Boolean {
             val target = instances.firstOrNull { it.activity != null } ?: return false
             val message = data + ("type" to type)

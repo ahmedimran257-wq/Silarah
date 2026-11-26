@@ -181,3 +181,19 @@ billed (the Stream call is created only after Answer). Callers are charged per s
 at or above Stream's minutes. Open, minor: the dashboard also lists 6 "livestream" audio minutes
 (1-3 a day) next to the 102 call minutes; check on the first Stream invoice which price applies.
 
+
+## Gate 15 — tones by ear (26 Nov 2026, build 48132, OnePlus with Bluetooth earbuds)
+
+Staging hold set to 3 minutes for the test, then back to 60. Imran called Aisha; the owner listened:
+ringback while ringing, the connect tone, the 2-minute warning (at 1:00), the 30-second warning (at
+2:30) and the time-up end tone at 3:00, when the call ended by itself ("Your call minutes ran out").
+Server: 181 s connected, end_reason hangup at the limit, charged 3 minutes (the hold). Pass.
+
+## Play demo video (26 Nov 2026)
+
+release/silarah_voice_calls_play_demo.mp4 (2:06, 1080x2400, 30 fps): outgoing call with Mute/Unmute
+and the status-bar call chip from another app, a ring on a locked phone answered, and a missed call
+(banner over another app, "Aisha tried to call you" in the chat). Every frame scanned: no lock screen
+or other apps' notifications. The scan found two app flickers on a locked phone, both fixed in 48134:
+the lock screen for 0.13 s between the ring screen and the call screen after Answer, and for 0.2 s when
+the ring first woke the screen.

@@ -421,6 +421,9 @@ class IncomingCallActivity : Activity() {
         main.removeCallbacks(timeUp)
         showConnecting()
         CallNotifier.silenceIncoming(this)
+        // Over the lock screen before it comes to the front: no glimpse of
+        // the lock screen between this screen and the call screen.
+        SilarahCallsPlugin.prepareCallWindow()
         startActivity(launch)
         main.postDelayed(answerTimeout, ANSWER_TIMEOUT_MS)
     }

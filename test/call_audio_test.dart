@@ -121,6 +121,23 @@ void main() {
       expect(notifier, contains('if (!silent) wakeScreenForRing(context)'));
       expect(notifier, contains('INTERRUPTION_FILTER_ALL'));
       expect(notifier, contains('canUseFullScreenIntent()'));
+      // 26 Nov 2026, frame by frame: woken at once, the lock screen showed
+      // for 0.2 s before the ring screen. The full-screen ring wakes the
+      // screen; this only steps in if it is still off a second later.
+      expect(notifier, contains('postDelayed({'));
+      expect(notifier, contains('if (power.isInteractive || ringing == null) return@postDelayed'));
+      expect(notifier, contains('RING_WAKE_FALLBACK_MS = 1_000L'));
+    });
+
+    test('answering on a locked phone never shows the lock screen between ring and call screens', () {
+      const kotlin = 'packages/silarah_calls/android/src/main/kotlin/com/silarah/calls';
+      final ring = File('$kotlin/IncomingCallActivity.kt').readAsStringSync();
+      final plugin = File('$kotlin/SilarahCallsPlugin.kt').readAsStringSync();
+      final answer = ring.substring(ring.indexOf('private fun answer()'), ring.indexOf('private fun showConnecting()'));
+      expect(answer.indexOf('SilarahCallsPlugin.prepareCallWindow()'), greaterThan(0));
+      expect(answer.indexOf('SilarahCallsPlugin.prepareCallWindow()'), lessThan(answer.indexOf('startActivity(launch)')),
+          reason: 'Silarah may show over the lock screen before it comes to the front');
+      expect(plugin, contains('fun prepareCallWindow()'));
     });
 
     test('a regular phone call holds the call both ways: microphone off and the other member silent', () {

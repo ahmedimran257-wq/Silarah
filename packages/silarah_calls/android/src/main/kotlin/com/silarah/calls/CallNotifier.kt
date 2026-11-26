@@ -34,6 +34,8 @@ internal object CallNotifier {
 
     const val ONGOING_ID = 41_001
     private const val RING_ID_BASE = 900_000_000
+    // The full-screen ring wakes the screen within a few hundred ms.
+    private const val RING_WAKE_FALLBACK_MS = 1_000L
     private const val MISSED_ID = 41_100
     private const val PLAN_ID = 41_200
     private const val MISSED_TAG_PREFIX = "missed:"
@@ -303,15 +305,23 @@ internal object CallNotifier {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (manager.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !manager.canUseFullScreenIntent()) return
-        try {
-            power.newWakeLock(
-                PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or
-                    PowerManager.ON_AFTER_RELEASE,
-                "silarah:ring-wake",
-            ).acquire(5_000)
-        } catch (_: RuntimeException) {
-            // Waking is a courtesy; the ring still shows.
-        }
+        // The full-screen ring turns the screen on together with the ring
+        // screen. Woken here at once, the screen came on before that screen
+        // had drawn and the lock screen showed for 0.2 s (found frame by
+        // frame, 26 Nov 2026). So this only steps in when Android did not
+        // wake the screen itself.
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            if (power.isInteractive || ringing == null) return@postDelayed
+            try {
+                power.newWakeLock(
+                    PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or
+                        PowerManager.ON_AFTER_RELEASE,
+                    "silarah:ring-wake",
+                ).acquire(5_000)
+            } catch (_: RuntimeException) {
+                // Waking is a courtesy; the ring still shows.
+            }
+        }, RING_WAKE_FALLBACK_MS)
     }
 
     /** The ring notification [notificationId] went (declined from it). */
