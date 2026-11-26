@@ -197,3 +197,12 @@ and the status-bar call chip from another app, a ring on a locked phone answered
 or other apps' notifications. The scan found two app flickers on a locked phone, both fixed in 48134:
 the lock screen for 0.13 s between the ring screen and the call screen after Answer, and for 0.2 s when
 the ring first woke the screen.
+
+## Gate 10 — answered on another device (26 Nov 2026, build 48134)
+
+Aisha signed in on both phones (OnePlus and Redmi: two push tokens). The owner authorized starting
+Imran's call from the PC: a one-time staging session for Imran (admin magic link, no password, keys
+never printed), used only for `calls` action start, then signed out (204). Both phones rang together.
+Answered on the OnePlus: the Redmi's ring was gone within 3.1 s (including the tester's polling) and the
+Redmi kept no Silarah notification; the server recorded the request as accepted (delivered). The PC
+caller never joined the audio, so the session ended as join_timeout with 0 minutes charged. Pass.
