@@ -7,6 +7,7 @@ import { requireAdmin, type CurrentAdmin } from "@/lib/auth";
 import { can, type AdminAction } from "@/lib/access";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { adminSiteUrl } from "@/lib/staff-access";
 
 const uuidSchema = z.string().uuid();
 const reasonSchema = z.string().trim().max(500).optional().default("");
@@ -446,6 +447,10 @@ export async function reviewSuccessStory(formData: FormData) {
   }, "Story updated.", formData);
 }
 
+// Invites always send an email the panel writes itself (migration 342): the
+// person gets a one-time link to choose a password and set up an
+// authenticator. Most staff are Silarah members too, so an existing account
+// is reused instead of failing as "already registered".
 export async function inviteStaffMember(formData: FormData) {
   await guardedAction("/staff", async () => {
     const admin = await requireAdmin();
@@ -456,31 +461,88 @@ export async function inviteStaffMember(formData: FormData) {
     });
 
     // Sign-up is closed to addresses that did not go through the app's
-    // consent step (migration 315); a super admin authorises this one
-    // address for the next hour so the invitation can create the account.
+    // consent step (migration 315); this authorises this one address for an
+    // hour so the account below can be created.
     await run("admin_prepare_staff_invite", { p_email: parsed.email });
 
     const adminClient = createAdminClient();
-    const redirectBase = adminSiteUrl();
+    const { error: createError } = await adminClient.auth.admin.createUser({
+      email: parsed.email,
+      email_confirm: true,
+      user_metadata: { staff: true },
+    });
+    const existing = Boolean(createError && /already|registered|exists/i.test(createError.message));
+    if (createError && !existing) throw new Error(createError.message);
 
-    const { error } = await adminClient.auth.admin.inviteUserByEmail(
-      parsed.email,
-      {
-        data: { staff: true, role: parsed.role },
-        redirectTo: `${redirectBase}/login`,
-      },
-    );
-
-    const message = error?.message.toLowerCase() ?? "";
-    if (error && !message.includes("already") && !message.includes("registered")) {
-      throw new Error(error.message);
-    }
-
-    await run("admin_add_staff_member", {
+    const userId = await runAccountRpc<string>("admin_add_staff_member", {
       p_email: parsed.email,
       p_role: parsed.role,
     });
+    await runAccountRpc("admin_send_staff_access", {
+      p_user_id: userId,
+      p_kind: "invite",
+      p_base_url: adminSiteUrl(),
+    });
+    return existing
+      ? `Invite emailed to ${parsed.email}. They already have a Silarah account, so they sign in with it; the link (72 hours) lets them choose a password.`
+      : `Invite emailed to ${parsed.email}. The link works for 72 hours.`;
   }, "Staff invite sent.", formData);
+}
+
+const staffTargetSchema = z.object({ userId: uuidSchema });
+const staffReasonSchema = z.object({
+  userId: uuidSchema,
+  reason: z.string().trim().min(6, "Give a reason of at least 6 characters for the audit log.").max(500),
+});
+
+/** Super admin: email a fresh invite or a password-reset link. */
+export async function sendStaffAccessLink(formData: FormData) {
+  await guardedAction("/staff", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "manageStaff");
+    const { userId } = staffTargetSchema.parse({ userId: formData.get("userId") });
+    const kind = formData.get("kind") === "reset" ? "reset" : "invite";
+    await runAccountRpc("admin_send_staff_access", {
+      p_user_id: userId,
+      p_kind: kind,
+      p_base_url: adminSiteUrl(),
+    });
+    return kind === "invite"
+      ? "A new invite was emailed. Older links stop working; this one works for 72 hours."
+      : "A password-reset link was emailed. It works once, for one hour.";
+  }, "Sent.", formData);
+}
+
+/** Super admin: someone lost their phone; they set up a new authenticator at next sign-in. */
+export async function resetStaffAuthenticator(formData: FormData) {
+  await guardedAction("/staff", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "manageStaff");
+    const parsed = staffReasonSchema.parse({ userId: formData.get("userId"), reason: formData.get("reason") ?? "" });
+    await runAccountRpc("admin_reset_staff_mfa", { p_user_id: parsed.userId, p_reason: parsed.reason });
+  }, "Authenticator removed and admin sessions ended. They set up a new one at their next sign-in.", formData);
+}
+
+/** Super admin: take someone off the staff list; their member account stays. */
+export async function removeStaffMember(formData: FormData) {
+  await guardedAction("/staff", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "manageStaff");
+    const parsed = staffReasonSchema.parse({ userId: formData.get("userId"), reason: formData.get("reason") ?? "" });
+    if (parsed.userId === admin.id) throw new UserFacingError("You cannot remove yourself. Ask another super admin.");
+    await runAccountRpc("admin_remove_staff_member", { p_user_id: parsed.userId, p_reason: parsed.reason });
+  }, "Removed from staff. Their admin sessions ended; any Silarah member account is unchanged.", formData);
+}
+
+/** Moderators: end every sign-in of a member (lost phone, account taken over). */
+export async function signOutMemberEverywhere(formData: FormData) {
+  await guardedAction("/users", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "moderateAccounts");
+    const parsed = staffReasonSchema.parse({ userId: formData.get("userId"), reason: formData.get("reason") ?? "" });
+    const ended = await runAccountRpc<number>("admin_sign_out_member", { p_user_id: parsed.userId, p_reason: parsed.reason });
+    return ended === 0 ? "The member had no active sign-ins." : `Signed out of ${ended} ${ended === 1 ? "device" : "devices"}. They must sign in again.`;
+  }, "Signed out.", formData);
 }
 export async function updateStaffMember(formData: FormData) {
   await guardedAction("/staff", async () => {
@@ -518,15 +580,6 @@ export async function markAllAdminNotificationsRead(formData?: FormData) {
   }, "All alerts marked as read.", formData);
 }
 
-function adminSiteUrl() {
-  if (process.env.NEXT_PUBLIC_ADMIN_SITE_URL) {
-    return process.env.NEXT_PUBLIC_ADMIN_SITE_URL.replace(/\/$/, "");
-  }
-  if (process.env.NODE_ENV !== "production") {
-    return "http://localhost:3001";
-  }
-  throw new Error("NEXT_PUBLIC_ADMIN_SITE_URL is required before staff invites can be sent in production.");
-}
 
 const deletionSchema = z.object({
   userId: uuidSchema,
@@ -570,6 +623,12 @@ const accountErrors = [
   "not waiting for a retry",
   "Notification jobs are not retried",
   "already queued again",
+  // Staff access (migration 342).
+  "cannot remove yourself",
+  "Use your own Security check page",
+  "Sign yourself out from the menu",
+  "cannot_remove_last_super_admin",
+  "staff_member_not_found",
 ];
 
 async function runAccountRpc<T>(name: string, values: Record<string, unknown>) {
@@ -577,6 +636,8 @@ async function runAccountRpc<T>(name: string, values: Record<string, unknown>) {
   const { data, error } = await supabase.rpc(name, values);
   if (error) {
     const known = accountErrors.find((fragment) => error.message.includes(fragment));
+    if (known === "cannot_remove_last_super_admin") throw new UserFacingError("Keep at least one active super admin.");
+    if (known === "staff_member_not_found") throw new UserFacingError("That person is not on the active staff list.");
     if (known) throw new UserFacingError(error.message);
     throw new Error(error.message);
   }
