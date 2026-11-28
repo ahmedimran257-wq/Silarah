@@ -130,9 +130,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     );
   }
 
-  void _returnToLegalAcceptance() {
+  void _returnToLegalAcceptance({bool thenGoogle = false}) {
     _resendTimer?.cancel();
-    context.go(AppRoutes.legal);
+    context.go(thenGoogle ? AppRoutes.legalThenGoogle : AppRoutes.legal);
   }
 
   void _showError(String message) {
@@ -187,6 +187,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
+        final fromGoogle = _googlePending;
         if (state is! AuthLoading && _googlePending) {
           setState(() => _googlePending = false);
         }
@@ -217,7 +218,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           }
           _showError(visibleMessage);
           if (state.kind == AuthErrorKind.legalConsentRequired) {
-            _returnToLegalAcceptance();
+            _returnToLegalAcceptance(thenGoogle: fromGoogle);
           }
         }
       },

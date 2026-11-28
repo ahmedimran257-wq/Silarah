@@ -5,7 +5,10 @@
 import 'package:silarah/l10n/ui_copy.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/cubits/auth/auth_cubit.dart';
+import '../../../core/cubits/auth/auth_state.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
@@ -18,7 +21,11 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../../core/services/legal_consent_service.dart';
 
 class LegalGateScreen extends StatefulWidget {
-  const LegalGateScreen({super.key});
+  const LegalGateScreen({super.key, this.continueWithGoogle = false});
+
+  /// The member tapped Continue with Google and has no account yet. After
+  /// accepting, Google sign-in resumes here instead of the email screen.
+  final bool continueWithGoogle;
 
   @override
   State<LegalGateScreen> createState() => _LegalGateScreenState();
@@ -29,6 +36,7 @@ class _LegalGateScreenState extends State<LegalGateScreen> {
   bool _termsConfirmed = false;
   bool _specialCategoryConsent = false;
   bool _isSaving = false;
+  bool _googlePending = false;
   String? _saveError;
 
   bool get _canProceed =>
@@ -53,13 +61,38 @@ class _LegalGateScreenState extends State<LegalGateScreen> {
       return;
     }
 
+    if (widget.continueWithGoogle) {
+      // The acceptance is now bound to the Google address and the account
+      // is created with it (GoogleSignInFlow); the router moves on when
+      // the member is signed in.
+      setState(() => _googlePending = true);
+      context.read<AuthCubit>().continueWithGoogle(mode: 'signup');
+      return;
+    }
+
     setState(() => _isSaving = false);
     context.push('${AppRoutes.email}?mode=signup');
+  }
+
+  void _onAuthState(BuildContext context, AuthState state) {
+    if (!_googlePending || state is AuthLoading) return;
+    setState(() {
+      _googlePending = false;
+      _isSaving = false;
+      if (state is AuthError) _saveError = state.message;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    return BlocListener<AuthCubit, AuthState>(
+      listener: _onAuthState,
+      child: _buildGate(context, l10n),
+    );
+  }
+
+  Widget _buildGate(BuildContext context, AppLocalizations l10n) {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(

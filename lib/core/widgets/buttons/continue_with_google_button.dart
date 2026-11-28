@@ -1,10 +1,14 @@
 // SILARAH - Continue with Google button
-// Google's sign-in branding for Android, dark theme: #131314 fill, #8E918F
-// border, #E3E3E3 label, the standard four-colour "G" unchanged.
+// Styled like the app's secondary button in every theme (Ivory & Emerald,
+// Rose & Marigold, Pure OLED). Google's branding rules for a custom button
+// are kept: the standard four-colour "G" unchanged on a white disc, and the
+// wording "Continue with Google".
 import 'package:flutter/material.dart';
 import 'package:silarah/l10n/ui_copy.dart';
 
+import '../../theme/app_colors.dart';
 import '../../theme/app_dimensions.dart';
+import '../../theme/app_typography.dart';
 import '../loaders/silarah_shimmer.dart';
 import 'silarah_pressable.dart';
 
@@ -22,49 +26,70 @@ class ContinueWithGoogleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final enabled = onTap != null && !isLoading;
+    final isActive = onTap != null && !isLoading;
     return SilarahPressable(
-      onTap: onTap,
-      enabled: enabled,
+      onTap: isActive ? onTap : null,
+      enabled: isActive,
+      haptic: false,
       semanticLabel: context.uiCopy(label),
-      child: AnimatedOpacity(
-        duration: AppDimensions.durationTransition,
-        opacity: enabled || isLoading ? 1 : .55,
-        child: Container(
-          height: AppDimensions.buttonHeight,
-          decoration: BoxDecoration(
-            color: const Color(0xFF131314),
-            borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
-            border: Border.all(color: const Color(0xFF8E918F)),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (isLoading)
-                const SilarahPulseLoader(size: 22)
-              else
-                const SizedBox.square(
-                  dimension: 20,
-                  child: CustomPaint(painter: GoogleGPainter()),
-                ),
-              const SizedBox(width: 12),
-              const Flexible(
-                child: UiText(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 14,
-                    height: 20 / 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFFE3E3E3),
-                  ),
-                ),
-              ),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        width: double.infinity,
+        height: AppDimensions.buttonHeight,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.surfacePanelTop
+                  .withValues(alpha: isActive || isLoading ? 0.72 : 0.42),
+              AppColors.midnightPlum
+                  .withValues(alpha: isActive || isLoading ? 0.28 : 0.12),
+              AppColors.surfaceGlass.withValues(alpha: 0.16),
             ],
           ),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusButton),
+          border: Border.all(
+            color: AppColors.cardBorder,
+            width: AppDimensions.borderThin,
+          ),
+        ),
+        child: Center(
+          child: isLoading
+              ? const SilarahPulseLoader(size: 26)
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 28,
+                        height: 28,
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFDADCE0)),
+                        ),
+                        child: const CustomPaint(painter: GoogleGPainter()),
+                      ),
+                      const SizedBox(width: AppDimensions.space12),
+                      Flexible(
+                        child: UiText(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.buttonSecondary.copyWith(
+                            color: isActive
+                                ? AppColors.pearlWhite
+                                : AppColors.slateMist,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
         ),
       ),
     );

@@ -3,14 +3,19 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/cubits/auth/auth_cubit.dart';
+import '../../../core/cubits/auth/auth_state.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/services/google_identity_service.dart';
 import '../../../core/services/referral_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/buttons/continue_with_google_button.dart';
 import '../../../core/widgets/buttons/silarah_primary_button.dart';
 import '../../../core/widgets/buttons/silarah_secondary_button.dart';
 import '../../../core/widgets/silarah_launch_sequence.dart';
@@ -22,7 +27,10 @@ import '../../../l10n/generated/app_localizations.dart';
 /// Unauthenticated landing surface. The opening greeting belongs exclusively
 /// to [SilarahLaunchSequence]; this screen communicates the product promise.
 class SplashBrandScreen extends StatefulWidget {
-  const SplashBrandScreen({super.key});
+  const SplashBrandScreen({super.key, this.showGoogleSignIn});
+
+  /// Defaults to whether this build has native Google sign-in configured.
+  final bool? showGoogleSignIn;
 
   @override
   State<SplashBrandScreen> createState() => _SplashBrandScreenState();
@@ -42,6 +50,10 @@ class _SplashBrandScreenState extends State<SplashBrandScreen>
   late final Animation<Offset> _secondarySlide;
   late final Animation<double> _tertiaryOpacity;
   bool _motionPreferenceApplied = false;
+  bool _googlePending = false;
+
+  bool get _showGoogle =>
+      widget.showGoogleSignIn ?? GoogleIdentityService.isAvailable;
   bool _orchestrationStarted = false;
 
   @override
@@ -151,6 +163,35 @@ class _SplashBrandScreenState extends State<SplashBrandScreen>
   void _lightTap(VoidCallback action) {
     HapticFeedback.lightImpact();
     action();
+  }
+
+  /// Existing members are signed in. A Google address with no account goes
+  /// to the legal gate, which resumes Google sign-in after acceptance.
+  void _continueWithGoogle() {
+    setState(() => _googlePending = true);
+    context.read<AuthCubit>().continueWithGoogle();
+  }
+
+  void _onAuthState(BuildContext context, AuthState state) {
+    if (!_googlePending || state is AuthLoading) return;
+    setState(() => _googlePending = false);
+    if (state is! AuthError) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: UiText(
+          state.message,
+          style: TextStyle(color: AppColors.readableOn(AppColors.softCoral)),
+        ),
+        backgroundColor: AppColors.softCoral,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+    if (state.kind == AuthErrorKind.legalConsentRequired) {
+      context.push(AppRoutes.legalThenGoogle);
+    }
   }
 
   Future<void> _showReferralSheet(BuildContext context) async {
@@ -350,6 +391,14 @@ class _SplashBrandScreenState extends State<SplashBrandScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (!_showGoogle) return _buildWelcome(context);
+    return BlocListener<AuthCubit, AuthState>(
+      listener: _onAuthState,
+      child: _buildWelcome(context),
+    );
+  }
+
+  Widget _buildWelcome(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.obsidianNight,
@@ -468,6 +517,27 @@ class _SplashBrandScreenState extends State<SplashBrandScreen>
                                   ),
                                 ),
                               ),
+                              if (_showGoogle) ...[
+                                const SizedBox(height: AppDimensions.space12),
+                                FadeTransition(
+                                  opacity: _secondaryOpacity,
+                                  child: SlideTransition(
+                                    position: _secondarySlide,
+                                    child: BlocBuilder<AuthCubit, AuthState>(
+                                      builder: (context, state) =>
+                                          ContinueWithGoogleButton(
+                                        isLoading: _googlePending &&
+                                            state is AuthLoading,
+                                        onTap: state is AuthLoading
+                                            ? null
+                                            : () => _lightTap(
+                                                  _continueWithGoogle,
+                                                ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                               const SizedBox(height: AppDimensions.space12),
                               FadeTransition(
                                 opacity: _secondaryOpacity,

@@ -50,6 +50,10 @@ abstract final class AppRoutes {
   static const splash = '/';
   static const languageSelect = '/language';
   static const legal = '/legal';
+
+  /// The legal gate for a new member who chose Continue with Google: after
+  /// accepting, Google sign-in resumes instead of the email screen.
+  static const legalThenGoogle = '/legal?then=google';
   static const email = '/email';
   static const onboarding = '/onboarding';
   static const home = '/home';
@@ -230,9 +234,11 @@ GoRouter buildAppRouter(
         path: AppRoutes.legal,
         pageBuilder: (context, state) => _slidePage(
           key: state.pageKey,
-          child: const NotificationRouteBackScope(
+          child: NotificationRouteBackScope(
             fallbackPath: AppRoutes.splash,
-            child: LegalGateScreen(),
+            child: LegalGateScreen(
+              continueWithGoogle: state.uri.queryParameters['then'] == 'google',
+            ),
           ),
         ),
       ),
