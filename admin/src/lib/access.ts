@@ -70,6 +70,8 @@ export const actionRoles = {
   grantTestPremium: owner,
   // Voice calling (docs/voice_calling_spec.md 12.8); the database re-checks.
   switchCalls: owner,
+  tuneCalls: owner,
+  retryCallJobs: owner,
   adjustCallMinutes: publishing,
   claimCallPacks: publishing,
   viewCallHistory: everyone,

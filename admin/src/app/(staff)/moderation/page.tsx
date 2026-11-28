@@ -1,15 +1,16 @@
-import { Camera, CircleCheck, Eye, Flag, MessageSquareWarning, SearchCheck, UserRoundSearch } from "lucide-react";
+import { Camera, CircleCheck, Eye, Flag, MessageSquareWarning, Phone, SearchCheck, UserRoundSearch } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { SearchField, SubmitButton } from "@/components/client-ui";
 import { EmptyState, NoAccess, PageHeader, StatusPill, formatDateTime } from "@/components/ui";
 import { formatCount } from "@/lib/access";
 import { requireArea } from "@/lib/auth";
+import { messageReason, reportReason, reportReasonOrder } from "@/lib/labels";
 import {
   getDiscoveryEligibility,
   getMessageReports,
   getPhotos,
-  getReports,
+  getReportsByReason,
   type PhotoRow,
 } from "@/lib/operations";
 import { resolveMessageReport, resolveReport, reviewPhoto } from "../actions";
@@ -25,7 +26,7 @@ function riskOf(photo: PhotoRow) {
   return { label: "Routine review", tone: "info" };
 }
 
-export default async function ModerationPage({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string }> }) {
+export default async function ModerationPage({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string; reason?: string }> }) {
   const { admin, allowed } = await requireArea("moderation");
   if (!allowed) return <NoAccess area="Moderation" />;
   const params = await searchParams;
@@ -38,7 +39,8 @@ export default async function ModerationPage({ searchParams }: { searchParams: P
   };
   const requested = tabs.find((tab) => tab === params.tab);
   const tab: Tab = requested ?? (tabs.find((key) => (counts[key] ?? 0) > 0) ?? "reports");
-  const returnTo = `/moderation?tab=${tab}${params.q ? `&q=${encodeURIComponent(params.q)}` : ""}`;
+  const reason = params.reason && /^[a-z_]{2,40}$/.test(params.reason) ? params.reason : null;
+  const returnTo = `/moderation?tab=${tab}${params.q ? `&q=${encodeURIComponent(params.q)}` : ""}${tab === "reports" && reason ? `&reason=${reason}` : ""}`;
   const labels: Record<Tab, string> = {
     reports: "Member reports",
     messages: "Reported messages",
@@ -63,7 +65,7 @@ export default async function ModerationPage({ searchParams }: { searchParams: P
         ))}
       </nav>
 
-      {tab === "reports" ? <ReportsQueue returnTo={returnTo} /> : null}
+      {tab === "reports" ? <ReportsQueue returnTo={returnTo} reason={reason} /> : null}
       {tab === "messages" ? <MessagesQueue returnTo={returnTo} /> : null}
       {tab === "photos" ? <PhotosQueue returnTo={returnTo} /> : null}
       {tab === "discovery" ? <DiscoveryCheck query={(params.q ?? "").slice(0, 120)} /> : null}
@@ -80,43 +82,79 @@ function Hidden({ returnTo, fields }: { returnTo: string; fields: Record<string,
   );
 }
 
-async function ReportsQueue({ returnTo }: { returnTo: string }) {
-  const reports = await getReports();
+async function ReportsQueue({ returnTo, reason }: { returnTo: string; reason: string | null }) {
+  const { counts, rows: reports } = await getReportsByReason(reason);
+  const total = Object.values(counts).reduce((sum, n) => sum + n, 0);
+  const reasons = [
+    ...reportReasonOrder.filter((code) => counts[code]),
+    ...Object.keys(counts).filter((code) => !reportReasonOrder.includes(code)),
+  ];
   return (
-    <section className="card">
-      {reports.length === 0 ? (
-        <EmptyState icon={Flag} title="No open reports">Reports members file about a profile appear here, oldest first.</EmptyState>
-      ) : (
-        <div className="list">
-          {reports.map((report) => (
-            <article className="list-item" key={report.report_id}>
-              <div>
-                <h3>{report.reported_name || "Reported member"} <StatusPill status="pending" label={report.reason.replaceAll("_", " ")} /></h3>
-                {report.description ? <p className="quote">{report.description}</p> : <p className="muted">No details were given.</p>}
-                <div className="meta">
-                  <span>{formatDateTime(report.created_at)}</span>
-                  <span>{report.report_count} open {report.report_count === 1 ? "report" : "reports"} on this member</span>
-                  <span className="mono">{report.reported_user_id.slice(0, 8)}</span>
-                </div>
-              </div>
-              <div className="aside">
-                <Link href={`/users/${report.reported_user_id}?report=${report.report_id}`} prefetch={false} className="btn btn-sm btn-primary">
-                  <UserRoundSearch size={14} /> Review profile
-                </Link>
-                <form action={resolveReport}>
-                  <Hidden returnTo={returnTo} fields={{ reportId: report.report_id, action: "dismissed" }} />
-                  <SubmitButton className="btn btn-sm">Dismiss</SubmitButton>
-                </form>
-                <form action={resolveReport}>
-                  <Hidden returnTo={returnTo} fields={{ reportId: report.report_id, action: "actioned" }} />
-                  <SubmitButton className="btn btn-sm btn-danger" confirm="Suspend this member's profile?">Suspend profile</SubmitButton>
-                </form>
-              </div>
-            </article>
+    <div className="stack">
+      {total > 0 ? (
+        <nav className="row" aria-label="Filter reports by reason">
+          <Link href="/moderation?tab=reports" prefetch={false} className={`pill ${reason === null ? "gold" : "plain"}`} aria-current={reason === null ? "page" : undefined}>
+            All reasons · {formatCount(total)}
+          </Link>
+          {reasons.map((code) => (
+            <Link
+              key={code}
+              href={`/moderation?tab=reports&reason=${code}`}
+              prefetch={false}
+              className={`pill ${reason === code ? "gold" : code === "harassing_calls" ? "danger" : "plain"}`}
+              aria-current={reason === code ? "page" : undefined}
+            >
+              {reportReason(code)} · {formatCount(counts[code] ?? 0)}
+            </Link>
           ))}
-        </div>
-      )}
-    </section>
+        </nav>
+      ) : null}
+      <section className="card">
+        {reports.length === 0 ? (
+          <EmptyState icon={Flag} title={reason ? `No open ${reportReason(reason).toLowerCase()} reports` : "No open reports"}>
+            {reason ? <Link href="/moderation?tab=reports" prefetch={false} className="link">Show every reason</Link> : "Reports members file about a profile appear here, oldest first."}
+          </EmptyState>
+        ) : (
+          <div className="list">
+            {reports.map((report) => (
+              <article className="list-item" key={report.report_id}>
+                <div>
+                  <h3>{report.reported_name || "Reported member"} <StatusPill status="pending" label={reportReason(report.reason)} /></h3>
+                  {report.description ? <p className="quote">{report.description}</p> : <p className="muted">No details were given.</p>}
+                  {report.reason === "harassing_calls" || report.calls_to_reporter_90d > 0 ? (
+                    <p className={report.unanswered_24h >= 3 ? "notice warn" : "muted"}>
+                      <Phone size={14} />
+                      <span>
+                        This member called the reporter {report.calls_to_reporter_90d} {report.calls_to_reporter_90d === 1 ? "time" : "times"} in 90 days;
+                        {" "}{report.unanswered_24h} unanswered in the 24 hours before the report. Times and results are on the review page; audio is never recorded.
+                      </span>
+                    </p>
+                  ) : null}
+                  <div className="meta">
+                    <span>{formatDateTime(report.created_at)}</span>
+                    <span>{report.report_count} open {report.report_count === 1 ? "report" : "reports"} on this member</span>
+                    <span className="mono">{report.reported_user_id.slice(0, 8)}</span>
+                  </div>
+                </div>
+                <div className="aside">
+                  <Link href={`/users/${report.reported_user_id}?report=${report.report_id}`} prefetch={false} className="btn btn-sm btn-primary">
+                    <UserRoundSearch size={14} /> Review profile
+                  </Link>
+                  <form action={resolveReport}>
+                    <Hidden returnTo={returnTo} fields={{ reportId: report.report_id, action: "dismissed" }} />
+                    <SubmitButton className="btn btn-sm">Dismiss</SubmitButton>
+                  </form>
+                  <form action={resolveReport}>
+                    <Hidden returnTo={returnTo} fields={{ reportId: report.report_id, action: "actioned" }} />
+                    <SubmitButton className="btn btn-sm btn-danger" confirm="Suspend this member's profile?">Suspend profile</SubmitButton>
+                  </form>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
   );
 }
 
@@ -131,7 +169,7 @@ async function MessagesQueue({ returnTo }: { returnTo: string }) {
           {reports.map((report) => (
             <article className="list-item" key={report.report_id}>
               <div>
-                <h3>{report.reported_name || "Reported sender"} <StatusPill status="pending" label={report.reason.replaceAll("_", " ")} /></h3>
+                <h3>{report.reported_name || "Reported sender"} <StatusPill status="pending" label={messageReason(report.reason)} /></h3>
                 <blockquote className="quote">{report.message_content}</blockquote>
                 {report.description ? <p>{report.description}</p> : null}
                 <div className="meta">

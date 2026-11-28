@@ -502,3 +502,11 @@ details.disclosure > summary::-webkit-details-marker { display: none; }
   .evidence-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
   .toast-region { right: 16px; bottom: 16px; }
 }
+
+/* Voice calls (/calls): numbered emergency steps, simple lists, grouped settings. */
+ol.steps { display: grid; gap: 10px; padding-left: 20px; font-size: 13.5px; color: var(--ink-soft); }
+ol.steps strong { color: var(--ink); }
+ol.steps code { font-size: 12.5px; background: var(--canvas-deep); padding: 1px 5px; border-radius: 6px; overflow-wrap: anywhere; }
+ul.plain-list { display: grid; gap: 4px; padding-left: 18px; font-size: 13.5px; }
+fieldset.stack { border: 0; padding: 0; margin: 0; min-width: 0; }
+fieldset.stack:disabled .input { opacity: 0.75; }

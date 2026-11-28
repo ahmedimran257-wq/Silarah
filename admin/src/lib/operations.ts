@@ -367,6 +367,13 @@ export type CallOverview = {
   live_calls: number;
   calls_today: number;
   dead_jobs: number;
+  // 339
+  auto_cap_at?: string | null;
+  ringing_now?: number;
+  retrying_jobs?: number;
+  unclaimed_packs?: number;
+  pending_refunds?: number;
+  calling_consent_version?: string | null;
 };
 
 export type MemberCallRow = {
@@ -421,3 +428,82 @@ export const getMemberCallHistory = (userId: string) =>
 
 export const getReportCallContext = (reportId: string) =>
   rpc<ReportCallContext | null>("admin_report_call_context", { p_report_id: reportId });
+
+// ---------------------------------------------------------------------------
+// Voice calling staff tools (migration 339)
+// ---------------------------------------------------------------------------
+
+export type CallSettingKey =
+  | "monthly_cap_minutes" | "included_minutes" | "max_hold_minutes" | "unanswered_call_limit"
+  | "ring_timeout_seconds" | "join_timeout_seconds" | "connect_allowance_seconds"
+  | "plan_min_lead_minutes" | "plan_max_days_ahead" | "plan_window_minutes"
+  | "plan_reminder_minutes" | "plan_max_open" | "plan_max_per_chat_day";
+
+export type CallSettings = {
+  values: { key: CallSettingKey; value: number; min: number; max: number }[];
+  calls_enabled: boolean;
+  fixed: {
+    included_period_days: number;
+    log_retention_months: number;
+    calling_consent_type: string;
+    calling_consent_version: string | null;
+  };
+  auto_cap_minutes: number | null;
+  auto_cap_at: string | null;
+  effective_cap_minutes: number;
+  last_change: {
+    changed_at: string;
+    changed_by: string | null;
+    changed_by_email: string | null;
+    changes: { key: string; from: unknown; to: unknown }[];
+  } | null;
+};
+
+export type LiveCallRow = {
+  request_id: string; status: string;
+  caller_id: string; caller_name: string | null; callee_id: string; callee_name: string | null;
+  accepted_at: string; both_joined_at: string | null; end_requested_at: string | null;
+  end_reason: string | null; hold_minutes: number; last_error: string | null;
+};
+
+export type CallJobRow = {
+  id: number; kind: string; request_id: string | null; user_id: string | null; plan_id?: string | null;
+  attempts: number; last_error: string | null; created_at: string;
+  last_attempt_at?: string | null; next_attempt_at?: string | null; can_retry?: boolean;
+};
+
+export type CallOperations = {
+  live: LiveCallRow[];
+  ringing: number;
+  dead_jobs: CallJobRow[];
+  retrying_jobs: CallJobRow[];
+  months: { month_start: string; charged_minutes: number }[];
+};
+
+export type MemberCallWallet = {
+  premium: boolean;
+  pack_minutes: number;
+  run_started_at: string | null;
+  period: { start: string; end: string; granted: number; used: number; forfeited_at: string | null; remaining: number } | null;
+  held_now: number;
+  month_charged_minutes: number;
+  call_mode: "ring" | "silent" | "off";
+  chats_with_calls_blocked: number;
+  ledger: {
+    id: number; kind: string; pack: number; included: number; product_id: string | null;
+    transaction_id: string | null; request_id: string | null; note: string | null; created_at: string;
+  }[];
+  pending_refunds: { transaction_id: string; product_id: string; received_at: string }[];
+  packs_waiting: { event_id: string; product_id: string; transaction_id: string | null; reason: string; received_at: string }[];
+  packs_claimed: { event_id: string; product_id: string; claimed_at: string; claim_source: string | null }[];
+};
+
+export type ReasonReportRow = ReportRow & { calls_to_reporter_90d: number; unanswered_24h: number };
+export type ReportsByReason = { counts: Record<string, number>; rows: ReasonReportRow[] };
+
+export const getCallSettings = () => rpc<CallSettings>("admin_call_settings");
+export const getCallOperations = () => rpc<CallOperations>("admin_call_operations");
+export const getMemberCallWallet = (userId: string) =>
+  rpc<MemberCallWallet | null>("admin_member_call_wallet", { p_user: userId });
+export const getReportsByReason = (reason: string | null) =>
+  rpc<ReportsByReason>("admin_reports_by_reason", { p_reason: reason, p_limit: 100 });
