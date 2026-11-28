@@ -14,6 +14,15 @@
         android:name="android.permission.BLUETOOTH"
         android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- RECORD_AUDIO and BLUETOOTH imply required hardware, which hid the
+         app on Play from devices without a microphone or Bluetooth. Calls
+         are optional: the app works without either. -->
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.bluetooth"
+        android:required="false" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- Call foreground service, started only after Answer: microphone,
          and phone call while Telecom holds the call (self-managed calls,

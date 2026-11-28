@@ -92,6 +92,23 @@ void main() {
     expect(manifest, isNot(contains('android:showWhenLocked')));
   });
 
+  test('microphone and Bluetooth are optional hardware', () {
+    // RECORD_AUDIO and BLUETOOTH otherwise imply required features, and Play
+    // hides the app from devices without them (15 devices on 1.1.0+50200).
+    for (final feature in <String>['microphone', 'bluetooth']) {
+      expect(
+        manifest,
+        matches(RegExp(
+          r'<uses-feature\s+android:name="android\.hardware\.' +
+              feature +
+              r'"\s+android:required="false"\s*/>',
+        )),
+        reason: 'android.hardware.$feature must be declared not required.',
+      );
+    }
+    expect(manifest, isNot(contains('android:required="true"')));
+  });
+
   test('calling uses the Stream core client without Stream push or services', () {
     final pubspec = File('pubspec.yaml').readAsStringSync();
     expect(pubspec, contains('stream_video: 1.6.0'));
