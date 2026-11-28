@@ -16,34 +16,91 @@ function createAdminClient() {
 }
 type AdminClient = ReturnType<typeof createAdminClient>;
 
-type PurgeJob = {
+export type PurgeJob = {
   user_id: string;
   phase: "storage" | "auth" | "database";
   lease_token: string;
 };
 
-Deno.serve(async (req) => {
-  if (req.method !== "POST") return json(405, { error: "method_not_allowed" });
-  if (!(await isAuthorizedCronRequest(req))) {
-    return json(401, { error: "unauthorized" });
+// A purge has three phases (storage, auth, database). Each checkout leases one
+// phase per job, and this worker runs once a day, so a deletion used to take
+// three days. It now checks out again after each round: a job that advanced
+// is due again at once, so it moves through every phase in one run. A failed
+// phase backs off (finish_account_purge_phase) and is not retried this run.
+const MAX_ROUNDS = 4;
+const ROUND_BUDGET_MS = 60_000;
+
+export type PurgeRunResult = {
+  rounds: number;
+  processed: number;
+  advanced: number;
+  failed: number;
+  queueUnavailable: boolean;
+};
+
+export async function runPurgeRounds(
+  checkout: () => Promise<PurgeJob[] | null>,
+  process: (job: PurgeJob) => Promise<boolean>,
+  options: { maxRounds?: number; budgetMs?: number; now?: () => number } = {},
+): Promise<PurgeRunResult> {
+  const maxRounds = options.maxRounds ?? MAX_ROUNDS;
+  const budgetMs = options.budgetMs ?? ROUND_BUDGET_MS;
+  const now = options.now ?? Date.now;
+  const started = now();
+  const result: PurgeRunResult = {
+    rounds: 0,
+    processed: 0,
+    advanced: 0,
+    failed: 0,
+    queueUnavailable: false,
+  };
+  while (result.rounds < maxRounds && now() - started < budgetMs) {
+    const jobs = await checkout();
+    if (jobs === null) {
+      result.queueUnavailable = result.rounds === 0;
+      break;
+    }
+    if (jobs.length === 0) break;
+    result.rounds += 1;
+    const outcomes = await mapWithConcurrency(jobs, CONCURRENCY, process);
+    const advanced = outcomes.filter(Boolean).length;
+    result.processed += jobs.length;
+    result.advanced += advanced;
+    result.failed += jobs.length - advanced;
+    if (advanced === 0) break;
   }
-  const admin = createAdminClient();
-  const { data, error } = await admin.rpc("checkout_account_purge_jobs", {
-    p_limit: 10,
+  return result;
+}
+
+if (import.meta.main) {
+  Deno.serve(async (req) => {
+    if (req.method !== "POST") {
+      return json(405, { error: "method_not_allowed" });
+    }
+    if (!(await isAuthorizedCronRequest(req))) {
+      return json(401, { error: "unauthorized" });
+    }
+    const admin = createAdminClient();
+    const result = await runPurgeRounds(
+      async () => {
+        const { data, error } = await admin.rpc("checkout_account_purge_jobs", {
+          p_limit: 10,
+        });
+        return error ? null : (data ?? []) as PurgeJob[];
+      },
+      (job) => processJob(admin, job),
+    );
+    if (result.queueUnavailable) {
+      return json(503, { error: "purge_queue_unavailable" });
+    }
+    return json(200, {
+      rounds: result.rounds,
+      processed: result.processed,
+      advanced: result.advanced,
+      failed: result.failed,
+    });
   });
-  if (error) return json(503, { error: "purge_queue_unavailable" });
-  const jobs = (data ?? []) as PurgeJob[];
-  const outcomes = await mapWithConcurrency(
-    jobs,
-    CONCURRENCY,
-    (job) => processJob(admin, job),
-  );
-  return json(200, {
-    processed: jobs.length,
-    advanced: outcomes.filter(Boolean).length,
-    failed: outcomes.filter((value) => !value).length,
-  });
-});
+}
 
 async function processJob(
   admin: AdminClient,
