@@ -95,6 +95,14 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/notification_accent" />
+        <!-- geolocator ships a background location foreground service. Silarah only
+             reads one coarse position while the member is using the app
+             (getCurrentPosition), so the service is removed: the app never
+             tracks location in the background and declares no location
+             foreground service. -->
+        <service
+            android:name="com.baseflow.geolocator.GeolocatorLocationService"
+            tools:node="remove" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

@@ -29,6 +29,23 @@ void main() {
     }
   });
 
+  test('no background location foreground service ships', () {
+    // geolocator's GeolocatorLocationService (foregroundServiceType
+    // "location") is unused: the app reads one coarse position in the
+    // foreground. Keeping it would put an undeclared location FGS in the
+    // merged manifest (Play foreground service policy).
+    expect(
+      manifest,
+      matches(RegExp(
+        r'<service\s+'
+        r'android:name="com\.baseflow\.geolocator\.GeolocatorLocationService"\s+'
+        r'tools:node="remove"\s*/>',
+      )),
+    );
+    expect(manifest, isNot(contains('FOREGROUND_SERVICE_LOCATION')));
+    expect(manifest, isNot(contains('ACCESS_BACKGROUND_LOCATION')));
+  });
+
   test('voice calls declare the microphone, and only what calls need', () {
     // docs/voice_calling_spec.md 8: RECORD_AUDIO is restored for calls.
     expect(
