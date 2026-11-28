@@ -83,13 +83,17 @@ void main() {
     final policy270 = File(
       'supabase/migrations/335_policy_270_voice_calling.sql',
     ).readAsStringSync();
+    // 345 patches those bodies again for the current bundle.
+    final policy280 = File(
+      'supabase/migrations/345_policy_280_google_sign_in.sql',
+    ).readAsStringSync();
 
     expect(settings, contains('LegalDocuments.all'));
     expect(legalGate, contains('community-guidelines'));
     expect(consentService, contains('LegalDocuments.version'));
     expect(originalConsentMigration, contains("'community_guidelines'"));
     expect(currentConsentMigration, contains("'2.4.0', '2.5.0'"));
-    expect(policy270, contains("'${LegalDocuments.version}'"));
+    expect(policy280, contains("'${LegalDocuments.version}'"));
     for (final fn in [
       'public.begin_signup_consent_transaction(text,jsonb)',
       'public.finalize_signup_consents(uuid)',
@@ -99,17 +103,46 @@ void main() {
       'public.download_my_data(text)',
     ]) {
       expect(policy270, contains(fn));
+      expect(policy280, contains(fn));
     }
     expect(policy270, contains("RAISE EXCEPTION 'policy_270"));
-    expect(policy270, isNot(contains('UPDATE public.user_consents')));
-    expect(policy270, isNot(contains('INSERT INTO public.user_consents')));
+    expect(policy280, contains("RAISE EXCEPTION 'policy_280"));
+    for (final migration in [policy270, policy280]) {
+      expect(migration, isNot(contains('UPDATE public.user_consents')));
+      expect(migration, isNot(contains('INSERT INTO public.user_consents')));
+    }
     expect(LegalDocuments.operatorName, 'Silarah');
     expect(LegalDocuments.grievanceOfficerName, 'Silarah Grievance Desk');
   });
 
+  test('2.8 Continue with Google is disclosed the same way in app and site',
+      () {
+    expect(LegalDocuments.version, '2.8.0');
+    final app = LegalDocuments.privacy.sections.map((s) => s.body).join(' ');
+    final html = File('site/privacy/index.html').readAsStringSync();
+    for (final copy in [app, html]) {
+      // What Google's own consent sheet says it shares, and nothing more.
+      expect(
+          copy,
+          contains('Google shares your name, email address, profile picture '
+              'and Google account identifier with Silarah'));
+      expect(copy, contains('we do not access your contacts, files'));
+      expect(copy, contains('Google for Continue with Google sign-in'));
+      expect(copy, contains('including sign-in with Google'));
+      expect(copy, contains('deleted with your account'));
+      expect(copy, contains('remove Silarah’s access in your Google Account'));
+    }
+    final legalCentre = File('site/legal/index.html').readAsStringSync();
+    expect(legalCentre, contains('Version 2.8.0 adds Continue with Google'));
+    final policy280 = File(
+      'supabase/migrations/345_policy_280_google_sign_in.sql',
+    ).readAsStringSync();
+    expect(policy280, contains("SELECT '2.8.0'::text"));
+    expect(policy280, contains("to_jsonb('2.8.0'::text)"));
+  });
+
   test('2.7 privacy commitments are honest and aligned across app and site',
       () {
-    expect(LegalDocuments.version, '2.7.0');
     final app = LegalDocuments.privacy.sections.map((s) => s.body).join(' ');
     final rights =
         LegalDocuments.privacyRights.sections.map((s) => s.body).join(' ');

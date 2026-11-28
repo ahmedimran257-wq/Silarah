@@ -31,7 +31,7 @@ void main() {
           expect(LegalTranslations.of(slug, lang), isNotNull,
               reason: '$lang $slug');
         }
-        expect(LegalTranslations.of('privacy', lang)!.sections, hasLength(5));
+        expect(LegalTranslations.of('privacy', lang)!.sections, hasLength(6));
         expect(LegalTranslations.of('terms', lang)!.sections, hasLength(1));
         final refund = LegalTranslations.of('refund-policy', lang)!.sections;
         expect(refund, hasLength(LegalDocuments.refund.sections.length));
@@ -46,6 +46,10 @@ void main() {
         final terms = _all(LegalTranslations.of('terms', lang)!);
         final refund = _all(LegalTranslations.of('refund-policy', lang)!);
         expect(privacy, contains('Stream (Stream.io, Inc.)'));
+        // 2.8.0: Continue with Google, with the same facts as the English.
+        expect(privacy, contains('Google'));
+        expect(privacy, contains('Silarah'));
+        expect(privacy, contains('(ID)'));
         expect(privacy, contains('RevenueCat'));
         expect(privacy, contains('12'));
         expect(terms, contains('Premium'));

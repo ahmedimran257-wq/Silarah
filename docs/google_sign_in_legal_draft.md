@@ -1,6 +1,8 @@
 # Continue with Google — Privacy Policy draft (needs owner approval)
 
-Status: **draft, not published.** The live policy (2.7.0, effective 28 November 2026) is unchanged in this branch. Nothing here reaches silarah.com or the app until the owner approves it.
+Status: **prepared as policy 2.8.0 on branch feature/google-sign-in, awaiting owner approval. Not published.** The app text (`legal_documents.dart`), every page under `site/`, the hi/ur/bn summaries (`legal_translations.dart`) and migration `345_policy_280_google_sign_in.sql` are ready. The migration was dry-run on staging (all six functions patched, then rolled back) and is **not applied** anywhere. The effective date **10 December 2026** is a placeholder: set it to the day the update with Google sign-in goes live (in `LegalDocuments.effectiveDate` and the `Effective …` line on every site page).
+
+Order once approved: apply 345 on staging, test a sign-up there, then apply it on production **before** the app update and website go live (backend first, as with 2.7.0). Then deploy the site and release the app.
 
 ## Is a change needed?
 

@@ -89,11 +89,11 @@ void main() {
       'lib/features/home/widgets/policy_reminder_sheet.dart',
     ).readAsStringSync();
 
-    expect(legalDocuments, contains("static const version = '2.7.0'"));
+    expect(legalDocuments, contains("static const version = '2.8.0'"));
     expect(
-        File('supabase/migrations/335_policy_270_voice_calling.sql')
+        File('supabase/migrations/345_policy_280_google_sign_in.sql')
             .readAsStringSync(),
-        contains("'2.7.0'"));
+        contains("'2.8.0'"));
     expect(migration, contains("'2.4.0', '2.5.0'"));
     final priorReminderMigration = File(
       'supabase/migrations/214_policy_230_subscription_and_privacy_consents.sql',

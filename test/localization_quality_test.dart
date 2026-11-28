@@ -261,6 +261,9 @@ const _scanExcludedFiles = <String>{
   'lib/core/data/country_languages_data.dart',
   'lib/core/data/country_sects_data.dart',
   'lib/core/legal/legal_documents.dart',
+  // Already Hindi, Urdu and Bengali; titles such as 'Google से साइन इन' keep
+  // the brand name in Latin letters.
+  'lib/core/legal/legal_translations.dart',
   'lib/core/utils/perf_log.dart',
   'lib/features/onboarding/screens/language_selection_screen.dart',
 };
