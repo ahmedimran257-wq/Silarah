@@ -89,7 +89,7 @@ void main() {
     expect(consentService, contains('LegalDocuments.version'));
     expect(originalConsentMigration, contains("'community_guidelines'"));
     expect(currentConsentMigration, contains("'2.4.0', '2.5.0'"));
-    expect(policy270, contains("'" + LegalDocuments.version + "'"));
+    expect(policy270, contains("'${LegalDocuments.version}'"));
     for (final fn in [
       'public.begin_signup_consent_transaction(text,jsonb)',
       'public.finalize_signup_consents(uuid)',
