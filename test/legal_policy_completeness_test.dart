@@ -79,20 +79,37 @@ void main() {
     final currentConsentMigration = File(
       'supabase/migrations/264_policy_250_compatible_consent_rollout.sql',
     ).readAsStringSync();
+    // 335 patches the 264 (production) or 271 (staging) bodies in place.
+    final policy270 = File(
+      'supabase/migrations/335_policy_270_voice_calling.sql',
+    ).readAsStringSync();
 
     expect(settings, contains('LegalDocuments.all'));
     expect(legalGate, contains('community-guidelines'));
     expect(consentService, contains('LegalDocuments.version'));
     expect(originalConsentMigration, contains("'community_guidelines'"));
     expect(currentConsentMigration, contains("'2.4.0', '2.5.0'"));
-    expect(currentConsentMigration, contains(LegalDocuments.version));
+    expect(policy270, contains("'" + LegalDocuments.version + "'"));
+    for (final fn in [
+      'public.begin_signup_consent_transaction(text,jsonb)',
+      'public.finalize_signup_consents(uuid)',
+      'public.sync_my_user(text,text)',
+      'public.get_my_policy_reminder_state()',
+      'public.acknowledge_policy_reminder(text)',
+      'public.download_my_data(text)',
+    ]) {
+      expect(policy270, contains(fn));
+    }
+    expect(policy270, contains("RAISE EXCEPTION 'policy_270"));
+    expect(policy270, isNot(contains('UPDATE public.user_consents')));
+    expect(policy270, isNot(contains('INSERT INTO public.user_consents')));
     expect(LegalDocuments.operatorName, 'Silarah');
     expect(LegalDocuments.grievanceOfficerName, 'Silarah Grievance Desk');
   });
 
-  test('2.5 privacy commitments are honest and aligned across app and site',
+  test('2.7 privacy commitments are honest and aligned across app and site',
       () {
-    expect(LegalDocuments.version, '2.5.0');
+    expect(LegalDocuments.version, '2.7.0');
     final app = LegalDocuments.privacy.sections.map((s) => s.body).join(' ');
     final rights =
         LegalDocuments.privacyRights.sections.map((s) => s.body).join(' ');
@@ -132,6 +149,53 @@ void main() {
     expect(migration, isNot(contains('SET revoked_at = NULL')));
     expect(migration, isNot(contains('UPDATE public.user_consents')));
     expect(migration, contains("SELECT '2.5.0'::text"));
+    final policy270 =
+        File('supabase/migrations/335_policy_270_voice_calling.sql')
+            .readAsStringSync();
+    expect(policy270, contains("SELECT '2.7.0'::text"));
+  });
+
+  test('2.7 calling, minute-pack and refund terms match across app and site',
+      () {
+    String app(LegalDocument d) =>
+        d.sections.map((s) => '${s.title} ${s.body}').join(' ');
+    String site(String slug) => File('site/$slug/index.html')
+        .readAsStringSync()
+        .replaceAll('&amp;', '&')
+        .replaceAll(RegExp(r'<[^>]+>'), '');
+    final pairs = {
+      'privacy': app(LegalDocuments.privacy),
+      'terms': app(LegalDocuments.terms),
+      'refund-policy': app(LegalDocuments.refund),
+    };
+    for (final copy in [pairs['privacy']!, site('privacy')]) {
+      expect(copy, contains('7. Voice calls'));
+      expect(copy, contains('never recorded, transcribed or stored'));
+      expect(copy, contains('Stream (Stream.io, Inc.)'));
+      expect(copy, contains('Call records (who called whom'));
+      expect(copy, contains('not end-to-end encrypted'));
+      expect(copy, contains('over their lock screen'));
+    }
+    for (final copy in [pairs['terms']!, site('terms')]) {
+      expect(copy, contains('8. Voice calls'));
+      expect(copy, contains('men need Premium to place or answer calls'));
+      expect(copy, contains('cannot be used to call emergency services'));
+      expect(
+          copy,
+          contains(
+              'Subscription payments and call minute packs are non-refundable'));
+    }
+    for (final copy in [pairs['refund-policy']!, site('refund-policy')]) {
+      expect(copy, contains('We refund only when:'));
+      expect(copy, contains('a charge is confirmed as not authorised by you'));
+      expect(copy,
+          contains('the next pack you buy first makes up the difference'));
+      expect(copy, contains('Consumer Protection Act, 2019'));
+      // The removed purchase limit (migration 334) must not come back in text.
+      expect(copy, isNot(contains('can no longer be bought')));
+    }
+    expect(LegalDocuments.refund.summary,
+        contains('We refund only our own mistakes'));
   });
 
   test('account deletion never claims app-store billing is cancelled', () {

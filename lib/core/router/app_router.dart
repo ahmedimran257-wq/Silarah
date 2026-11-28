@@ -41,6 +41,7 @@ import '../../features/home/screens/profile_route_screen.dart';
 import '../../features/home/screens/shortlist_screen.dart';
 import '../../features/verification/screens/badge_verification_screen.dart';
 import '../widgets/loaders/silarah_shimmer.dart';
+import 'home_tab.dart';
 
 // Route names
 abstract final class AppRoutes {
@@ -267,13 +268,28 @@ GoRouter buildAppRouter(
       GoRoute(
         path: AppRoutes.home,
         pageBuilder: (context, state) {
-          final tabIndexStr = state.uri.queryParameters['tab'];
-          final initialTab =
-              tabIndexStr != null ? int.tryParse(tabIndexStr) : null;
+          // Tabs by name; numbers from older links keep their meaning.
+          final initialTab = HomeTab.parse(state.uri.queryParameters['tab']);
           return _slidePage(
             key: state.pageKey,
-            child: HomeScreen(initialTab: initialTab),
+            child: HomeScreen(
+              initialTab: initialTab,
+              callsPeerId: state.uri.queryParameters['peer'],
+            ),
           );
+        },
+      ),
+      // Calls tab, and one member's call details on it (spec 12.5).
+      GoRoute(
+        path: '/calls',
+        redirect: (context, state) => HomeTab.calls.path,
+      ),
+      GoRoute(
+        path: '/calls/:peerId',
+        redirect: (context, state) {
+          final peer = state.pathParameters['peerId'] ?? '';
+          final valid = RegExp(r'^[0-9a-fA-F-]{36}$').hasMatch(peer);
+          return valid ? '${HomeTab.calls.path}&peer=$peer' : HomeTab.calls.path;
         },
       ),
 
@@ -390,11 +406,12 @@ GoRouter buildAppRouter(
         path: '/chat/:id',
         pageBuilder: (context, state) {
           final id = state.pathParameters['id'] ?? '';
+          final extra = state.extra;
           return _slidePage(
             key: state.pageKey,
             child: NotificationRouteBackScope(
-              fallbackPath: '${AppRoutes.home}?tab=2',
-              child: ChatScreen(conversationId: id),
+              fallbackPath: HomeTab.chats.path,
+              child: ChatScreen(conversationId: id, draft: extra is ChatDraft ? extra.text : null),
             ),
           );
         },

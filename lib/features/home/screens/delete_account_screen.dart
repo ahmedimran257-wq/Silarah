@@ -14,6 +14,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
+import '../../calls/widgets/paid_call_minutes_note.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class DeleteAccountScreen extends StatefulWidget {
@@ -242,6 +243,18 @@ class _Step1 extends StatelessWidget {
             title: 'Cancel store billing separately',
             body:
                 'Deleting Silarah does not cancel Google Play billing. Cancel your subscription in Google Play before continuing.',
+          ),
+          PaidCallMinutesNote(
+            kind: PaidCallMinutesContext.deletion,
+            builder: (context, text) => Padding(
+              padding: const EdgeInsets.only(top: AppDimensions.space12),
+              child: _InfoCard(
+                icon: Icons.call_outlined,
+                color: AppColors.softCoral,
+                title: 'Paid call minutes',
+                body: text,
+              ),
+            ),
           ),
           const SizedBox(height: AppDimensions.space40),
           SizedBox(

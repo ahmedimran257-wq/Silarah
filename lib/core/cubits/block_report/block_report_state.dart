@@ -43,6 +43,13 @@ enum ReportReason {
     label: 'Offensive Bio',
     detail: 'Bio contains offensive or inappropriate language',
   ),
+  // Offered only when reporting from a call or the Calls tab
+  // (docs/voice_calling_spec.md 12.5).
+  harassingCalls(
+    key: 'harassing_calls',
+    label: 'Harassing calls',
+    detail: 'Unwanted, repeated or abusive calls',
+  ),
   other(
     key: 'other',
     label: 'Other',

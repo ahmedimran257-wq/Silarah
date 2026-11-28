@@ -20,6 +20,9 @@ import '../../../core/widgets/silarah_product_guide.dart';
 import 'settings_screen.dart';
 import 'profile_views_screen.dart';
 import 'block_list_screen.dart';
+import '../../calls/calling_rules.dart';
+import '../../calls/calls_hub.dart';
+import '../../calls/widgets/calling_guide_sheet.dart';
 
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
@@ -99,6 +102,19 @@ class HelpSupportScreen extends StatelessWidget {
                 ? () => _openScreen(context, const BlockListScreen())
                 : null,
             actionLabel: 'Blocked Profiles',
+          ),
+          // Voice calls: only while calling is switched on (one gate).
+          ValueListenableBuilder<CallingRules?>(
+            valueListenable: CallsHub.instance.rules,
+            builder: (context, rules, _) => rules?.callsEnabled == true
+                ? _FaqTile(
+                    question: 'Voice calls',
+                    answer:
+                        'Call your matches privately inside Silarah. See who can call, how call minutes work and how members are protected from unwanted calls.',
+                    onTap: member ? () => showCallingGuide(context) : null,
+                    actionLabel: 'How calling works',
+                  )
+                : const SizedBox.shrink(),
           ),
           const SizedBox(height: AppDimensions.space16),
           const _EmailTrustNotice(),

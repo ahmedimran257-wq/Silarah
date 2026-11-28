@@ -49,6 +49,7 @@ import '../widgets/report_bottom_sheet.dart';
 import 'chat_screen.dart';
 import 'paywall_gate_screen.dart';
 import 'shortlist_screen.dart';
+import '../../../core/router/home_tab.dart';
 
 class ProfileDetailScreen extends StatefulWidget {
   const ProfileDetailScreen({
@@ -887,7 +888,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                         cooldownDays == null
                     ? _handleSendInterest
                     : null,
-                onOpenInterests: () => context.go('/home?tab=1'),
+                onOpenInterests: () => context.go(HomeTab.interests.path),
                 onOpenConversation:
                     interaction == ProfileInteractionState.matched
                         ? _openMatchedConversation

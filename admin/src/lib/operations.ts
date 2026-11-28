@@ -350,3 +350,74 @@ export type ReferralOverview = {
 export async function getReferralOverview(): Promise<ReferralOverview> {
   return rpc<ReferralOverview>("admin_referral_overview", { p_limit: 200 });
 }
+
+// ---------------------------------------------------------------------------
+// Voice calling (docs/voice_calling_spec.md 12.8). Metadata only: when calls
+// happened, results and lengths. Audio is never recorded or stored.
+// ---------------------------------------------------------------------------
+
+export type CallOverview = {
+  calls_enabled: boolean;
+  monthly_cap_minutes: number;
+  effective_cap_minutes: number;
+  auto_cap_minutes: number | null;
+  estimated_stream_cost_usd: number;
+  month_charged_minutes: number;
+  open_hold_minutes: number;
+  live_calls: number;
+  calls_today: number;
+  dead_jobs: number;
+};
+
+export type MemberCallRow = {
+  request_id: string;
+  created_at: string;
+  direction: "outgoing" | "incoming";
+  other_user_id: string;
+  status: string;
+  reason: string | null;
+  connected_seconds: number | null;
+  charged_minutes: number | null;
+  hidden_by_member: boolean;
+};
+
+export type ReportCallContext = {
+  reported_called_reporter: number;
+  reported_unanswered_24h: number;
+  calls: {
+    created_at: string;
+    from: "reporter" | "reported";
+    status: string;
+    reason: string | null;
+    connected_seconds: number | null;
+  }[];
+};
+
+export const getCallOverview = () => rpc<CallOverview>("admin_call_overview");
+
+/** A paid pack the webhook could not give to a member (spec 6.3). */
+export type UnclaimedCallPack = {
+  event_id: string;
+  app_user_id: string;
+  aliases: string[];
+  product_id: string;
+  minutes: number | null;
+  transaction_id: string | null;
+  store: string | null;
+  environment: string | null;
+  reason: string;
+  event_at: string | null;
+  received_at: string;
+  claimed_at: string | null;
+  claimed_user_id: string | null;
+  claim_source: string | null;
+};
+
+export const getUnclaimedCallPacks = () =>
+  rpc<UnclaimedCallPack[]>("admin_unclaimed_call_packs", { p_include_claimed: false });
+
+export const getMemberCallHistory = (userId: string) =>
+  rpc<MemberCallRow[]>("admin_member_call_history", { p_user: userId, p_limit: 100 });
+
+export const getReportCallContext = (reportId: string) =>
+  rpc<ReportCallContext | null>("admin_report_call_context", { p_report_id: reportId });

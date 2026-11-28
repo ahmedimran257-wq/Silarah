@@ -39,6 +39,7 @@ export const areaRoles = {
   deletions: publishing,
   chatFilter: trust,
   referrals: publishing,
+  calls: everyone,
   exports: owner,
   security: owner,
   staff: owner,
@@ -67,6 +68,11 @@ export const actionRoles = {
   removeGuardian: trust,
   exportData: owner,
   grantTestPremium: owner,
+  // Voice calling (docs/voice_calling_spec.md 12.8); the database re-checks.
+  switchCalls: owner,
+  adjustCallMinutes: publishing,
+  claimCallPacks: publishing,
+  viewCallHistory: everyone,
   manageStaff: owner,
 } as const satisfies Record<string, readonly AdminRole[]>;
 
@@ -124,6 +130,7 @@ export const navGroups: { label: string; items: NavItem[] }[] = [
       { href: "/matches", label: "Matches", area: "matches", icon: "matches" },
       { href: "/subscriptions", label: "Subscriptions", area: "subscriptions", icon: "subscriptions" },
       { href: "/referrals", label: "Referrals", area: "referrals", icon: "referrals" },
+      { href: "/calls", label: "Voice calls", area: "calls", icon: "calls" },
     ],
   },
   {

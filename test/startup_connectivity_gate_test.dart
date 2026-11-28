@@ -28,6 +28,22 @@ Widget _testApp(Widget child, {bool disableAnimations = false}) {
   );
 }
 
+// Flutter hands off from the native surface on its first frame. The one
+// exception is a launch by a call's Answer: the native ring screen stays up
+// ("Connecting…") until the call screen is ready, so Silarah holds its first
+// frame then only, and always lets it go (spec 12.1, 24 Nov 2026).
+void _expectFirstFrameOnlyHeldForAnsweredCall(String mainSource) {
+  expect('deferFirstFrame'.allMatches(mainSource).length, 1);
+  expect('allowFirstFrame'.allMatches(mainSource).length, 1);
+  final hold = mainSource.substring(mainSource.indexOf('Future<void> _holdFirstFrameForAnsweredCall()'));
+  final body = hold.substring(0, hold.indexOf('\n}\n'));
+  expect(body, contains('deferFirstFrame'), reason: 'held only inside the answered-call hold');
+  expect(body.indexOf("if (opened != 'answer') return;"), lessThan(body.indexOf('deferFirstFrame')),
+      reason: 'every other launch hands off on the first frame');
+  expect(body, contains('binding.allowFirstFrame();'));
+  expect(body, contains('Timer(const Duration(seconds: 10), release);'), reason: 'never held for good');
+}
+
 void main() {
   testWidgets('white launch shifts fluidly and completes exactly once',
       (tester) async {
@@ -232,11 +248,8 @@ void main() {
       1,
       reason: 'Only the root bootstrap may own the startup animation.',
     );
-    expect(
-      mainSource,
-      isNot(contains('deferFirstFrame')),
-      reason: 'The native surface must hand off on Flutter\'s first frame.',
-    );
+    // The native surface hands off on Flutter's first frame.
+    _expectFirstFrameOnlyHeldForAnsweredCall(mainSource);
     expect(mainSource, isNot(contains('_launchMayAnimate')));
     expect(
       mainSource,

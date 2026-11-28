@@ -12,8 +12,10 @@ void main() {
     expect(main, contains('_onboardingCubit.reset();'));
     expect(main, contains("prefs.remove('user_country_code')"));
     expect(main, contains('prefs.remove(WaliModeService.pendingInvitationKey)'));
-    // Every sign-out, including remote ones, retires the push token.
-    expect(main, contains('unawaited(FcmService.instance.onUserLogout());'));
+    // Every sign-out, including remote ones, retires the push token. Since
+    // voice calls (spec 9 gate 7) the account is first forgotten for ringing;
+    // whenComplete retires the token whatever that step does.
+    expect(main, contains('.whenComplete(FcmService.instance.onUserLogout)'));
     final auth = read('lib/core/cubits/auth/auth_cubit.dart');
     expect(auth, contains('_syncDeviceCountry(authData)'));
     final fcm = read('lib/core/services/fcm_service.dart');

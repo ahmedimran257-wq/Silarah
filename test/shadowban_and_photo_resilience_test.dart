@@ -73,7 +73,7 @@ void main() {
       expect(homeScreen, contains('TickerMode('));
       expect(homeScreen, contains('_profileRefreshToken'));
       expect(homeScreen, contains('MyProfileScreen(refreshToken:'));
-      expect(homeScreen, contains('List<Widget?>.filled(_tabCount, null)'));
+      expect(homeScreen, contains('final Map<HomeTab, Widget> _tabCache = {};'));
       expect(homeScreen, contains('_ensureTabBuilt'));
       expect(supabaseService, contains('_isSessionUsable'));
       expect(supabaseService, contains('_minimumSessionValidity'));

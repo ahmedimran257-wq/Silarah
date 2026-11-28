@@ -39,6 +39,10 @@ class NotificationPrefsState extends Equatable {
   final bool boostAvailable;
   final bool festivalGreetings;
 
+  /// Missed-call notifications (docs/voice_calling_spec.md 12.3). Ringing
+  /// itself is controlled by Ring / Silent / Calls off.
+  final bool missedCall;
+
   /// Quiet hours — 23:00 to 08:00 (database defaults)
   final int quietStartHour; // 23
   final int quietEndHour; // 8
@@ -59,6 +63,7 @@ class NotificationPrefsState extends Equatable {
     this.inactiveNudge = true,
     this.boostAvailable = true,
     this.festivalGreetings = true,
+    this.missedCall = true,
     this.quietStartHour = 23,
     this.quietEndHour = 8,
     this.isLoaded = false,
@@ -79,6 +84,7 @@ class NotificationPrefsState extends Equatable {
     bool? inactiveNudge,
     bool? boostAvailable,
     bool? festivalGreetings,
+    bool? missedCall,
     int? quietStartHour,
     int? quietEndHour,
     bool? isLoaded,
@@ -100,6 +106,7 @@ class NotificationPrefsState extends Equatable {
       inactiveNudge: inactiveNudge ?? this.inactiveNudge,
       boostAvailable: boostAvailable ?? this.boostAvailable,
       festivalGreetings: festivalGreetings ?? this.festivalGreetings,
+      missedCall: missedCall ?? this.missedCall,
       quietStartHour: quietStartHour ?? this.quietStartHour,
       quietEndHour: quietEndHour ?? this.quietEndHour,
       isLoaded: isLoaded ?? this.isLoaded,
@@ -124,6 +131,7 @@ class NotificationPrefsState extends Equatable {
         inactiveNudge,
         boostAvailable,
         festivalGreetings,
+        missedCall,
         quietStartHour,
         quietEndHour,
         isLoaded,

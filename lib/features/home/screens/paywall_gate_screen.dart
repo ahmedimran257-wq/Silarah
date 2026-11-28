@@ -20,6 +20,7 @@ import '../../../core/utils/messaging_access_policy.dart';
 import '../../../core/widgets/buttons/silarah_pressable.dart';
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
 import 'subscription_screen.dart';
+import '../../calls/calls_hub.dart';
 
 /// Why the Premium sheet is being shown.
 enum PremiumGate {
@@ -31,6 +32,10 @@ enum PremiumGate {
   /// limit, the private shortlist, compatibility insights. It shows to
   /// every free member, women included.
   feature,
+
+  /// Starting a voice call (docs/voice_calling_spec.md 2): only Premium
+  /// members call. Shows to every free member; free women can still answer.
+  calls,
 }
 
 class PaywallGateSheet {
@@ -80,6 +85,12 @@ class _PaywallGateContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final forFeature = gate == PremiumGate.feature;
+    final forCalls = gate == PremiumGate.calls;
+    // Women answer calls without Premium; a man needs it to answer too, so
+    // "answering is always free" is only true for women (Terms 8).
+    final authState = context.read<AuthCubit>().state;
+    final female =
+        authState is AuthAuthenticated && authState.gender == 'female';
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceMid,
@@ -126,24 +137,46 @@ class _PaywallGateContent extends StatelessWidget {
           const SizedBox(height: 16),
 
           UiText(
-            forFeature
-                ? 'Unlock Silarah Premium'
-                : 'Continue your conversation',
+            forCalls
+                ? 'Talk with your matches'
+                : forFeature
+                    ? 'Unlock Silarah Premium'
+                    : 'Continue your conversation',
             style: AppTypography.screenTitle.copyWith(fontSize: 22),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
 
           UiText(
-            forFeature
-                ? 'Browse without a daily limit and get the tools that help you decide with care.'
-                : 'Women can message their matches at no cost.\nMen unlock conversations with Silarah Premium.',
+            forCalls
+                ? female
+                    ? 'Premium members call their matches inside Silarah, with no phone numbers shared. Answering a call is always free.'
+                    : 'Premium members call and answer their matches inside Silarah, with no phone numbers shared.'
+                : forFeature
+                    ? 'Browse without a daily limit and get the tools that help you decide with care.'
+                    : 'Women can message their matches at no cost.\nMen unlock conversations with Silarah Premium.',
             style: AppTypography.bodyMuted.copyWith(height: 1.45),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 14),
 
-          if (forFeature) ...[
+          if (forCalls) ...[
+            _PremiumProofRow(
+              icon: Icons.call_outlined,
+              label: context.uiCopyWith('{included} call minutes every month',
+                  {'included': CallsHub.instance.rules.value?.includedMinutes ?? 0}),
+            ),
+            const SizedBox(height: 7),
+            const _PremiumProofRow(
+              icon: Icons.lock_outline_rounded,
+              label: 'Private calls, never recorded',
+            ),
+            const SizedBox(height: 7),
+            const _PremiumProofRow(
+              icon: Icons.forum_outlined,
+              label: 'Full match messaging',
+            ),
+          ] else if (forFeature) ...[
             const _PremiumProofRow(
               icon: Icons.all_inclusive_rounded,
               label: 'Unlimited profile browsing',
@@ -158,11 +191,26 @@ class _PaywallGateContent extends StatelessWidget {
               icon: Icons.hub_outlined,
               label: 'Mutual compatibility insights',
             ),
+            if (CallsHub.instance.callingOn) ...[
+              const SizedBox(height: 7),
+              const _PremiumProofRow(
+                icon: Icons.call_outlined,
+                label: 'Private voice calls with your matches',
+              ),
+            ],
           ] else ...[
             const _PremiumProofRow(
               icon: Icons.forum_outlined,
               label: 'Full match messaging',
             ),
+            // Listed only while calling is switched on (spec 12.6).
+            if (CallsHub.instance.callingOn) ...[
+              const SizedBox(height: 7),
+              const _PremiumProofRow(
+                icon: Icons.call_outlined,
+                label: 'Private voice calls with your matches',
+              ),
+            ],
             const SizedBox(height: 7),
             const _PremiumProofRow(
               icon: Icons.travel_explore_rounded,

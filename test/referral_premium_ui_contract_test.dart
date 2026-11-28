@@ -40,7 +40,7 @@ void main() {
     expect(subscription, contains('state.isReferralOnly'));
     expect(subscription, contains('_ReferralPremiumActiveView'));
     expect(subscription, contains('PopScope'));
-    expect(subscription, contains("context.go('/home?tab=3')"));
+    expect(subscription, contains('context.go(HomeTab.profile.path)'));
     expect(subscriptionCubit, contains('if (state.isReferralOnly)'));
     expect(
       subscriptionCubit,
@@ -68,7 +68,7 @@ void main() {
 
   test('legacy referral pushes no longer open checkout', () {
     expect(notificationRoutes, contains("type == 'referral_reward'"));
-    expect(notificationRoutes, contains("return '/home?tab=3'"));
+    expect(notificationRoutes, contains('return HomeTab.profile.path'));
     expect(fcm, contains('notificationDestinationPath('));
     expect(notifications, contains('notificationDestinationPath('));
   });

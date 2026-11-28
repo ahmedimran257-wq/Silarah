@@ -1,0 +1,418 @@
+// Calling inside a chat: the call button, the call history tiles shown among
+// the messages, and the per-chat "mute calls / block calls" choices.
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../l10n/ui_copy.dart';
+import '../../home/screens/paywall_gate_screen.dart';
+import '../call_api.dart';
+import '../call_controller.dart';
+import '../call_models.dart';
+import 'call_microphone_gate.dart';
+import 'call_minutes_sheet.dart';
+import 'calling_guide_sheet.dart';
+import '../calls_hub.dart';
+
+/// Loads and refreshes the call controls of one chat.
+class ChatCallControls extends ValueNotifier<ChatCallState> {
+  ChatCallControls(this.matchId) : super(ChatCallState.hidden) {
+    CallController.historyVersion.addListener(_onHistoryChanged);
+  }
+
+  final String matchId;
+  bool _disposed = false;
+  Timer? _retry;
+  int _failures = 0;
+
+  /// Loads the controls. A failed load keeps what is shown (the button never
+  /// disappears on a network blip) and tries again: 2 s, 4 s, 8 s, ... 60 s.
+  Future<void> refresh() async {
+    _retry?.cancel();
+    final state = await CallApi.instance.chatState(matchId);
+    if (_disposed) return;
+    if (state != null) {
+      _failures = 0;
+      value = state;
+      return;
+    }
+    _failures++;
+    final seconds = (1 << _failures.clamp(1, 5)).clamp(2, 60);
+    _retry = Timer(Duration(seconds: seconds), () => unawaited(refresh()));
+  }
+
+  /// A call ended or a missed-call note arrived: show it in the history.
+  void _onHistoryChanged() => unawaited(refresh());
+
+  Future<bool> setPrefs({required bool muted, required bool callsBlocked}) async {
+    final ok = await CallApi.instance.setChatPrefs(matchId, muted: muted, callsBlocked: callsBlocked);
+    await refresh();
+    return ok;
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _retry?.cancel();
+    CallController.historyVersion.removeListener(_onHistoryChanged);
+    super.dispose();
+  }
+}
+
+/// Calling stopped by the admin switch or the monthly brake (spec 5, 12.6).
+/// The calling terms changed and this member has not accepted them yet
+/// (docs/voice_calling_spec.md 6.5).
+const callingTermsCopy = 'Please review and accept the updated terms to use calls.';
+
+const callingPausedCopy = 'Calling is paused right now. Please try again later.';
+
+/// The unanswered-call rule, explained where it applies (spec 8, 12.6):
+/// the server's limit and the time calling them opens again.
+void _explainLimit(BuildContext context, String name, DateTime? retryAfter) {
+  final limit = CallsHub.instance.rules.value?.unansweredCallLimit;
+  final time = retryAfter == null
+      ? null
+      : DateFormat.jm(Localizations.localeOf(context).toLanguageTag()).format(retryAfter.toLocal());
+  final first = limit == null
+      ? context.uiCopyWith('You called {name} several times without an answer.', {'name': name})
+      : context.uiCopyWith('You called {name} {limit} times without an answer.', {'name': name, 'limit': limit});
+  final second = time == null
+      ? context.uiCopyWith('You can call {name} again tomorrow.', {'name': name})
+      : context.uiCopyWith('You can call again after {time}.', {'time': time});
+  final why = context.uiCopy('This protects members from unwanted calls.');
+  ScaffoldMessenger.maybeOf(context)
+    ?..clearSnackBars()
+    ..showSnackBar(SnackBar(
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 6),
+      content: UiText.verbatim('$first $second $why'),
+    ));
+}
+
+void _snack(BuildContext context, String text) {
+  ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: UiText.verbatim(text)));
+}
+
+/// The caller is told the other member's quiet hours, and when calls ring
+/// again on the caller's own clock ("tomorrow" when that is another day here),
+/// so they know when to call instead of trying again and again (333).
+String quietHoursCopy(BuildContext context, String name, DateTime quietUntil, {DateTime? now}) {
+  final until = quietUntil.toLocal();
+  final today = (now ?? DateTime.now()).toLocal();
+  final locale = Localizations.localeOf(context).toLanguageTag();
+  // The phone's own time format, 12 or 24 hours.
+  final time = (MediaQuery.alwaysUse24HourFormatOf(context) ? DateFormat.Hm(locale) : DateFormat.jm(locale)).format(until);
+  final sameDay = until.year == today.year && until.month == today.month && until.day == today.day;
+  return context.uiCopyWith(
+    sameDay
+        ? '{name} has quiet hours now. Calls ring again at {time}.'
+        : '{name} has quiet hours now. Calls ring again tomorrow at {time}.',
+    {'name': name, 'time': time},
+  );
+}
+
+/// The call button in the chat header.
+Future<void> startCallFromChat(
+  BuildContext context, {
+  required ChatCallControls controls,
+  required String name,
+  String? photoUrl,
+  String? otherUserId,
+}) async {
+  final state = controls.value;
+  if (!state.callsEnabled) {
+    _snack(context, context.uiCopy(callingPausedCopy));
+    return;
+  }
+  if (state.reason == 'premium_required') {
+    await PaywallGateSheet.show(context, gate: PremiumGate.calls);
+    return;
+  }
+  if (state.reason == 'limit_reached') {
+    _explainLimit(context, name, state.retryAfter);
+    return;
+  }
+  if (state.reason == 'not_allowed' || state.reason == 'account_restricted') {
+    _snack(context, context.uiCopy("You can't call in this chat."));
+    return;
+  }
+  await placeCall(
+    context,
+    matchId: controls.matchId,
+    name: name,
+    photoUrl: photoUrl,
+    otherUserId: otherUserId,
+    onUnavailable: () => unawaited(controls.refresh()),
+  );
+}
+
+// A call being placed from a tap: the guide, the microphone, the server and
+// opening the call screen. A second tap meanwhile is the same call.
+bool _placingCall = false;
+
+/// Places a call and explains every outcome the server can give. Used by
+/// the chat header and the Calls tab; the server decides who may call.
+Future<void> placeCall(
+  BuildContext context, {
+  required String matchId,
+  required String name,
+  String? photoUrl,
+  String? otherUserId,
+  VoidCallback? onUnavailable,
+}) async {
+  if (_placingCall) return;
+  _placingCall = true;
+  try {
+    await _placeCall(
+      context,
+      matchId: matchId,
+      name: name,
+      photoUrl: photoUrl,
+      otherUserId: otherUserId,
+      onUnavailable: onUnavailable,
+    );
+  } finally {
+    _placingCall = false;
+  }
+}
+
+Future<void> _placeCall(
+  BuildContext context, {
+  required String matchId,
+  required String name,
+  String? photoUrl,
+  String? otherUserId,
+  VoidCallback? onUnavailable,
+}) async {
+  // The first time: how calling works, with the server's numbers.
+  if (!await ensureCallingGuideSeen(context) || !context.mounted) return;
+  if (!await ensureCallMicrophone(context) || !context.mounted) return;
+  // A ringing call shows its own screen above the app (CallLayer).
+  final result = await CallController.instance.startOutgoing(
+    toMatchId: matchId,
+    name: name,
+    toUserId: otherUserId,
+    photoUrl: photoUrl,
+  );
+  if (!context.mounted) return;
+  switch (result.outcome) {
+    case CallStartOutcome.ringing:
+    case CallStartOutcome.glare:
+      break;
+    case CallStartOutcome.unavailable:
+      final quietUntil = result.quietUntil;
+      _snack(
+        context,
+        quietUntil == null
+            ? context.uiCopyWith(neutralUnavailableCopy, {'name': name})
+            : quietHoursCopy(context, name, quietUntil),
+      );
+      onUnavailable?.call();
+    case CallStartOutcome.premiumRequired:
+      await PaywallGateSheet.show(context, gate: PremiumGate.calls);
+    case CallStartOutcome.noMinutes:
+    case CallStartOutcome.balanceNegative:
+      await showCallMinutesSheet(context);
+    case CallStartOutcome.limitReached:
+      _explainLimit(context, name, result.retryAfter);
+    case CallStartOutcome.callsDisabled:
+    case CallStartOutcome.capacity:
+      // The switch or the monthly brake: same plain words, never a code.
+      _snack(context, context.uiCopy(callingPausedCopy));
+    case CallStartOutcome.busySelf:
+      _snack(context, context.uiCopy("You're already in a call."));
+    case CallStartOutcome.notAllowed:
+      _snack(context, context.uiCopy("You can't call in this chat."));
+    case CallStartOutcome.rateLimited:
+      _snack(context, context.uiCopy('Too many calls. Please try again later.'));
+    case CallStartOutcome.consentRequired:
+      _snack(context, context.uiCopy(callingTermsCopy));
+    case CallStartOutcome.failed:
+      _snack(context, context.uiCopy('Call failed. Please try again.'));
+  }
+}
+
+class ChatCallButton extends StatelessWidget {
+  const ChatCallButton({super.key, required this.controls, required this.onTap});
+  final ChatCallControls controls;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<ChatCallState>(
+      valueListenable: controls,
+      builder: (context, state, _) {
+        if (!state.showCallButton) return const SizedBox.shrink();
+        return Semantics(
+          button: true,
+          label: context.uiCopy('Voice call'),
+          child: GestureDetector(
+            onTap: onTap,
+            child: Container(
+              margin: const EdgeInsetsDirectional.only(start: AppDimensions.space4),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceGlass,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.cardBorder),
+              ),
+              child: Icon(Icons.call_outlined, color: AppColors.champagneGold, size: 20),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Mute / block calls from the chat menu.
+Future<void> showChatCallPrefsSheet(
+  BuildContext context, {
+  required ChatCallControls controls,
+  required String name,
+}) async {
+  await showSilarahBottomSheet<void>(
+    context: context,
+    backgroundColor: AppColors.surfaceMid,
+    builder: (sheetContext) => ValueListenableBuilder<ChatCallState>(
+      valueListenable: controls,
+      builder: (context, state, _) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SwitchListTile(
+              value: state.muted,
+              activeThumbColor: AppColors.champagneGold,
+              title: UiText('Mute calls from this chat', style: AppTypography.body),
+              subtitle: UiText('Calls do not ring; they show as missed.',
+                  style: AppTypography.caption.copyWith(color: AppColors.slateMist)),
+              onChanged: (value) => controls.setPrefs(muted: value, callsBlocked: state.callsBlocked),
+            ),
+            SwitchListTile(
+              value: state.callsBlocked,
+              activeThumbColor: AppColors.softCoral,
+              title: UiText.verbatim(context.uiCopyWith('Block calls from {name}', {'name': name}),
+                  style: AppTypography.body),
+              subtitle: UiText('You can still message. They are not told.',
+                  style: AppTypography.caption.copyWith(color: AppColors.slateMist)),
+              onChanged: (value) => controls.setPrefs(muted: state.muted, callsBlocked: value),
+            ),
+            const SizedBox(height: AppDimensions.space8),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// One call in the chat timeline.
+class ChatCallTile extends StatelessWidget {
+  const ChatCallTile({
+    super.key,
+    required this.event,
+    required this.name,
+    required this.iAmFemale,
+    required this.iAmPremium,
+    required this.onCallBack,
+    required this.onAskToCallBack,
+  });
+
+  final ChatCallEvent event;
+  final String name;
+  final bool iAmFemale;
+  final bool iAmPremium;
+  final VoidCallback onCallBack;
+  final VoidCallback onAskToCallBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final missedForMe = !event.outgoing &&
+        (event.outcome == CallEventOutcome.missed || event.outcome == CallEventOutcome.declined);
+    final time = DateFormat.jm(Localizations.localeOf(context).toLanguageTag()).format(event.createdAt);
+    final String title;
+    if (event.outcome == CallEventOutcome.answered) {
+      title = context.uiCopyWith(
+        event.outgoing ? 'You called · {duration}' : '{name} called · {duration}',
+        {'name': name, 'duration': formatCallDuration(event.durationSeconds ?? 0)},
+      );
+    } else if (event.outgoing) {
+      title = context.uiCopy('You called · no answer');
+    } else if (event.outcome == CallEventOutcome.declined) {
+      title = context.uiCopyWith('You declined a call from {name}', {'name': name});
+    } else {
+      title = context.uiCopyWith('📞 {name} tried to call you', {'name': name});
+    }
+    final showActions = missedForMe;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppDimensions.space8),
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 320),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceGlass,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: missedForMe ? AppColors.goldBorder : AppColors.cardBorder),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    event.outcome == CallEventOutcome.answered
+                        ? Icons.call_rounded
+                        : event.outgoing
+                            ? Icons.call_made_rounded
+                            : Icons.call_missed_rounded,
+                    size: 16,
+                    color: missedForMe ? AppColors.champagneGold : AppColors.slateMist,
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: UiText.verbatim(title,
+                        style: AppTypography.caption.copyWith(color: AppColors.pearlWhite)),
+                  ),
+                  const SizedBox(width: 8),
+                  UiText.verbatim(time, style: AppTypography.caption.copyWith(color: AppColors.slateMist)),
+                ],
+              ),
+              if (showActions) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 8,
+                  children: [
+                    // Free women message free (spec 8): ask him to call back.
+                    if (iAmFemale && !iAmPremium)
+                      TextButton(
+                        onPressed: onAskToCallBack,
+                        child: UiText('Ask him to call back',
+                            style: AppTypography.caption.copyWith(color: AppColors.champagneGold)),
+                      ),
+                    // Without Premium this opens the paywall (spec 2 and 8).
+                    TextButton(
+                      onPressed: onCallBack,
+                      child: UiText('Call back',
+                          style: AppTypography.caption.copyWith(color: AppColors.champagneGold)),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The message a free woman sends with "Ask him to call back".
+const askToCallBackMessage = 'Please call me back when you can.';

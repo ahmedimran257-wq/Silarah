@@ -61,6 +61,7 @@ interface Backend {
   rpcCalls: { fn: string; body: Record<string, unknown> }[];
   brevoCalls: number;
   outboxUpdates: Record<string, unknown>[];
+  callResult: Record<string, unknown>;
 }
 
 function backend(overrides: Partial<Backend> = {}): Backend {
@@ -72,6 +73,7 @@ function backend(overrides: Partial<Backend> = {}): Backend {
     rpcCalls: [],
     brevoCalls: 0,
     outboxUpdates: [],
+    callResult: { applied: true, minutes: 20 },
     ...overrides,
   };
 }
@@ -106,6 +108,11 @@ async function deliver(
           : json(db.applyResult);
       }
       if (rpc === "claim_transactional_email") return json(db.claimRows);
+      if (rpc.startsWith("call_service_")) {
+        return db.callResult.__error
+          ? json({ message: "fixture failure", code: "XX000" }, 500)
+          : json(db.callResult);
+      }
       return json(null);
     }
     if (url.pathname === "/rest/v1/users") {
@@ -528,4 +535,195 @@ Deno.test("a plan change to an unknown product grants nothing", async () => {
   );
   assertEquals(response.status, 400);
   assertEquals(db.rpcCalls.length, 0);
+});
+
+// ---------------------------------------------------------------------------
+// Call-minute packs (docs/voice_calling_spec.md 6)
+// ---------------------------------------------------------------------------
+
+function packEvent(overrides: Record<string, unknown> = {}) {
+  return event({
+    type: "NON_RENEWING_PURCHASE",
+    product_id: "silarah_calls_20",
+    entitlement_ids: null,
+    expiration_at_ms: null,
+    period_type: "NORMAL",
+    transaction_id: "GPA.3300-0000-0000-00001",
+    price: 0.23,
+    price_in_purchased_currency: 19,
+    ...overrides,
+  });
+}
+
+const callRpc = (db: Backend, fn: string) =>
+  db.rpcCalls.find((call) => call.fn === fn)?.body;
+
+Deno.test("pack purchase credits minutes on the server, never Premium", async () => {
+  const db = backend();
+  const response = await deliver(db, packEvent());
+  assertEquals(response.status, 200);
+  const credit = callRpc(db, "call_service_credit_pack");
+  assertEquals(credit?.p_user, MEMBER);
+  assertEquals(credit?.p_product_id, "silarah_calls_20");
+  assertEquals(credit?.p_transaction_id, "GPA.3300-0000-0000-00001");
+  assertEquals(applyCall(db), undefined, "no subscription state is written");
+});
+
+Deno.test("pack with a purchase-option suffix maps to the product", async () => {
+  const db = backend();
+  await deliver(db, packEvent({ product_id: "silarah_calls_350:buy" }));
+  assertEquals(callRpc(db, "call_service_credit_pack")?.p_product_id, "silarah_calls_350");
+});
+
+Deno.test("pack refund removes minutes", async () => {
+  const db = backend({ callResult: { applied: true, minutes: -20 } });
+  const response = await deliver(
+    db,
+    packEvent({ type: "CANCELLATION", cancel_reason: "CUSTOMER_SUPPORT", price: -0.23 }),
+  );
+  assertEquals(response.status, 200);
+  assert(callRpc(db, "call_service_refund_pack"));
+  assertEquals(callRpc(db, "call_service_credit_pack"), undefined);
+});
+
+Deno.test("duplicate pack delivery is acknowledged without a second notice", async () => {
+  const db = backend({ callResult: { applied: false, reason: "duplicate" } });
+  const response = await deliver(db, packEvent());
+  assertEquals(response.status, 200);
+  assertEquals(notified(db), false);
+});
+
+Deno.test("pack database failure asks RevenueCat to retry", async () => {
+  const db = backend({ callResult: { __error: true } });
+  const response = await deliver(db, packEvent());
+  assertEquals(response.status, 500);
+  assertEquals(notified(db), false);
+});
+
+Deno.test("pack from another app, store or sandbox stranger is rejected", async () => {
+  for (const overrides of [
+    { app_id: "someone_else" },
+    { store: "APP_STORE" },
+    { environment: "SANDBOX" },
+  ]) {
+    const db = backend();
+    const response = await deliver(db, packEvent(overrides));
+    assertEquals(response.status, 400, JSON.stringify(overrides));
+    assertEquals(callRpc(db, "call_service_credit_pack"), undefined);
+  }
+});
+
+Deno.test("Premium refund removes the period's included call minutes", async () => {
+  const db = backend();
+  const response = await deliver(
+    db,
+    event({ type: "CANCELLATION", cancel_reason: "CUSTOMER_SUPPORT", expiration_at_ms: Date.now() - 1000 }),
+  );
+  assertEquals(response.status, 200);
+  const forfeit = callRpc(db, "call_service_forfeit_included");
+  assertEquals(forfeit?.p_user, MEMBER);
+  assert(String(forfeit?.p_event_id).endsWith(":included"));
+});
+
+Deno.test("ordinary renewal does not touch call minutes", async () => {
+  const db = backend();
+  await deliver(db, event({ type: "RENEWAL" }));
+  assertEquals(callRpc(db, "call_service_forfeit_included"), undefined);
+});
+
+// ---------------------------------------------------------------------------
+// Call-pack money integrity (docs/voice_calling_spec.md 6.2, 6.3)
+// ---------------------------------------------------------------------------
+
+Deno.test("a pack paid by an anonymous store account is kept for staff, never dropped", async () => {
+  const db = backend({ callResult: { stored: true, claimed: false } });
+  const response = await deliver(
+    db,
+    packEvent({
+      app_user_id: "$RCAnonymousID:fixture",
+      original_app_user_id: "$RCAnonymousID:fixture",
+      aliases: ["$RCAnonymousID:fixture"],
+    }),
+  );
+  assertEquals(response.status, 200);
+  assertEquals(callRpc(db, "call_service_credit_pack"), undefined);
+  const kept = callRpc(db, "call_service_store_unclaimed_pack");
+  assertEquals(kept?.p_app_user_id, "$RCAnonymousID:fixture");
+  assertEquals(kept?.p_product_id, "silarah_calls_20");
+  assertEquals(kept?.p_transaction_id, "GPA.3300-0000-0000-00001");
+  assertEquals(kept?.p_reason, "not_a_member");
+});
+
+Deno.test("a pack for an account that no longer exists is kept too", async () => {
+  const db = backend({ callResult: { applied: false, reason: "unknown_user" } });
+  const response = await deliver(db, packEvent());
+  assertEquals(response.status, 200);
+  assert(callRpc(db, "call_service_credit_pack"));
+  assertEquals(callRpc(db, "call_service_store_unclaimed_pack")?.p_reason, "unknown_user");
+});
+
+Deno.test("keeping an unclaimed pack that fails asks RevenueCat to retry", async () => {
+  const db = backend({ callResult: { __error: true } });
+  const response = await deliver(
+    db,
+    packEvent({ app_user_id: "$RCAnonymousID:fixture", original_app_user_id: "$RCAnonymousID:fixture" }),
+  );
+  assertEquals(response.status, 500);
+});
+
+Deno.test("a pack refund is matched by transaction and tells the member who had it", async () => {
+  const OTHER = "0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d";
+  const db = backend({ callResult: { applied: true, minutes: -20, user_id: OTHER } });
+  await deliver(db, packEvent({ type: "CANCELLATION", cancel_reason: "CUSTOMER_SUPPORT", price: -0.23 }));
+  const refund = callRpc(db, "call_service_refund_pack");
+  assertEquals(refund?.p_app_user_id, MEMBER);
+  assertEquals(refund?.p_transaction_id, "GPA.3300-0000-0000-00001");
+  assertEquals(
+    db.rpcCalls.find((call) => call.fn === "queue_notification")?.body.p_user_id,
+    OTHER,
+  );
+});
+
+Deno.test("a refund waiting for its purchase sends no notice", async () => {
+  const db = backend({ callResult: { applied: false, reason: "pending_purchase" } });
+  const response = await deliver(db, packEvent({ type: "CANCELLATION", cancel_reason: "CUSTOMER_SUPPORT" }));
+  assertEquals(response.status, 200);
+  assertEquals(notified(db), false);
+});
+
+Deno.test("a reversed pack refund gives the minutes back", async () => {
+  for (const type of ["REFUND_REVERSED", "UNCANCELLATION"]) {
+    const db = backend({ callResult: { applied: true, minutes: 20, user_id: MEMBER } });
+    const response = await deliver(db, packEvent({ type }));
+    assertEquals(response.status, 200, type);
+    assertEquals(callRpc(db, "call_service_reverse_pack_refund")?.p_transaction_id, "GPA.3300-0000-0000-00001");
+    assertEquals(callRpc(db, "call_service_credit_pack"), undefined, type);
+    assert(notified(db), type);
+  }
+});
+
+Deno.test("a transfer to a member credits packs paid under the old IDs", async () => {
+  const db = backend({ callResult: { claimed: 1 } });
+  const response = await deliver(db, {
+    event: {
+      type: "TRANSFER",
+      id: "fixture-transfer-1",
+      transferred_from: ["$RCAnonymousID:fixture"],
+      transferred_to: [MEMBER],
+    },
+  });
+  assertEquals(response.status, 200);
+  const claim = callRpc(db, "call_service_claim_unclaimed_packs");
+  assertEquals(claim?.p_user, MEMBER);
+  assertEquals(claim?.p_app_ids, ["$RCAnonymousID:fixture"]);
+  assert(notified(db));
+});
+
+Deno.test("a member's event with an anonymous alias claims packs paid under it", async () => {
+  const db = backend({ callResult: { claimed: 0 } });
+  await deliver(db, event({ aliases: [MEMBER, "$RCAnonymousID:fixture"] }));
+  const claim = callRpc(db, "call_service_claim_unclaimed_packs");
+  assertEquals(claim?.p_user, MEMBER);
+  assertEquals(claim?.p_app_ids, ["$RCAnonymousID:fixture"]);
+  assertEquals(claim?.p_source, "alias");
 });

@@ -41,14 +41,14 @@ void main() {
     expect(loader, isNot(contains("'م'")));
     expect(loader, contains('Preparing profile recommendations'));
     expect(loader, contains('MediaQuery.disableAnimationsOf(context)'));
-    expect(
-      loader,
-      contains('class SilarahProfileCardShimmer extends StatefulWidget'),
-      reason: 'The discovery card uses restrained local motion.',
-    );
     final profileLoader = loader.substring(
       loader.indexOf('class SilarahProfileCardShimmer'),
       loader.indexOf('class SilarahConversationShimmer'),
+    );
+    expect(
+      profileLoader,
+      contains('SilarahBreathing('),
+      reason: 'The discovery card uses restrained local motion.',
     );
     expect(
       profileLoader,

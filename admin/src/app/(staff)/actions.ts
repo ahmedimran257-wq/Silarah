@@ -789,3 +789,83 @@ export async function endReferralGrant(formData: FormData) {
     if (!ended) throw new UserFacingError("This reward has already ended.");
   }, "Referral reward ended.", formData);
 }
+
+// ---------------------------------------------------------------------------
+// Voice calling (docs/voice_calling_spec.md 12.8)
+// ---------------------------------------------------------------------------
+
+const callSwitchSchema = z.object({
+  enabled: z.enum(["true", "false"]),
+  note: z.string().trim().min(6, "Say why calling is being switched, for the audit log.").max(500),
+});
+
+/** Super admin only; admin_set_calls_enabled writes the audit log entry. */
+export async function setCallsEnabled(formData: FormData) {
+  await guardedAction("/calls", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "switchCalls");
+    const parsed = callSwitchSchema.parse({
+      enabled: formData.get("enabled"),
+      note: formData.get("note") ?? "",
+    });
+    await run("admin_set_calls_enabled", { p_enabled: parsed.enabled === "true", p_note: parsed.note });
+    return parsed.enabled === "true" ? "Calling is on for members." : "Calling is off. Live calls end within seconds.";
+  }, "Saved.", formData);
+}
+
+const callMinutesSchema = z.object({
+  userId: uuidSchema,
+  minutes: z.coerce.number().int().min(-1000).max(1000).refine((v) => v !== 0, "Enter a number of minutes."),
+  reason: z.string().trim().min(6, "Give a reason of at least 6 characters for the audit log.").max(500),
+});
+
+const claimCallPackSchema = z.object({
+  eventId: z.string().trim().min(8).max(200),
+  userId: uuidSchema,
+  reason: z.string().trim().min(6, "Give a reason of at least 6 characters for the audit log.").max(500),
+});
+
+/** Credits a paid pack that matched no member (spec 6.3); audited in the database. */
+export async function claimCallPack(formData: FormData) {
+  await guardedAction("/calls", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "claimCallPacks");
+    const parsed = claimCallPackSchema.parse({
+      eventId: formData.get("eventId"),
+      userId: formData.get("userId"),
+      reason: formData.get("reason") ?? "",
+    });
+    const result = await runAccountRpc<{ applied?: boolean; reason?: string; minutes?: number }>(
+      "admin_claim_unclaimed_call_pack",
+      { p_event_id: parsed.eventId, p_user: parsed.userId, p_reason: parsed.reason },
+    );
+    if (result?.applied) return `${result.minutes ?? 0} pack minutes credited to the member.`;
+    if (result?.reason === "duplicate") return "This purchase was already credited, so it is marked as handled.";
+    throw new UserFacingError(
+      result?.reason === "unknown_user"
+        ? "No active member has that ID."
+        : result?.reason === "already_claimed"
+          ? "This pack was already credited."
+          : "The pack could not be credited.",
+    );
+  }, "Saved.", formData);
+}
+
+/** Support correction of pack minutes; ledger + audit log in the database. */
+export async function adjustCallMinutes(formData: FormData) {
+  await guardedAction("/calls", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "adjustCallMinutes");
+    const parsed = callMinutesSchema.parse({
+      userId: formData.get("userId"),
+      minutes: formData.get("minutes"),
+      reason: formData.get("reason") ?? "",
+    });
+    const balance = await runAccountRpc<number>("admin_adjust_call_minutes", {
+      p_user: parsed.userId,
+      p_pack_minutes: parsed.minutes,
+      p_reason: parsed.reason,
+    });
+    return `Pack minutes adjusted. New balance: ${balance}.`;
+  }, "Saved.", formData);
+}

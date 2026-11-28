@@ -1,9 +1,10 @@
 // SILARAH — Bottom Navigation Bar
-// 4 tabs: Discover / Interests / Chat / Profile
+// Tabs: Discover / Interests / Chat / Calls (while calling is on) / Profile,
+// passed by name (HomeTab).
 // Active: Champagne Gold icon in a capsule that widens on selection
 // Inactive: Slate Mist
-// Badges: Gold bubble on Interests (pending received count)
-//         and Chat (total unread count)
+// Badges: Gold bubble on Interests (pending received count), Chat (total
+//         unread count) and Calls (unseen missed calls, from the server)
 import 'package:silarah/l10n/ui_copy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +13,8 @@ import '../../../core/cubits/interests/interests_cubit.dart';
 import '../../../core/cubits/interests/interests_state.dart';
 import '../../../core/cubits/chat/chat_cubit.dart';
 import '../../../core/cubits/chat/chat_state.dart';
+import '../../../core/router/home_tab.dart';
+import '../../calls/calls_hub.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
@@ -20,31 +23,37 @@ import '../../../core/widgets/buttons/silarah_pressable.dart';
 class SilarahBottomNav extends StatelessWidget {
   const SilarahBottomNav({
     super.key,
-    required this.currentIndex,
+    required this.tabs,
+    required this.current,
     required this.onTabSelected,
   });
 
-  final int currentIndex;
-  final ValueChanged<int> onTabSelected;
+  final List<HomeTab> tabs;
+  final HomeTab current;
+  final ValueChanged<HomeTab> onTabSelected;
 
-  static const _items = [
-    _NavItem(
+  static const _items = {
+    HomeTab.discover: _NavItem(
         icon: Icons.explore_outlined,
         activeIcon: Icons.explore_rounded,
         label: 'Discover'),
-    _NavItem(
+    HomeTab.interests: _NavItem(
         icon: Icons.favorite_outline_rounded,
         activeIcon: Icons.favorite_rounded,
         label: 'Interests'),
-    _NavItem(
+    HomeTab.chats: _NavItem(
         icon: Icons.chat_bubble_outline_rounded,
         activeIcon: Icons.chat_bubble_rounded,
         label: 'Chat'),
-    _NavItem(
+    HomeTab.calls: _NavItem(
+        icon: Icons.call_outlined,
+        activeIcon: Icons.call_rounded,
+        label: 'Calls'),
+    HomeTab.profile: _NavItem(
         icon: Icons.person_outline_rounded,
         activeIcon: Icons.person_rounded,
         label: 'Profile'),
-  ];
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +62,9 @@ class SilarahBottomNav extends StatelessWidget {
       builder: (context, interestUnread) {
         return BlocSelector<ChatCubit, ChatState, int>(
           selector: (state) => state.totalUnread,
-          builder: (context, chatUnread) => MediaQuery(
+          builder: (context, chatUnread) => ValueListenableBuilder<int>(
+            valueListenable: CallsHub.instance.unseenMissed,
+            builder: (context, missedCalls, _) => MediaQuery(
             data: MediaQuery.of(context).copyWith(
               textScaler: TextScaler.noScaling,
             ),
@@ -73,31 +84,33 @@ class SilarahBottomNav extends StatelessWidget {
                 child: SizedBox(
                   height: 68,
                   child: Row(
-                    children: List.generate(_items.length, (index) {
-                      final badge = switch (index) {
-                        1 => interestUnread,
-                        2 => chatUnread,
-                        _ => 0,
-                      };
-                      return Expanded(
-                        child: RepaintBoundary(
-                          child: _NavTab(
-                            item: _items[index],
-                            isActive: index == currentIndex,
-                            badgeCount: badge,
-                            onTap: () {
-                              if (index == currentIndex) return;
-                              HapticFeedback.selectionClick();
-                              onTabSelected(index);
-                            },
+                    children: [
+                      for (final tab in tabs)
+                        Expanded(
+                          child: RepaintBoundary(
+                            child: _NavTab(
+                              item: _items[tab]!,
+                              isActive: tab == current,
+                              badgeCount: switch (tab) {
+                                HomeTab.interests => interestUnread,
+                                HomeTab.chats => chatUnread,
+                                HomeTab.calls => missedCalls,
+                                _ => 0,
+                              },
+                              onTap: () {
+                                if (tab == current) return;
+                                HapticFeedback.selectionClick();
+                                onTabSelected(tab);
+                              },
+                            ),
                           ),
                         ),
-                      );
-                    }),
+                    ],
                   ),
                 ),
               ),
             ),
+          ),
           ),
         );
       },
@@ -167,9 +180,9 @@ class _NavTab extends StatelessWidget {
 
                 // Badge — only visible when count > 0
                 if (badgeCount > 0)
-                  Positioned(
+                  PositionedDirectional(
                     top: -4,
-                    right: -6,
+                    end: -6,
                     child: _Badge(count: badgeCount),
                   ),
               ],

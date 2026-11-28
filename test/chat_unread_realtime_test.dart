@@ -40,7 +40,7 @@ void main() {
     expect(chat, contains('await loadMessages(activeConversationId)'));
 
     expect(nav, contains('selector: (state) => state.totalUnread'));
-    expect(nav, contains('2 => chatUnread'));
+    expect(nav, contains('HomeTab.chats => chatUnread'));
 
     // Foreground FCM, app resume and both tap paths remain independent
     // recovery signals. ChatCubit coalesces a burst into one reconciliation.

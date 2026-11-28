@@ -531,22 +531,20 @@ class ShimmerBox extends StatelessWidget {
   }
 }
 
-// Profile Card Shimmer
-/// A restrained discovery placeholder.
-///
-/// Profile cards occupy most of the viewport, so the generic full-surface
-/// shimmer becomes a high-contrast vertical band on tall phones. This loader
-/// keeps the card geometry stable and animates only a quiet focal mark and
-/// small information placeholders.
-class SilarahProfileCardShimmer extends StatefulWidget {
-  const SilarahProfileCardShimmer({super.key});
+/// The motion of Silarah's placeholders (Discover's profile card, the Calls
+/// tab): a slow tonal rise and fall in place, never a light sweeping across
+/// the screen. [builder] gets the pulse, 0 to 1 and eased; with reduced
+/// motion it holds still at .5.
+class SilarahBreathing extends StatefulWidget {
+  const SilarahBreathing({super.key, required this.builder});
+
+  final Widget Function(BuildContext context, double pulse) builder;
 
   @override
-  State<SilarahProfileCardShimmer> createState() =>
-      _SilarahProfileCardShimmerState();
+  State<SilarahBreathing> createState() => _SilarahBreathingState();
 }
 
-class _SilarahProfileCardShimmerState extends State<SilarahProfileCardShimmer>
+class _SilarahBreathingState extends State<SilarahBreathing>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   bool _reduceMotion = false;
@@ -556,7 +554,7 @@ class _SilarahProfileCardShimmerState extends State<SilarahProfileCardShimmer>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: AppDimensions.durationShimmer,
       value: .34,
     );
   }
@@ -587,16 +585,63 @@ class _SilarahProfileCardShimmerState extends State<SilarahProfileCardShimmer>
 
   @override
   Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) => widget.builder(
+        context,
+        _reduceMotion ? .5 : Curves.easeInOutCubic.transform(_controller.value),
+      ),
+    );
+  }
+}
+
+/// A rounded placeholder for a line of text or a round avatar, in the
+/// placeholders' quiet tone. [opacity] usually rises and falls with
+/// [SilarahBreathing]'s pulse.
+class SilarahLoaderBar extends StatelessWidget {
+  const SilarahLoaderBar({
+    super.key,
+    required this.width,
+    required this.height,
+    required this.opacity,
+    this.circle = false,
+  });
+
+  final double width;
+  final double height;
+  final double opacity;
+  final bool circle;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: AppColors.slateMist.withValues(alpha: opacity),
+          shape: circle ? BoxShape.circle : BoxShape.rectangle,
+          borderRadius: circle ? null : BorderRadius.circular(99),
+        ),
+      );
+}
+
+// Profile Card Shimmer
+/// A restrained discovery placeholder.
+///
+/// Profile cards occupy most of the viewport, so the generic full-surface
+/// shimmer becomes a high-contrast vertical band on tall phones. This loader
+/// keeps the card geometry stable and animates only a quiet focal mark and
+/// small information placeholders.
+class SilarahProfileCardShimmer extends StatelessWidget {
+  const SilarahProfileCardShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return Semantics(
       label: context.uiCopy('Preparing profile recommendations'),
       liveRegion: true,
       child: ExcludeSemantics(
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) {
-            final pulse = _reduceMotion
-                ? .5
-                : Curves.easeInOutCubic.transform(_controller.value);
+        child: SilarahBreathing(
+          builder: (context, pulse) {
             final tonalSurface = Color.lerp(
               AppColors.surfaceDark,
               AppColors.surfaceGlassHover,

@@ -6,6 +6,7 @@ import 'package:silarah/core/theme/app_colors.dart';
 import 'package:silarah/core/theme/app_theme.dart';
 import 'package:silarah/features/home/screens/privacy_requests_screen.dart';
 import 'package:silarah/l10n/generated/app_localizations.dart';
+import 'package:silarah/l10n/digits.dart';
 import 'package:silarah/l10n/privacy_requests_ui_copy.dart';
 import 'package:silarah/l10n/ui_copy.dart';
 
@@ -21,8 +22,9 @@ const _submitError =
 const _success =
     'Request received. Keep the reference below to follow its progress.';
 
+/// The line as the screen shows it (Arabic shows Arabic digits).
 String copy(String locale, String source) =>
-    privacyRequestsUiCopy[locale]![source]!;
+    localizeDigits(privacyRequestsUiCopy[locale]![source]!, locale);
 
 class _Provider implements PrivacyRequestsProvider {
   List<Map<String, dynamic>> rows = [];
@@ -197,8 +199,9 @@ void main() {
         final due = MaterialLocalizations.of(context)
             .formatMediumDate(DateTime.parse('2026-09-27T12:00:00Z').toLocal());
         expect(
-            find.text(copy(locale, 'Response target: {date}')
-                .replaceAll('{date}', due)),
+            find.text(localizeDigits(
+                copy(locale, 'Response target: {date}').replaceAll('{date}', due),
+                locale)),
             findsOneWidget);
         expect(find.descendant(of: history, matching: find.text('Access')),
             findsOneWidget);

@@ -9,6 +9,7 @@
 //   • Read-only or interactive chat access
 //
 // This is SILARAH's biggest competitive moat against Muzz/Salams.
+import '../../calls/widgets/guardian_call_log.dart';
 import 'dart:async';
 
 import 'package:silarah/l10n/ui_copy.dart';
@@ -29,6 +30,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
+import '../../../core/router/home_tab.dart';
 
 class GuardianDashboardScreen extends StatefulWidget {
   const GuardianDashboardScreen({super.key});
@@ -241,7 +243,7 @@ class _GuardianDashboardScreenState extends State<GuardianDashboardScreen>
     if (router.canPop()) {
       router.pop();
     } else {
-      router.go('${AppRoutes.home}?tab=3');
+      router.go(HomeTab.profile.path);
     }
   }
 
@@ -668,6 +670,9 @@ class _GuardianTranscriptScreenState extends State<_GuardianTranscriptScreen>
       appBar: AppBar(
         backgroundColor: AppColors.obsidianNight,
         titleSpacing: 0,
+        actions: [
+          if (_accessVerified) GuardianCallLogButton(matchId: _chat.matchId),
+        ],
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

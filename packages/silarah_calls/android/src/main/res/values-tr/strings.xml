@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="silarah_calls_notification_channel_calls">Aramalar</string>
+    <string name="silarah_calls_notification_channel_calls_description">Gelen Silarah aramaları</string>
+    <string name="silarah_calls_notification_channel_call_ongoing">Arama sürüyor</string>
+    <string name="silarah_calls_notification_channel_call_ongoing_description">Silarah araması sırasında görünür</string>
+    <string name="silarah_calls_call_ongoing_title">Silarah araması</string>
+    <string name="silarah_calls_call_ongoing_text">Arama sürüyor. Geri dönmek için dokunun.</string>
+    <string name="silarah_calls_notification_channel_missed">Cevapsız aramalar</string>
+    <string name="silarah_calls_notification_channel_missed_description">Cevapsız Silarah aramaları ve arama hatırlatıcıları</string>
+</resources>

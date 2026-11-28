@@ -10,6 +10,13 @@ abstract final class PublicSiteLinks {
   static final googlePlaySubscriptions = Uri.parse(
     'https://play.google.com/store/account/subscriptions?package=com.silarah.app',
   );
+
+  /// The Play Store app first; the web listing when it is missing.
+  static final googlePlayAppListing =
+      Uri.parse('market://details?id=com.silarah.app');
+  static final googlePlayWebListing = Uri.parse(
+    'https://play.google.com/store/apps/details?id=com.silarah.app',
+  );
   static final googlePlayRefundRequest = Uri.parse(
     'https://support.google.com/googleplay/workflow/9813244',
   );

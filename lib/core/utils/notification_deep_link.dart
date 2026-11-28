@@ -1,3 +1,5 @@
+import '../router/home_tab.dart';
+
 final RegExp _notificationUuid = RegExp(
   r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
 );
@@ -32,9 +34,10 @@ String? _safeInternalNotificationPath(String value) {
   }
 
   if (uri.path == '/home') {
-    final tab = uri.queryParameters['tab'];
-    return const {'0', '1', '2', '3'}.contains(tab) ? '/home?tab=$tab' : null;
+    // Tab names, and the numbers older links carry (see HomeTab).
+    return HomeTab.parse(uri.queryParameters['tab'])?.path;
   }
+  if (uri.path == '/calls' && !uri.hasQuery) return HomeTab.calls.path;
   if (_exactNotificationPaths.contains(uri.path)) {
     if (uri.path == '/edit-profile' && uri.hasQuery) {
       return uri.queryParameters['section'] == 'photos'
@@ -72,11 +75,12 @@ String? notificationPathFromDeepLink(String? deepLink) {
   }
 
   final host = uri.host;
-  if (host == 'discover') return '/home?tab=0';
-  if (host == 'interests') return '/home?tab=1';
+  if (host == 'discover') return HomeTab.discover.path;
+  if (host == 'interests') return HomeTab.interests.path;
+  if (host == 'calls' && uri.pathSegments.isEmpty) return HomeTab.calls.path;
   if (host == 'chat') {
     return uri.pathSegments.isEmpty
-        ? '/home?tab=2'
+        ? HomeTab.chats.path
         : _entityPath(
             'chat',
             uri.pathSegments.length == 1 ? uri.pathSegments.first : null,
@@ -84,7 +88,7 @@ String? notificationPathFromDeepLink(String? deepLink) {
   }
   if (host == 'profile') {
     return uri.pathSegments.isEmpty
-        ? '/home?tab=3'
+        ? HomeTab.profile.path
         : _entityPath(
             'profile',
             uri.pathSegments.length == 1 ? uri.pathSegments.first : null,
@@ -118,7 +122,7 @@ String? notificationDestinationPath({
   String? profileId,
 }) {
   if (type == 'referral_reward' || type == 'referral_completed') {
-    return '/home?tab=3';
+    return HomeTab.profile.path;
   }
 
   // A Guardian reads a ward's conversation on the Guardian dashboard, never
@@ -132,7 +136,7 @@ String? notificationDestinationPath({
 
   switch (type) {
     case 'new_message':
-      return _entityPath('chat', matchId) ?? '/home?tab=2';
+      return _entityPath('chat', matchId) ?? HomeTab.chats.path;
     case 'guardian_sent_message':
       return _entityPath('chat', matchId) ?? '/guardian-dashboard';
     case 'match':
@@ -141,11 +145,11 @@ String? notificationDestinationPath({
     case 'interest_accepted':
     case 'interest_expiring':
     case 'interest_expired':
-      return '/home?tab=1';
+      return HomeTab.interests.path;
     case 'match_ended':
     case 'new_compatible_profiles':
     case 'inactive_nudge':
-      return '/home?tab=0';
+      return HomeTab.discover.path;
     case 'admin_announcement':
     case 'festival_greeting':
       return '/notifications';
@@ -157,13 +161,13 @@ String? notificationDestinationPath({
     case 'boost_ready':
     case 'boost_available':
     case 'profile_returned_to_review':
-      return '/home?tab=3';
+      return HomeTab.profile.path;
     case 'profile_view':
       return '/profile-views';
     case 'photo_access_request':
       return '/photo-requests';
     case 'photo_access_granted':
-      return _entityPath('profile', profileId) ?? '/home?tab=1';
+      return _entityPath('profile', profileId) ?? HomeTab.interests.path;
     case 'profile_nudge':
       return '/edit-profile';
     case 'subscription_active':

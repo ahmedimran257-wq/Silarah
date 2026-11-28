@@ -3,13 +3,34 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- CameraX captures still images into app-owned storage. Its library
-         manifest also declares audio and legacy storage permissions that this
-         app never uses. LiteRT can imply phone-state access through an old
-         library target. Remove all four from the final production manifest. -->
+    <!-- In-app voice calls (docs/voice_calling_spec.md 8). The microphone
+         is asked for only when the member starts or answers a call, after a
+         rationale screen; audio flows only during a call; nothing is ever
+         recorded. Bluetooth access routes the call to a headset. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission
-        android:name="android.permission.RECORD_AUDIO"
-        tools:node="remove" />
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Call foreground service, started only after Answer: microphone,
+         and phone call while Telecom holds the call (self-managed calls,
+         docs/voice_calling_spec.md 12.1). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+    <!-- Incoming call over the lock screen; on Android 14+ only if the
+         member allows it in system settings. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- CameraX captures still images into app-owned storage. Its library
+         manifest also declares legacy storage permissions that this app
+         never uses. LiteRT can imply phone-state access through an old
+         library target. Remove all three from the final production manifest.
+         Calls do not need phone state: a regular phone call is detected
+         through Telecom (hold) and the audio mode. -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         tools:node="remove" />
@@ -58,6 +79,8 @@
                     android:pathPrefix="/auth/" />
             </intent-filter>
         </activity>
+        <!-- The call service and notification buttons come from
+             packages/silarah_calls (its manifest is merged in). -->
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
@@ -72,6 +95,14 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/notification_accent" />
+        <!-- geolocator ships a background location foreground service. Silarah only
+             reads one coarse position while the member is using the app
+             (getCurrentPosition), so the service is removed: the app never
+             tracks location in the background and declares no location
+             foreground service. -->
+        <service
+            android:name="com.baseflow.geolocator.GeolocatorLocationService"
+            tools:node="remove" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

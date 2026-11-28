@@ -1,0 +1,25 @@
+name: silarah_calls
+description: >-
+  Silarah's native call module (docs/voice_calling_spec.md 12.1): call
+  notifications (CallStyle incoming, ongoing and missed), the call
+  foreground service, Jetpack Core-Telecom integration, the call window over
+  the lock screen, microphone permission and phone-call interruptions.
+  Registered in every Flutter engine, so it also works from the FCM
+  background isolate when Silarah is closed.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.silarah.calls
+        pluginClass: SilarahCallsPlugin

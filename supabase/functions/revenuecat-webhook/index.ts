@@ -61,10 +61,14 @@ Deno.serve(async (req: Request) => {
   const event = payload.event;
   // A TRANSFER moves purchases between App User IDs. The project transfers
   // only when no subscription is active, so no access changes hands, and
-  // the event carries no product or app_user_id to validate. TEST is the
+  // the event carries no product or app_user_id to validate. A call pack
+  // paid under the old ID is credited to the member it moved to. TEST is the
   // dashboard's "Send test event". Acknowledge both so RevenueCat does not
   // retry them.
-  if (event?.type === "TRANSFER" || event?.type === "TEST") {
+  if (event?.type === "TRANSFER") {
+    return await handleTransfer(event);
+  }
+  if (event?.type === "TEST") {
     console.log(`[revenuecat-webhook] Acknowledged ${event.type} event.`);
     return new Response("OK", { status: 200 });
   }
@@ -80,6 +84,13 @@ Deno.serve(async (req: Request) => {
     console.error("[revenuecat-webhook] Production allowlist is incomplete.");
     return new Response("Service Unavailable", { status: 503 });
   }
+  // Call-minute packs are consumables with NO entitlement (an entitlement
+  // would grant Premium forever), so they never reach the subscription path
+  // below. Minutes are granted only here, never from the app.
+  if (typeof event.product_id === "string" && isCallPackProduct(event.product_id)) {
+    return await handleCallPackEvent(event);
+  }
+
   const productionValidation = validateProductionRevenueCatEvent(event);
   if (productionValidation != null) {
     console.warn(
@@ -97,6 +108,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const supabase = createAdminClient();
+  await claimAliasedPacks(supabase, event);
 
   const eventTimestampMs = event.event_timestamp_ms!;
   // RevenueCat has no separate refund event: Play and App Store refunds
@@ -224,6 +236,25 @@ Deno.serve(async (req: Request) => {
     return new Response("Internal Server Error", { status: 500 });
   }
 
+  // A refunded Premium payment also removes that period's included call
+  // minutes (spec 6). Idempotent on the RevenueCat event id.
+  if (
+    applyResult?.applied &&
+    (eventType === "REFUND" || eventType === "REVOCATION")
+  ) {
+    const { error: forfeitError } = await supabase.rpc(
+      "call_service_forfeit_included",
+      { p_user: supabaseUserId, p_event_id: `${event.id}:included` },
+    );
+    if (forfeitError) {
+      console.error(
+        `[revenuecat-webhook] Included call minutes not removed for ${supabaseUserId}:`,
+        forfeitError.message,
+      );
+      return new Response("Internal Server Error", { status: 500 });
+    }
+  }
+
   // A plan change is noted, not applied: the new plan's own event starts it
   // (an INITIAL_PURCHASE at once for an upgrade, a RENEWAL under the new plan
   // at the period end for a deferred downgrade) and sends the messages
@@ -310,6 +341,8 @@ interface RevenueCatEvent {
   environment?: string;
   entitlement_ids?: string[];
   cancel_reason?: string;
+  transferred_from?: string[];
+  transferred_to?: string[];
 }
 
 // `price` is always USD; `currency` names what the member actually paid in.
@@ -558,6 +591,227 @@ async function queueSubscriptionNotification(
       error.message,
     );
   }
+}
+
+// Google Play one-time products for call minutes (spec 3). The database
+// table private.call_pack_products decides the minutes for each.
+export const CALL_PACK_PRODUCT_IDS = new Set([
+  "silarah_calls_20",
+  "silarah_calls_60",
+  "silarah_calls_150",
+  "silarah_calls_350",
+]);
+
+// Play one-time products with purchase options may be reported as
+// "<product>:<purchase option>" (ours is "buy"); the product decides minutes.
+export function callPackProductId(productId: string): string {
+  return productId.split(":")[0];
+}
+
+export function isCallPackProduct(productId: string): boolean {
+  return CALL_PACK_PRODUCT_IDS.has(callPackProductId(productId));
+}
+
+async function handleCallPackEvent(event: RevenueCatEvent): Promise<Response> {
+  if (event.app_id !== REVENUECAT_EXPECTED_APP_ID) {
+    return new Response("Bad Request: event is outside the production app", { status: 400 });
+  }
+  const allowedSandboxTester = event.environment === "SANDBOX" &&
+    REVENUECAT_SANDBOX_TESTER_IDS.has(event.app_user_id);
+  if (event.environment !== REVENUECAT_EXPECTED_ENVIRONMENT && !allowedSandboxTester) {
+    return new Response("Bad Request: event is outside the production app", { status: 400 });
+  }
+  if (typeof event.store !== "string" || !REVENUECAT_ALLOWED_STORES.has(event.store)) {
+    return new Response("Bad Request: event is outside the production app", { status: 400 });
+  }
+  if (
+    event.original_app_user_id != null &&
+    event.original_app_user_id !== event.app_user_id &&
+    !event.aliases?.includes(event.app_user_id)
+  ) {
+    return new Response("Bad Request: event is outside the production app", { status: 400 });
+  }
+  if (Array.isArray(event.entitlement_ids) && event.entitlement_ids.length > 0) {
+    // A pack must never carry an entitlement. Minutes are still credited
+    // (the member paid), but staff must remove the attachment in RevenueCat.
+    console.error(
+      `[revenuecat-webhook] Call pack ${event.product_id} arrived WITH entitlements; detach them in RevenueCat.`,
+    );
+  }
+  const supabase = createAdminClient();
+  const member = isUuid(event.app_user_id) ? event.app_user_id : null;
+  const transactionId = event.transaction_id ?? event.original_transaction_id ?? "";
+  const productId = callPackProductId(event.product_id!);
+  const args = {
+    p_event_id: event.id,
+    p_transaction_id: transactionId,
+    p_product_id: productId,
+  };
+
+  // The member paid: the minutes are credited, or kept until it is known
+  // whose they are (spec 6.3). Never dropped.
+  if (event.type === "NON_RENEWING_PURCHASE") {
+    if (member) {
+      await claimAliasedPacks(supabase, event);
+      const { data, error } = await supabase.rpc("call_service_credit_pack", {
+        p_user: member,
+        ...args,
+      });
+      if (error) return packFailure("call_service_credit_pack", error.message);
+      if (data?.reason !== "unknown_user") {
+        if (data?.applied) {
+          await notifyPack(supabase, member, "added", Number(data.minutes ?? 0));
+        }
+        return packDone(event, data);
+      }
+    }
+    const { data, error } = await supabase.rpc("call_service_store_unclaimed_pack", {
+      p_event_id: event.id,
+      p_app_user_id: event.app_user_id,
+      p_aliases: stringList(event.aliases).concat(stringList([event.original_app_user_id])),
+      p_product_id: productId,
+      p_transaction_id: transactionId,
+      p_store: event.store,
+      p_environment: event.environment ?? null,
+      p_event_at: new Date(event.event_timestamp_ms!).toISOString(),
+      p_reason: member ? "unknown_user" : "not_a_member",
+    });
+    if (error) return packFailure("call_service_store_unclaimed_pack", error.message);
+    if (data?.claimed && data?.credit?.applied) {
+      await notifyPack(supabase, String(data.user_id), "added", Number(data.credit.minutes ?? 0));
+    }
+    console.warn(
+      `[revenuecat-webhook] Call pack paid by a store account that is not a member: ${
+        data?.claimed ? "credited through an alias" : data?.stored ? "kept for staff" : data?.reason
+      }`,
+    );
+    return new Response("OK", { status: 200 });
+  }
+
+  // A refund applies to the purchase it belongs to, whoever holds it now; a
+  // reversal gives the minutes back (spec 6.2).
+  let rpcName: string;
+  let kind: "removed" | "restored";
+  if (event.type === "CANCELLATION") {
+    rpcName = "call_service_refund_pack";
+    kind = "removed";
+  } else if (event.type === "REFUND_REVERSED" || event.type === "UNCANCELLATION") {
+    rpcName = "call_service_reverse_pack_refund";
+    kind = "restored";
+  } else {
+    console.log(`[revenuecat-webhook] Ignored ${event.type} for call pack.`);
+    return new Response("OK", { status: 200 });
+  }
+  const { data, error } = await supabase.rpc(rpcName, {
+    p_app_user_id: event.app_user_id,
+    ...args,
+  });
+  if (error) return packFailure(rpcName, error.message);
+  if (data?.applied && data?.user_id) {
+    await notifyPack(supabase, String(data.user_id), kind, Number(data.minutes ?? 0));
+  }
+  return packDone(event, data);
+}
+
+// A TRANSFER moved purchases to one member: credit packs paid under the
+// IDs it came from.
+async function handleTransfer(event: RevenueCatEvent): Promise<Response> {
+  const to = stringList(event.transferred_to).filter(isUuid);
+  const from = stringList(event.transferred_from);
+  if (to.length !== 1 || from.length === 0) {
+    console.log("[revenuecat-webhook] Acknowledged TRANSFER event.");
+    return new Response("OK", { status: 200 });
+  }
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("call_service_claim_unclaimed_packs", {
+    p_user: to[0],
+    p_app_ids: from,
+    p_source: "transfer",
+  });
+  if (error) return packFailure("call_service_claim_unclaimed_packs", error.message);
+  if (Number(data?.claimed ?? 0) > 0) {
+    await notifyPack(supabase, to[0], "added", null);
+  }
+  console.log(`[revenuecat-webhook] TRANSFER: ${Number(data?.claimed ?? 0)} call pack(s) credited.`);
+  return new Response("OK", { status: 200 });
+}
+
+// A member's event lists the anonymous IDs their store account had: packs
+// paid under those IDs are theirs. Best effort; staff can still credit.
+async function claimAliasedPacks(supabase: AdminClient, event: RevenueCatEvent) {
+  if (!isUuid(event.app_user_id)) return;
+  const ids = stringList(event.aliases)
+    .concat(stringList([event.original_app_user_id]))
+    .filter((id) => id !== event.app_user_id && !isUuid(id));
+  if (ids.length === 0) return;
+  const { data, error } = await supabase.rpc("call_service_claim_unclaimed_packs", {
+    p_user: event.app_user_id,
+    p_app_ids: [...new Set(ids)],
+    p_source: "alias",
+  });
+  if (error) {
+    console.error("[revenuecat-webhook] Aliased call packs not claimed:", error.message);
+  } else if (Number(data?.claimed ?? 0) > 0) {
+    await notifyPack(supabase, event.app_user_id, "added", null);
+  }
+}
+
+async function notifyPack(
+  supabase: AdminClient,
+  userId: string,
+  kind: "added" | "removed" | "restored",
+  minutes: number | null,
+) {
+  const count = minutes == null ? null : Math.abs(minutes);
+  const copy = {
+    added: {
+      type: "call_minutes_added",
+      title: "Call minutes added",
+      body: count == null
+        ? "Call minutes you paid for were added to your Silarah call balance."
+        : `${count} minutes were added to your Silarah call balance.`,
+    },
+    removed: {
+      type: "call_minutes_refunded",
+      title: "Call minutes removed",
+      body: `${count} call minutes were removed because Google Play refunded your minute pack.`,
+    },
+    restored: {
+      type: "call_minutes_added",
+      title: "Call minutes restored",
+      body: `${count} call minutes were given back because Google Play reversed the refund.`,
+    },
+  }[kind];
+  const { error } = await supabase.rpc("queue_notification", {
+    p_user_id: userId,
+    p_type: copy.type,
+    p_title: copy.title,
+    p_body: copy.body,
+    p_deep_link: null,
+  });
+  if (error) {
+    console.error("[revenuecat-webhook] Pack notice not queued:", error.message);
+  }
+}
+
+function packFailure(rpcName: string, message: string): Response {
+  console.error(`[revenuecat-webhook] ${rpcName} failed:`, message);
+  return new Response("Internal Server Error", { status: 500 });
+}
+
+function packDone(event: RevenueCatEvent, data: Record<string, unknown> | null): Response {
+  console.log(
+    `[revenuecat-webhook] Call pack ${event.type}: ${
+      data?.applied ? "applied" : data?.reason ?? "not applied"
+    }`,
+  );
+  return new Response("OK", { status: 200 });
+}
+
+function stringList(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string" && item.length > 0 && item.length <= 200)
+    : [];
 }
 
 function isUuid(value: string): boolean {

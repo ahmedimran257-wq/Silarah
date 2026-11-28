@@ -22,10 +22,13 @@ import '../../../core/widgets/loaders/silarah_shimmer.dart';
 import '../../../core/widgets/overlays/silarah_bottom_sheet.dart';
 
 class ReportBottomSheet {
+  /// [fromCall]: opened from a call or the Calls tab, so "Harassing calls"
+  /// is offered first.
   static Future<bool> show(
     BuildContext context, {
     required String reportedUserId,
     required String reportedName,
+    bool fromCall = false,
   }) {
     return showSilarahBottomSheet<bool>(
       context: context,
@@ -36,6 +39,7 @@ class ReportBottomSheet {
         child: _ReportContent(
           reportedUserId: reportedUserId,
           reportedName: reportedName,
+          fromCall: fromCall,
         ),
       ),
     ).then((value) => value ?? false);
@@ -45,10 +49,12 @@ class ReportBottomSheet {
 class _ReportContent extends StatefulWidget {
   final String reportedUserId;
   final String reportedName;
+  final bool fromCall;
 
   const _ReportContent({
     required this.reportedUserId,
     required this.reportedName,
+    required this.fromCall,
   });
 
   @override
@@ -160,6 +166,11 @@ class _ReportContentState extends State<_ReportContent> {
                     ? _Step1(
                         key: const ValueKey(1),
                         reportedName: widget.reportedName,
+                        reasons: [
+                          if (widget.fromCall) ReportReason.harassingCalls,
+                          for (final reason in ReportReason.values)
+                            if (reason != ReportReason.harassingCalls) reason,
+                        ],
                         selected: _selected,
                         isLoading: state.isSubmitting,
                         onSelect: (r) => setState(() => _selected = r),
@@ -201,6 +212,7 @@ class _ReportContentState extends State<_ReportContent> {
 // Step 1: Select Reason
 class _Step1 extends StatelessWidget {
   final String reportedName;
+  final List<ReportReason> reasons;
   final ReportReason? selected;
   final ValueChanged<ReportReason> onSelect;
   final bool isLoading;
@@ -209,6 +221,7 @@ class _Step1 extends StatelessWidget {
   const _Step1({
     super.key,
     required this.reportedName,
+    required this.reasons,
     required this.selected,
     required this.onSelect,
     required this.isLoading,
@@ -238,7 +251,7 @@ class _Step1 extends StatelessWidget {
           constraints: const BoxConstraints(maxHeight: 360),
           child: SingleChildScrollView(
             child: Column(
-              children: ReportReason.values
+              children: reasons
                   .map(
                     (reason) => _ReasonTile(
                       reason: reason,

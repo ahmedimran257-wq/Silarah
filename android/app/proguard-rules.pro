@@ -24,3 +24,15 @@
 -keep class androidx.core.view.WindowCompat {
     public static void enableEdgeToEdge(android.view.Window);
 }
+
+# Voice calling. WebRTC's Java classes are reached from native code through
+# JNI, which R8 cannot see; keep them whole or audio fails only in release.
+-keep class org.webrtc.** { *; }
+-keep class io.getstream.webrtc.** { *; }
+-keep class com.cloudwebrtc.webrtc.** { *; }
+-dontwarn org.webrtc.**
+# flutter_local_notifications stores notification details with Gson.
+-keep class com.dexterous.** { *; }
+-keepattributes Signature
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken

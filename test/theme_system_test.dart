@@ -13,6 +13,22 @@ import 'package:silarah/core/theme/app_colors.dart';
 import 'package:silarah/core/theme/app_theme.dart';
 import 'package:silarah/core/theme/system_bars.dart';
 
+// Flutter hands off from the native surface on its first frame. The one
+// exception is a launch by a call's Answer: the native ring screen stays up
+// ("Connecting…") until the call screen is ready, so Silarah holds its first
+// frame then only, and always lets it go (spec 12.1, 24 Nov 2026).
+void _expectFirstFrameOnlyHeldForAnsweredCall(String mainSource) {
+  expect('deferFirstFrame'.allMatches(mainSource).length, 1);
+  expect('allowFirstFrame'.allMatches(mainSource).length, 1);
+  final hold = mainSource.substring(mainSource.indexOf('Future<void> _holdFirstFrameForAnsweredCall()'));
+  final body = hold.substring(0, hold.indexOf('\n}\n'));
+  expect(body, contains('deferFirstFrame'), reason: 'held only inside the answered-call hold');
+  expect(body.indexOf("if (opened != 'answer') return;"), lessThan(body.indexOf('deferFirstFrame')),
+      reason: 'every other launch hands off on the first frame');
+  expect(body, contains('binding.allowFirstFrame();'));
+  expect(body, contains('Timer(const Duration(seconds: 10), release);'), reason: 'never held for good');
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -375,13 +391,9 @@ void main() {
       reason: 'Core SDK startup must not hold Android\'s static splash.',
     );
     expect(mainSource, isNot(contains('precacheImage(')));
-    expect(
-      mainSource,
-      isNot(contains('deferFirstFrame')),
-      reason: 'Flutter must replace the native surface without a dead frame.',
-    );
+    // Flutter replaces the native surface without a dead frame.
+    _expectFirstFrameOnlyHeldForAnsweredCall(mainSource);
     expect(mainSource, isNot(contains('endOfFrame')));
-    expect(mainSource, isNot(contains('allowFirstFrame')));
     expect(mainSource, isNot(contains('_launchMayAnimate')));
     expect(mainSource, isNot(contains('firstPresentedFrame')));
 

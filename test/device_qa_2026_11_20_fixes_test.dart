@@ -149,7 +149,7 @@ void main() {
         read('lib/features/home/screens/guardian_dashboard_screen.dart');
     expect(dashboard, contains('bool get _isMemberGuardian'));
     expect(dashboard, contains('onPopInvokedWithResult'));
-    expect(dashboard, contains("router.go('\${AppRoutes.home}?tab=3')"));
+    expect(dashboard, contains('router.go(HomeTab.profile.path)'));
   });
 
   test('free Profile Views shows the weekly count it promises', () {

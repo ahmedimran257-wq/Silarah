@@ -46,11 +46,12 @@ import 'profile_detail_screen.dart';
 import 'notifications_screen.dart';
 import 'interests_screen.dart' show openChatForProfile;
 import 'viewed_profiles_screen.dart';
+import '../../../core/router/home_tab.dart';
 
 class DiscoveryFeedScreen extends StatefulWidget {
   const DiscoveryFeedScreen({super.key, this.onOpenTab});
 
-  final ValueChanged<int>? onOpenTab;
+  final ValueChanged<HomeTab>? onOpenTab;
 
   @override
   State<DiscoveryFeedScreen> createState() => _DiscoveryFeedScreenState();
@@ -663,7 +664,7 @@ class _DiscoveryFeedScreenState extends State<DiscoveryFeedScreen>
         return _DiscoveryProfileAction(
           label: 'Review Interest',
           onTap:
-              widget.onOpenTab == null ? null : () => widget.onOpenTab?.call(1),
+              widget.onOpenTab == null ? null : () => widget.onOpenTab?.call(HomeTab.interests),
         );
       case ProfileInteractionState.matched:
         // The server decides access: a paying man whose entitlement has

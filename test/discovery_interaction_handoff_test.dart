@@ -154,7 +154,7 @@ void main() {
       screen,
       contains('l10n.discovery_rematch_days(cooldownDays)'),
     );
-    expect(home, contains('case 0:'));
+    expect(home, contains('case HomeTab.discover:'));
     expect(home, contains('refreshIfChanged()'));
     expect(home, contains('AppLifecycleState.resumed'));
   });

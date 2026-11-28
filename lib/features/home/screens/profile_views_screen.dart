@@ -26,6 +26,7 @@ import '../../../core/utils/silarah_compute.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/widgets/animations/silarah_motion.dart';
 import '../../../core/widgets/loaders/silarah_shimmer.dart';
+import '../../../core/router/home_tab.dart';
 
 // Viewer row model
 class _Viewer {
@@ -55,7 +56,7 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
   Timer? _premiumRetry;
 
   void _close() {
-    popOrGoToFallback(GoRouter.of(context), '${AppRoutes.home}?tab=3');
+    popOrGoToFallback(GoRouter.of(context), HomeTab.profile.path);
   }
 
   @override
@@ -214,7 +215,7 @@ class _ProfileViewsScreenState extends State<ProfileViewsScreen> {
         return PopScope(
           canPop: router.canPop(),
           onPopInvokedWithResult: (didPop, _) {
-            if (!didPop) router.go('${AppRoutes.home}?tab=3');
+            if (!didPop) router.go(HomeTab.profile.path);
           },
           child: Scaffold(
             backgroundColor: AppColors.obsidianNight,

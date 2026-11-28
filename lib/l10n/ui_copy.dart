@@ -3,11 +3,14 @@ import 'package:silarah/l10n/privacy_requests_ui_copy.dart';
 import 'package:silarah/l10n/generated/app_localizations.dart';
 import 'package:silarah/l10n/generated/app_localizations_en.dart';
 import 'package:silarah/l10n/billing_legal_ui_copy.dart';
+import 'package:silarah/l10n/calling_ui_copy.dart';
+import 'package:silarah/l10n/digits.dart';
 import 'package:silarah/l10n/discover_rank_ui_copy.dart';
 import 'package:silarah/l10n/legal_access_ui_copy.dart';
 import 'package:silarah/l10n/photo_guide_ui_copy.dart';
 import 'package:silarah/l10n/photo_moderation_ui_copy.dart';
 import 'package:silarah/l10n/account_polish_ui_copy.dart';
+import 'package:silarah/l10n/app_shell_ui_copy.dart';
 import 'package:silarah/l10n/premium_discovery_ui_copy.dart';
 import 'package:silarah/l10n/premium_relationship_ui_copy.dart';
 import 'package:silarah/l10n/pricing_ui_copy.dart';
@@ -35,6 +38,7 @@ class UiCopy {
         photoGuideUiCopy[languageCode]?[source] ??
         photoModerationUiCopy[languageCode]?[source] ??
         accountPolishUiCopy[languageCode]?[source] ??
+        appShellUiCopy[languageCode]?[source] ??
         premiumDiscoveryUiCopy[languageCode]?[source] ??
         premiumRelationshipUiCopy[languageCode]?[source] ??
         pricingUiCopy[languageCode]?[source] ??
@@ -46,6 +50,7 @@ class UiCopy {
         guardianUiCopy[languageCode]?[source] ??
         supplementalUiCopy[languageCode]?[source] ??
         _translations[languageCode]?[source] ??
+        callingUiCopy[languageCode]?[source] ??
         source;
   }
 
@@ -57,6 +62,7 @@ class UiCopy {
       photoGuideUiCopy[languageCode]?.containsKey(source) == true ||
       photoModerationUiCopy[languageCode]?.containsKey(source) == true ||
       accountPolishUiCopy[languageCode]?.containsKey(source) == true ||
+      appShellUiCopy[languageCode]?.containsKey(source) == true ||
       premiumDiscoveryUiCopy[languageCode]?.containsKey(source) == true ||
       premiumRelationshipUiCopy[languageCode]?.containsKey(source) == true ||
       pricingUiCopy[languageCode]?.containsKey(source) == true ||
@@ -67,7 +73,8 @@ class UiCopy {
       emailGuardianUiCopy[languageCode]?.containsKey(source) == true ||
       guardianUiCopy[languageCode]?.containsKey(source) == true ||
       supplementalUiCopy[languageCode]?.containsKey(source) == true ||
-      _translations[languageCode]?.containsKey(source) == true;
+      _translations[languageCode]?.containsKey(source) == true ||
+      callingUiCopy[languageCode]?.containsKey(source) == true;
 
   static const Map<String, Map<String, String>> _translations = {
     'ar': {
@@ -9692,10 +9699,17 @@ extension UiCopyBuildContext on BuildContext {
   String uiCopyWith(String source, Map<String, Object> values) {
     var text = UiCopy.localize(this, source);
     values.forEach((name, value) {
-      text = text.replaceAll('{$name}', '$value');
+      text = text.replaceAll('{$name}', uiIsolate('$value'));
     });
     return text;
   }
+
+  /// A runtime value placed inside right-to-left copy keeps its own
+  /// direction: "10:30 AM" or a Latin name inside Urdu would otherwise be
+  /// reordered ("AM 10:30"). Unicode first-strong isolates, invisible on
+  /// screen; left-to-right copy is returned unchanged.
+  String uiIsolate(String value) =>
+      Directionality.maybeOf(this) == TextDirection.rtl ? isolateBidi(value) : value;
 
   /// Localizes short relative times that models build without a context, such
   /// as `5m`, `3h ago` or `Just now`.
@@ -9840,9 +9854,12 @@ class UiText extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = _translate ? UiCopy.localize(context, data) : data;
     final direction = textDirection ?? Directionality.maybeOf(context);
+    // Decided on the text as written: Arabic digits are right-to-left
+    // characters and would change a Latin run's direction.
     final ltrRun = direction != null && needsLtrRun(text, direction);
+    final language = locale?.languageCode ?? Localizations.maybeLocaleOf(context)?.languageCode ?? '';
     return Text(
-      text,
+      localizeDigits(text, language),
       style: style,
       strutStyle: strutStyle,
       textAlign: ltrRun ? mirroredAlign(textAlign) : textAlign,

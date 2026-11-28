@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/legal/legal_documents.dart';
+import '../../../core/legal/legal_translations.dart';
 import '../../../core/legal/public_site_links.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
@@ -18,6 +19,10 @@ class LegalDocScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final document = LegalDocuments.fromType(type);
+    // Calling, minute-pack and refund terms in Hindi, Urdu and Bengali
+    // (DPDP s.5(3)); the English text below them prevails.
+    final translation = LegalTranslations.of(
+        document.slug, Localizations.localeOf(context).languageCode);
     return Scaffold(
       backgroundColor: AppColors.obsidianNight,
       appBar: AppBar(
@@ -63,6 +68,10 @@ class LegalDocScreen extends StatelessWidget {
               if (Localizations.localeOf(context).languageCode != 'en') ...[
                 const SizedBox(height: AppDimensions.space16),
                 const _OfficialLanguageNotice(),
+              ],
+              if (translation != null) ...[
+                const SizedBox(height: AppDimensions.space16),
+                _TranslatedSections(translation: translation),
               ],
               const SizedBox(height: AppDimensions.space24),
               for (final section in document.sections)
@@ -144,9 +153,12 @@ class _DocumentHeader extends StatelessWidget {
           ),
           const SizedBox(height: AppDimensions.space14),
           UiText(
+            // The date and version are left-to-right runs: isolated, they
+            // keep their order inside Urdu and Arabic ("25 November 2026",
+            // not "November 2026 25").
             '${context.uiCopy('Effective')} '
-            '${LegalDocuments.effectiveDate}  •  '
-            '${context.uiCopy('Version')} ${LegalDocuments.version}',
+            '\u2066${LegalDocuments.effectiveDate}\u2069  •  '
+            '${context.uiCopy('Version')} \u2066${LegalDocuments.version}\u2069',
             style: AppTypography.caption,
           ),
         ],
@@ -203,10 +215,52 @@ class _OfficialLanguageNotice extends StatelessWidget {
   }
 }
 
+class _TranslatedSections extends StatelessWidget {
+  const _TranslatedSections({required this.translation});
+
+  final LegalTranslation translation;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const ValueKey('legal-translation'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppDimensions.space16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGlass,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusCard),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          UiText.verbatim(
+            translation.heading,
+            style: AppTypography.bodyMedium.copyWith(
+              color: AppColors.champagneGold,
+            ),
+          ),
+          const SizedBox(height: AppDimensions.space8),
+          UiText.verbatim(
+            translation.note,
+            style: AppTypography.caption.copyWith(height: 1.5),
+          ),
+          const SizedBox(height: AppDimensions.space20),
+          for (final section in translation.sections)
+            _PolicySection(section: section, verbatim: true),
+        ],
+      ),
+    );
+  }
+}
+
 class _PolicySection extends StatelessWidget {
-  const _PolicySection({required this.section});
+  const _PolicySection({required this.section, this.verbatim = false});
 
   final LegalSection section;
+
+  /// Already in the reader's language: shown as written.
+  final bool verbatim;
 
   @override
   Widget build(BuildContext context) {
@@ -215,14 +269,21 @@ class _PolicySection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          UiText(section.title, style: AppTypography.bodyMedium),
+          verbatim
+              ? UiText.verbatim(section.title, style: AppTypography.bodyMedium)
+              : UiText(section.title, style: AppTypography.bodyMedium),
           const SizedBox(height: AppDimensions.space8),
           Divider(color: AppColors.divider, height: 1),
           const SizedBox(height: AppDimensions.space12),
-          UiText(
-            section.body,
-            style: AppTypography.body.copyWith(height: 1.7),
-          ),
+          verbatim
+              ? UiText.verbatim(
+                  section.body,
+                  style: AppTypography.body.copyWith(height: 1.7),
+                )
+              : UiText(
+                  section.body,
+                  style: AppTypography.body.copyWith(height: 1.7),
+                ),
         ],
       ),
     );

@@ -1,0 +1,37 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Self-managed calls through Jetpack Core-Telecom; the phone-call
+         foreground service type is used only while Telecom has the call. -->
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application>
+        <!-- The live call: ongoing CallStyle notification (status-bar call
+             chip on Android 12+), microphone kept alive with the screen off. -->
+        <service
+            android:name="com.silarah.calls.CallService"
+            android:exported="false"
+            android:foregroundServiceType="phoneCall|microphone" />
+        <!-- Decline on the ring, Mute / Hang up on the live call. -->
+        <receiver
+            android:name="com.silarah.calls.CallActionReceiver"
+            android:exported="false" />
+        <!-- The ring screen, native like WhatsApp's and Telegram's: shown at
+             once over the lock screen or from the ring's banner, without
+             starting Silarah. In Silarah's own task, so after Answer it stays
+             up ("Connecting…") until Silarah's call screen draws over it, with
+             no launch window in between. Decline or a missed ring returns the
+             member to where they were (IncomingCallActivity.close). -->
+        <activity
+            android:name="com.silarah.calls.IncomingCallActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/SilarahIncomingCallTheme" />
+    </application>
+</manifest>

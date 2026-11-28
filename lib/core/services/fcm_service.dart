@@ -308,6 +308,10 @@ class FcmService {
     }
   }
 
+  /// This phone's persistent id, the one its push registration uses (call
+  /// ringing capability is reported under the same id).
+  Future<String> deviceId() => _getOrCreateDeviceId();
+
   /// Get or create a persistent device ID stored in SharedPreferences.
   Future<String> _getOrCreateDeviceId() async {
     final prefs = await SharedPreferences.getInstance();
