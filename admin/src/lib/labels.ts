@@ -158,6 +158,7 @@ const inboxTypes: Record<string, { label: string; href: (userId: string | null) 
   privacy_request_overdue: { label: "Privacy request overdue", href: () => "/privacy" },
   account_deletion_requested: { label: "Member asked to delete their account", href: () => "/deletions" },
   subscription_refunded: { label: "Premium refunded", href: () => "/subscriptions" },
+  subscription_lapsed_without_store_update: { label: "Premium ended without a store update", href: (id) => (id ? `/users/${id}` : "/subscriptions") },
   call_pack_refunded: { label: "Minute pack refunded", href: (id) => (id ? `/calls?tab=member&member=${id}` : "/calls") },
   call_pack_unclaimed: { label: "Paid pack waiting for a member", href: () => "/calls?tab=packs" },
   system_health_alert: { label: "System alert", href: () => "/system" },
