@@ -10,6 +10,9 @@
 // with the reference and the response date; answered) from their own queue,
 // private.privacy_request_emails, claimed separately so an older deployment
 // of this worker never sees them.
+//
+// Since migration 342 it also sends staff access emails (an invite to the
+// admin panel, or a password-reset link) from private.staff_access_emails.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { corsHeaders } from "../_shared/cors.ts";
 import { isAuthorizedCronRequest } from "../_shared/cron_auth.ts";
@@ -356,6 +359,173 @@ export function renderPrivacyEmail(
   };
 }
 
+export interface QueuedStaffAccessEmail {
+  email_id: string;
+  email_kind: "invite" | "reset";
+  recipient: string | null;
+  first_name: string | null;
+  staff_role: string | null;
+  link: string;
+  expires_at: string;
+  is_member: boolean;
+}
+
+const STAFF_ROLES: Record<string, string> = {
+  super_admin: "Super admin",
+  moderator: "Moderator",
+  support: "Support",
+};
+
+const STAFF_REASON =
+  "You are receiving this because a Silarah super admin gave this address staff access, or someone asked to reset its staff password. If that was not you, ignore this email: nothing changes unless the link is used.";
+
+function linkExpiry(value: string): string {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Kolkata",
+  }).format(new Date(value)) + " IST";
+}
+
+export function renderStaffAccessEmail(
+  row: QueuedStaffAccessEmail,
+): RenderedTransactionalEmail {
+  const name = row.first_name?.trim();
+  const helloText = name ? `Assalamu alaikum ${name},` : "Assalamu alaikum,";
+  const hello = greeting(
+    name ? `Assalamu alaikum ${escapeHtml(name)},` : "Assalamu alaikum,",
+  );
+  const until = linkExpiry(row.expires_at);
+  const role = STAFF_ROLES[row.staff_role ?? ""] ?? "Staff";
+  const memberNote = row.is_member
+    ? "This address already has a Silarah account. You sign in to the staff panel with it; the password you choose also becomes your Silarah app password."
+    : "";
+
+  if (row.email_kind === "invite") {
+    const subject = "You are invited to Silarah Operations";
+    const body = [
+      hello,
+      paragraph(
+        `You have been given <strong>${escapeHtml(role)}</strong> access to Silarah Operations, the staff panel at admin.silarah.com.`,
+      ),
+      steps("How to start", [
+        ["Open the link", "Press Continue on the page it opens."],
+        ["Choose a password", "At least 12 characters, with letters and a number."],
+        ["Add an authenticator", "Scan the code with Google Authenticator or a similar app. Every sign-in asks for it."],
+      ]),
+      button("Set up my access", row.link),
+      memberNote ? note(escapeHtml(memberNote)) : "",
+      paragraph(`The link works once, until ${escapeHtml(until)}. If it expires, ask a super admin to resend the invite.`),
+      signOff("The Silarah team"),
+    ].join("\n");
+    return {
+      subject,
+      html: renderEmailLayout({
+        title: subject,
+        preheader: `${role} access to the Silarah staff panel. The link works until ${until}.`,
+        eyebrow: "Staff access",
+        heading: "Your staff access is ready",
+        body,
+        reason: escapeHtml(STAFF_REASON),
+      }),
+      text: [
+        helloText,
+        "",
+        `You have been given ${role} access to Silarah Operations, the staff panel at admin.silarah.com.`,
+        "",
+        "1. Open the link and press Continue.",
+        "2. Choose a password (at least 12 characters, with letters and a number).",
+        "3. Add an authenticator app; every sign-in asks for it.",
+        "",
+        `Set up my access: ${row.link}`,
+        "",
+        memberNote,
+        `The link works once, until ${until}. If it expires, ask a super admin to resend the invite.`,
+        "",
+        "The Silarah team",
+        "",
+        STAFF_REASON,
+      ].filter((line, index, all) => line !== "" || all[index - 1] !== "").join("\n"),
+    };
+  }
+
+  const subject = "Reset your Silarah staff password";
+  const body = [
+    hello,
+    paragraph("Use this link to choose a new password for the Silarah staff panel."),
+    button("Choose a new password", row.link),
+    paragraph(`It works once, until ${escapeHtml(until)}. You still confirm with your authenticator afterwards.`),
+    memberNote ? note(escapeHtml(memberNote)) : "",
+    paragraph("If you did not ask for this, ignore this email. Your password stays the same."),
+    signOff("The Silarah team"),
+  ].join("\n");
+  return {
+    subject,
+    html: renderEmailLayout({
+      title: subject,
+      preheader: `The link works once, until ${until}.`,
+      eyebrow: "Staff access",
+      heading: "Choose a new password",
+      body,
+      reason: escapeHtml(STAFF_REASON),
+      tone: "attention",
+    }),
+    text: [
+      helloText,
+      "",
+      "Use this link to choose a new password for the Silarah staff panel.",
+      `Choose a new password: ${row.link}`,
+      "",
+      `It works once, until ${until}. You still confirm with your authenticator afterwards.`,
+      memberNote,
+      "If you did not ask for this, ignore this email. Your password stays the same.",
+      "",
+      "The Silarah team",
+      "",
+      STAFF_REASON,
+    ].filter((line, index, all) => line !== "" || all[index - 1] !== "").join("\n"),
+  };
+}
+
+async function sendStaffAccessEmails(supabase: SupabaseClient): Promise<{ claimed: number; sent: number }> {
+  const { data, error } = await supabase.rpc("claim_staff_access_emails", { p_limit: 10 });
+  if (error) {
+    // Before migration 342 the RPC does not exist.
+    console.error("[account-email] Could not claim staff emails:", error.message);
+    return { claimed: 0, sent: 0 };
+  }
+  const rows = (data ?? []) as QueuedStaffAccessEmail[];
+  let sent = 0;
+  for (const row of rows) {
+    const done = (success: boolean, message: string | null) =>
+      supabase.rpc("complete_staff_access_email", {
+        p_email_id: row.email_id,
+        p_success: success,
+        p_error: message,
+      });
+    if (!row.recipient || !row.link) {
+      await done(false, "no_recipient");
+      continue;
+    }
+    try {
+      await sendBrevoTransactionalEmail({
+        apiKey: BREVO_API_KEY,
+        to: row.recipient,
+        email: renderStaffAccessEmail(row),
+        dedupeKey: `staff:${row.email_id}`,
+        tags: ["transactional", "staff"],
+      });
+      await done(true, null);
+      sent += 1;
+    } catch (sendError) {
+      await done(false, sendError instanceof Error ? sendError.message : "send_failed");
+    }
+  }
+  return { claimed: rows.length, sent };
+}
+
 async function sendPrivacyEmails(supabase: SupabaseClient): Promise<{ claimed: number; sent: number }> {
   const { data, error } = await supabase.rpc("claim_privacy_request_emails", {
     p_limit: 10,
@@ -458,7 +628,8 @@ if (import.meta.main) {
       }
     }
     const privacy = await sendPrivacyEmails(supabase);
-    return new Response(JSON.stringify({ claimed: rows.length, sent, privacy }), {
+    const staff = await sendStaffAccessEmails(supabase);
+    return new Response(JSON.stringify({ claimed: rows.length, sent, privacy, staff }), {
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "no-store",

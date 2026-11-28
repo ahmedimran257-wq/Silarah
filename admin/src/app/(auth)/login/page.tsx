@@ -1,4 +1,5 @@
 import { ArrowRight, LockKeyhole } from "lucide-react";
+import Link from "next/link";
 import { SubmitButton } from "@/components/client-ui";
 import { signIn } from "./actions";
 
@@ -40,6 +41,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           {error ? <p className="notice danger" role="alert"><span>{error}</span></p> : null}
           <SubmitButton className="btn btn-primary">Continue <ArrowRight size={16} /></SubmitButton>
         </form>
+        <p className="faint"><Link href="/forgot-password" className="link">Forgot your password?</Link></p>
 
         <p className="auth-foot"><LockKeyhole size={13} /> Every sensitive action is role-checked and written to the audit trail.</p>
       </section>

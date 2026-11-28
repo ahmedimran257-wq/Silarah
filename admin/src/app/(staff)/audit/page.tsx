@@ -21,6 +21,14 @@ const knownActions = [
   "voice_call_minutes_adjusted",
   "privacy_request_reviewed",
   "privacy_request_hold_set",
+  "staff_added",
+  "staff_updated",
+  "staff_removed",
+  "staff_invite_sent",
+  "staff_password_reset_sent",
+  "staff_password_reset_requested",
+  "staff_mfa_reset",
+  "member_signed_out_everywhere",
 ];
 
 function href(action: string, after?: string) {

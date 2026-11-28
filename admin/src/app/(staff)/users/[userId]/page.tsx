@@ -8,7 +8,7 @@ import { can } from "@/lib/access";
 import { requireArea } from "@/lib/auth";
 import { callResult, reportReason, talkTime } from "@/lib/labels";
 import { getMemberAccountState, getMemberCallHistory, getMemberCallWallet, getMemberNotes, getMemberReview, getReportCallContext, type MemberAccountState, type MemberCallRow, type MemberCallWallet, type MemberNote, type MemberReview, type MemberReviewPhoto, type ReportCallContext } from "@/lib/operations";
-import { accountAction, addMemberNote, cancelAccountDeletion, grantTestPremium, removeGuardianLink, removeMemberPhoto, resolveReport, revokeTestPremium, scheduleAccountDeletion, sendMemberMessage } from "../../actions";
+import { accountAction, addMemberNote, cancelAccountDeletion, grantTestPremium, removeGuardianLink, removeMemberPhoto, resolveReport, revokeTestPremium, scheduleAccountDeletion, sendMemberMessage, signOutMemberEverywhere } from "../../actions";
 
 export const metadata = { title: "Member review" };
 
@@ -449,6 +449,18 @@ export default async function MemberReviewPage({
                     </div>
                   </form>
                 ) : null}
+                <details className="disclosure">
+                  <summary className="link">Sign out of every device</summary>
+                  <form action={signOutMemberEverywhere} className="stack">
+                    <input type="hidden" name="userId" value={review.userId} />
+                    <input type="hidden" name="returnTo" value={returnTo} />
+                    <p className="muted">For a lost phone or an account someone else got into. The member must sign in again on every phone; nothing else changes.</p>
+                    <label className="field">Reason for the audit log
+                      <input name="reason" className="input" minLength={6} maxLength={500} required placeholder="e.g. Member reported a stolen phone, ticket 1234" />
+                    </label>
+                    <SubmitButton className="btn" confirm="Sign this member out of every device?">Sign out everywhere</SubmitButton>
+                  </form>
+                </details>
                 <p className="faint">Masked email {review.email ?? "—"} · member ID <span className="mono">{review.userId}</span></p>
               </div>
             </section>
