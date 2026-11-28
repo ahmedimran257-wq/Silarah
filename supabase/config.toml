@@ -83,6 +83,17 @@ content_path = "./supabase/auth/email_templates/silarah_verification_code.html"
 subject = "Welcome to Silarah | Verify your email"
 content_path = "./supabase/auth/email_templates/silarah_welcome_verification_code.html"
 
+# Continue with Google (Android): the app exchanges a Google ID token with a
+# nonce (signInWithIdToken). The client ID is the OAuth *web* client, the
+# token audience the app asks for (GOOGLE_WEB_CLIENT_ID). New accounts still
+# pass hook_before_user_created below, which needs a bound acceptance.
+# Accounts with the same verified email are linked automatically.
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+skip_nonce_check = false
+
 [auth.hook.before_user_created]
 enabled = true
 uri = "pg-functions://postgres/public/hook_before_user_created"

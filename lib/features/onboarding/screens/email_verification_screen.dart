@@ -12,11 +12,13 @@ import '../../../core/cubits/auth/auth_cubit.dart';
 import '../../../core/cubits/auth/auth_state.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/email_address_validation.dart';
+import '../../../core/services/google_identity_service.dart';
 import '../../../core/services/legal_consent_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_curves.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/buttons/continue_with_google_button.dart';
 import '../../../core/widgets/buttons/silarah_pressable.dart';
 import '../../../core/widgets/buttons/silarah_primary_button.dart';
 import '../../../core/widgets/animations/silarah_motion.dart';
@@ -30,9 +32,13 @@ class EmailVerificationScreen extends StatefulWidget {
   const EmailVerificationScreen({
     super.key,
     this.mode = EmailAuthMode.signIn,
+    this.showGoogleSignIn,
   });
 
   final EmailAuthMode mode;
+
+  /// Defaults to whether this build has native Google sign-in configured.
+  final bool? showGoogleSignIn;
 
   @override
   State<EmailVerificationScreen> createState() =>
@@ -47,6 +53,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   int _resendSecs = 60;
   int _otpResetNonce = 0;
   Timer? _resendTimer;
+  bool _googlePending = false;
+
+  bool get _showGoogle =>
+      widget.showGoogleSignIn ?? GoogleIdentityService.isAvailable;
 
   String get _email => EmailAddressValidation.normalize(_emailCtrl.text);
 
@@ -75,6 +85,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     HapticFeedback.lightImpact();
     final authMode = _mode == EmailAuthMode.signUp ? 'signup' : 'signin';
     context.read<AuthCubit>().sendOtp(_email, mode: authMode);
+  }
+
+  void _continueWithGoogle() {
+    HapticFeedback.lightImpact();
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _googlePending = true);
+    final authMode = _mode == EmailAuthMode.signUp ? 'signup' : 'signin';
+    context.read<AuthCubit>().continueWithGoogle(mode: authMode);
   }
 
   void _startResendTimer() {
@@ -169,6 +187,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
+        if (state is! AuthLoading && _googlePending) {
+          setState(() => _googlePending = false);
+        }
         if (state is AuthOtpSent) {
           setState(() {
             _otpSent = true;
@@ -236,6 +257,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                             onModeChanged: _requestMode,
                             onSend: _sendOtp,
                             isComplete: true,
+                            onGoogle: _showGoogle ? _continueWithGoogle : null,
+                            googlePending: _googlePending,
                           ),
                   ),
                 ),
@@ -351,6 +374,8 @@ class _EmailView extends StatelessWidget {
     required this.onModeChanged,
     required this.onSend,
     required this.isComplete,
+    this.onGoogle,
+    this.googlePending = false,
   });
 
   final TextEditingController controller;
@@ -359,6 +384,10 @@ class _EmailView extends StatelessWidget {
   final ValueChanged<EmailAuthMode> onModeChanged;
   final VoidCallback onSend;
   final bool isComplete;
+
+  /// Null hides Continue with Google.
+  final VoidCallback? onGoogle;
+  final bool googlePending;
 
   @override
   Widget build(BuildContext context) {
@@ -429,12 +458,21 @@ class _EmailView extends StatelessWidget {
                   children: [
                     SilarahPrimaryButton(
                       label: ctaLabel,
-                      isLoading: state is AuthLoading,
+                      isLoading: state is AuthLoading && !googlePending,
                       enabled: isComplete,
                       haptic: false,
                       onTap:
                           isComplete && state is! AuthLoading ? onSend : null,
                     ),
+                    if (onGoogle != null) ...[
+                      const SizedBox(height: 14),
+                      const _OrDivider(),
+                      const SizedBox(height: 14),
+                      ContinueWithGoogleButton(
+                        isLoading: state is AuthLoading && googlePending,
+                        onTap: state is AuthLoading ? null : onGoogle,
+                      ),
+                    ],
                     const SizedBox(height: 14),
                     SilarahPressable(
                       onTap: () => onModeChanged(nextMode),
@@ -476,6 +514,33 @@ class _EmailView extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    final line = Expanded(
+      child: Container(
+        height: 1,
+        color: AppColors.cardBorder,
+      ),
+    );
+    return Row(
+      children: [
+        line,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: UiText(
+            'or',
+            style: AppTypography.caption.copyWith(color: AppColors.slateMist),
+          ),
+        ),
+        line,
+      ],
     );
   }
 }

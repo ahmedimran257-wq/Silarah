@@ -103,7 +103,14 @@ class AuthUnauthenticated extends AuthState {
   List<Object?> get props => [notice];
 }
 
-enum AuthErrorKind { general, invalidEmail, legalConsentRequired }
+enum AuthErrorKind {
+  general,
+  invalidEmail,
+  legalConsentRequired,
+
+  /// Continue with Google failed; the message says why and is shown as-is.
+  googleSignIn,
+}
 
 /// Any auth error (invalid OTP, network, etc.)
 class AuthError extends AuthState {

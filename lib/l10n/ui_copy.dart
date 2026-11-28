@@ -19,6 +19,7 @@ import 'package:silarah/l10n/trust_ui_copy.dart';
 import 'package:silarah/l10n/email_delivery_ui_copy.dart';
 import 'package:silarah/l10n/email_guardian_ui_copy.dart';
 import 'package:silarah/l10n/guardian_ui_copy.dart';
+import 'package:silarah/l10n/google_sign_in_ui_copy.dart';
 import 'package:silarah/l10n/ui_copy_supplement.dart';
 
 final AppLocalizations _englishUiCopy = AppLocalizationsEn();
@@ -51,6 +52,7 @@ class UiCopy {
         supplementalUiCopy[languageCode]?[source] ??
         _translations[languageCode]?[source] ??
         callingUiCopy[languageCode]?[source] ??
+        googleSignInUiCopy[languageCode]?[source] ??
         source;
   }
 
@@ -74,7 +76,8 @@ class UiCopy {
       guardianUiCopy[languageCode]?.containsKey(source) == true ||
       supplementalUiCopy[languageCode]?.containsKey(source) == true ||
       _translations[languageCode]?.containsKey(source) == true ||
-      callingUiCopy[languageCode]?.containsKey(source) == true;
+      callingUiCopy[languageCode]?.containsKey(source) == true ||
+      googleSignInUiCopy[languageCode]?.containsKey(source) == true;
 
   static const Map<String, Map<String, String>> _translations = {
     'ar': {

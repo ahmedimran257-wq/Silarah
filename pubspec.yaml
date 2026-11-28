@@ -67,6 +67,7 @@ dependencies:
   # Call notifications, call service and Telecom (docs/voice_calling_spec.md 12.1).
   silarah_calls:
     path: packages/silarah_calls
+  google_sign_in: ^7.2.0
 
 dev_dependencies:
   fake_async: ^1.3.3

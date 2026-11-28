@@ -11,6 +11,12 @@ abstract final class AppConfig {
   static const String supabaseFunctionsRegion =
       String.fromEnvironment('SUPABASE_FUNCTIONS_REGION');
 
+  /// Google OAuth web client ID (not a secret). Native Google sign-in asks
+  /// for an ID token issued to this client, and the Supabase Google provider
+  /// accepts that client. Empty means the build has no Google sign-in.
+  static const String googleWebClientId =
+      String.fromEnvironment('GOOGLE_WEB_CLIENT_ID');
+
   static const String revenueCatAndroidKey =
       String.fromEnvironment('REVENUECAT_ANDROID_KEY');
   static const String revenueCatIosKey =

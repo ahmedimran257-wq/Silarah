@@ -1,5 +1,6 @@
 // SILARAH - Auth Cubit
-// Production auth uses Supabase email OTP. No local sign-in path.
+// Production auth uses Supabase email OTP and, on Android, Continue with
+// Google (a Google ID token exchanged with Supabase). No local sign-in path.
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -11,6 +12,8 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 import '../../services/referral_service.dart';
 import '../../services/email_address_validation.dart';
 import '../../services/fcm_service.dart';
+import '../../services/google_identity_service.dart';
+import '../../services/google_sign_in_flow.dart';
 import '../../services/legal_consent_service.dart';
 import '../../services/my_account_snapshot.dart';
 import '../../services/otp_request_coalescer.dart';
@@ -35,7 +38,9 @@ class AccountSessionEndedException implements Exception {
 }
 
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit() : super(const AuthInitial()) {
+  AuthCubit({@visibleForTesting GoogleSignInBackend? googleBackend})
+      : _googleBackendOverride = googleBackend,
+        super(const AuthInitial()) {
     if (_isRealMode) {
       _authSubscription = SupabaseService.client.auth.onAuthStateChange
           .listen(_handleAuthEvent, onError: _handleAuthStreamError);
@@ -70,6 +75,8 @@ class AuthCubit extends Cubit<AuthState> {
   final OtpRequestCoalescer _otpRequests = OtpRequestCoalescer();
   int _sendOtpRequestId = 0;
   int _verifyOtpRequestId = 0;
+  int _googleRequestId = 0;
+  final GoogleSignInBackend? _googleBackendOverride;
   StreamSubscription<supabase.AuthState>? _authSubscription;
   String? _hydratedSessionUserId;
   String? _deletionRecoveryUserId;
@@ -426,6 +433,108 @@ class AuthCubit extends Cubit<AuthState> {
     ));
   }
 
+  /// Continue with Google. [mode] is 'signup' on the Create profile screen
+  /// (reached only through the legal gate) and 'signin' otherwise. A new
+  /// account is created only with an acceptance bound to the Google address;
+  /// see [GoogleSignInFlow].
+  Future<void> continueWithGoogle({String mode = 'signin'}) async {
+    if (state is AuthLoading) return;
+    final backend = _googleBackendOverride ??
+        (_isRealMode
+            ? SupabaseGoogleSignInBackend(syncMember: _syncSignedInMember)
+            : null);
+    if (backend == null) {
+      _emitError(const AuthError(
+        message: 'Authentication is not configured. Please try again later.',
+      ));
+      return;
+    }
+
+    final requestId = ++_googleRequestId;
+    emit(const AuthLoading());
+
+    // Supabase reports signedIn before the acceptance and the member row are
+    // committed. Hold the auth listener until this flow knows the outcome,
+    // as verifyOtp does for sign-ups.
+    final provisioning = Completer<bool>();
+    _signupProvisioning = provisioning;
+    var provisioned = false;
+    try {
+      final outcome = await GoogleSignInFlow(backend).run(
+        signup: mode == 'signup',
+      );
+      if (isClosed || requestId != _googleRequestId) return;
+
+      switch (outcome.kind) {
+        case GoogleSignInOutcomeKind.canceled:
+          emit(const AuthUnauthenticated());
+          return;
+        case GoogleSignInOutcomeKind.consentRequired:
+          _emitError(AuthError(
+            message: outcome.message!,
+            kind: AuthErrorKind.legalConsentRequired,
+          ));
+          return;
+        case GoogleSignInOutcomeKind.failed:
+          _emitError(AuthError(
+            message: outcome.message!,
+            kind: AuthErrorKind.googleSignIn,
+          ));
+          return;
+        case GoogleSignInOutcomeKind.signedIn:
+          break;
+      }
+
+      final userId = outcome.userId!;
+      await _applyPendingReferral();
+      final authData = await _loadUserProfile(userId);
+      final countryCode = await _syncDeviceCountry(authData);
+      final guardianInvitationPending =
+          await WaliModeService.instance.pendingInvitation() != null;
+      if (isClosed || requestId != _googleRequestId) return;
+
+      provisioned = true;
+      _hydratedSessionUserId = userId;
+      emit(AuthAuthenticated(
+        userId: userId,
+        onboardingStep: _returningUserStep(authData),
+        gender: authData.gender,
+        email: outcome.email,
+        countryCode: countryCode,
+        isGuardianPath: authData.isGuardianPath,
+        onboardingCompleted: authData.onboardingCompleted,
+        accountRole: authData.accountRole,
+        guardianInvitationPending: guardianInvitationPending,
+      ));
+      await _clearPendingOtp();
+    } on AccountSessionEndedException {
+      // The session is closed and the member has already been told why.
+    } catch (e) {
+      if (isClosed || requestId != _googleRequestId) return;
+      debugPrint('AuthCubit: Continue with Google failed: $e');
+      _emitError(const AuthError(
+        message: GoogleSignInFlow.genericMessage,
+        kind: AuthErrorKind.googleSignIn,
+      ));
+    } finally {
+      if (identical(_signupProvisioning, provisioning)) {
+        _signupProvisioning = null;
+      }
+      provisioning.complete(provisioned);
+    }
+  }
+
+  /// sync_my_user for an account that already exists. It refuses
+  /// (required_signup_consents_missing) to create a member row without an
+  /// acceptance.
+  Future<void> _syncSignedInMember() async {
+    final prefs = await SharedPreferences.getInstance();
+    final countryCode = prefs.getString('user_country_code')?.toUpperCase();
+    await SupabaseService.client.rpc('sync_my_user', params: {
+      'p_country_code': countryCode,
+    });
+  }
+
   Future<void> signOut() async {
     emit(const AuthLoading());
 
@@ -436,6 +545,8 @@ class AuthCubit extends Cubit<AuthState> {
         final endEveryDevice = await _isDeletionPendingForCurrentUser();
         await FcmService.instance.onUserLogout();
         await _endSession(everyDevice: endEveryDevice);
+        // The next sign-in asks which Google account to use.
+        await GoogleIdentityService.instance.forget();
       } catch (e) {
         debugPrint('Sign out error: $e');
       }
