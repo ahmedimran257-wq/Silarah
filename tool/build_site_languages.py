@@ -188,6 +188,21 @@ ENGLISH_LINKS = {
 }
 
 
+# Localized guides and city pages (built by the SEO page generators; same slugs in /hi/ and /ur/).
+LOCAL_PAGES = {
+    "hi": [("guides/", "गाइड"), ("muslim-matrimony-hyderabad/", "हैदराबाद"), ("muslim-matrimony-lucknow/", "लखनऊ"),
+           ("muslim-matrimony-delhi/", "दिल्ली"), ("muslim-matrimony-mumbai/", "मुंबई"), ("muslim-matrimony-bhopal/", "भोपाल"),
+           ("muslim-matrimony-patna/", "पटना")],
+    "ur": [("guides/", "رہنما"), ("muslim-matrimony-hyderabad/", "حیدرآباد"), ("muslim-matrimony-lucknow/", "لکھنؤ"),
+           ("muslim-matrimony-delhi/", "دہلی"), ("muslim-matrimony-mumbai/", "ممبئی"), ("muslim-matrimony-bhopal/", "بھوپال"),
+           ("muslim-matrimony-patna/", "پٹنہ")],
+}
+
+
+def explore_links(lang):
+    return "".join(f'<a href="/{lang}/{path}">{escape(label)}</a>' for path, label in LOCAL_PAGES[lang])
+
+
 def links(items):
     return "".join(f'<a href="{href}" lang="en">{escape(label)}</a>' for href, label in items)
 
@@ -247,7 +262,7 @@ def page(lang, c):
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/styles.css?v=20261106">
+  <link rel="stylesheet" href="/styles.css?v=20261114">
   <link rel="stylesheet" href="/motion.css?v=20260920-1">
   <script defer src="/assets/site.js?v=20261106"></script>
 </head>
@@ -367,7 +382,7 @@ def page(lang, c):
   <footer class="site-footer">
     <div class="shell footer-grid">
       <div class="footer-brand"><a class="brand" href="/{lang}/"><span class="brand-mark" aria-hidden="true">S</span><span>Silarah</span></a><p>{escape(c['footer_tag'])}</p><p>{escape(c['footer_legal'])}</p></div>
-      <div><b>{escape(heads[0])}</b><a href="/" lang="en">English</a><a href="/hi/" lang="hi">हिन्दी</a><a href="/ur/" lang="ur">اردو</a></div>
+      <div><b>{escape(heads[0])}</b><a href="/" lang="en">English</a><a href="/hi/" lang="hi">हिन्दी</a><a href="/ur/" lang="ur">اردو</a>{explore_links(lang)}</div>
       <div><b>{escape(heads[1])}</b>{links(ENGLISH_LINKS['trust'])}</div>
       <div><b>{escape(heads[2])}</b>{links(ENGLISH_LINKS['support'])}</div>
       <div><b>{escape(heads[3])}</b>{links(ENGLISH_LINKS['legal'])}</div>
