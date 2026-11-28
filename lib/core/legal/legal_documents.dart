@@ -28,7 +28,7 @@ class LegalDocument {
 
 abstract final class LegalDocuments {
   static const version = '2.8.0';
-  static const effectiveDate = '10 December 2026';
+  static const effectiveDate = '29 November 2026';
   static const operatorName = 'Silarah';
   static const grievanceOfficerName = 'Silarah Grievance Desk';
   static const supportEmail = 'support@silarah.com';

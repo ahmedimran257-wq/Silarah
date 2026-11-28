@@ -1,6 +1,6 @@
 # Continue with Google — Privacy Policy draft (needs owner approval)
 
-Status: **approved by the owner on 29 Nov 2026; migration 345 applied on staging and a staging sign-up recorded all five consents at 2.8.0. Not on production, website not deployed.** The app text (`legal_documents.dart`), every page under `site/`, the hi/ur/bn summaries (`legal_translations.dart`) and migration `345_policy_280_google_sign_in.sql` are ready. Migration 345 is applied on **staging only** (recorded as version 345 in the migration history). The effective date **10 December 2026** is a placeholder: set it to the day the update with Google sign-in goes live (in `LegalDocuments.effectiveDate` and the `Effective …` line on every site page).
+Status: **approved by the owner on 29 Nov 2026; migration 345 applied on staging and a staging sign-up recorded all five consents at 2.8.0. Not on production, website not deployed.** The app text (`legal_documents.dart`), every page under `site/`, the hi/ur/bn summaries (`legal_translations.dart`) and migration `345_policy_280_google_sign_in.sql` are ready. Migration 345 is applied on **staging only** (recorded as version 345 in the migration history). Effective date: **29 November 2026** (published the evening of 28 November with build 1.1.1+50300).
 
 Remaining order: apply 345 on production **before** the app update and website go live (backend first, as with 2.7.0). Then deploy the site and release the app.
 
