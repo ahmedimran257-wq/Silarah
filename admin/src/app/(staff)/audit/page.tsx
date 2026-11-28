@@ -19,6 +19,8 @@ const knownActions = [
   "voice_call_settings_changed",
   "voice_call_job_retried",
   "voice_call_minutes_adjusted",
+  "privacy_request_reviewed",
+  "privacy_request_hold_set",
 ];
 
 function href(action: string, after?: string) {

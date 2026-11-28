@@ -507,3 +507,10 @@ export const getMemberCallWallet = (userId: string) =>
   rpc<MemberCallWallet | null>("admin_member_call_wallet", { p_user: userId });
 export const getReportsByReason = (reason: string | null) =>
   rpc<ReportsByReason>("admin_reports_by_reason", { p_reason: reason, p_limit: 100 });
+
+// Scheduled jobs and active alerts (migration 340).
+export type ScheduledJobs = {
+  jobs: { name: string; schedule: string; active: boolean; last_run_at: string | null; last_status: string | null; last_error: string | null; failures_24h: number }[];
+  active_alerts: { key: string; value: number | null; since: string | null }[];
+};
+export const getScheduledJobs = () => rpc<ScheduledJobs>("admin_scheduled_jobs");

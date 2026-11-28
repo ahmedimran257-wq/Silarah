@@ -147,3 +147,23 @@ export const callSettingGroups: { id: "money" | "safety" | "ringing" | "plans"; 
 export function callSettingLabel(key: string) {
   return (callSettingInfo as Record<string, { label: string }>)[key]?.label ?? fallback(key);
 }
+
+/** Admin inbox item types (admin_notifications.type) and the page that handles each. */
+const inboxTypes: Record<string, { label: string; href: (userId: string | null) => string | null }> = {
+  member_report_received: { label: "Member report", href: () => "/moderation?tab=reports" },
+  message_report_received: { label: "Reported message", href: () => "/moderation?tab=messages" },
+  harassing_calls_report: { label: "Harassing-calls report", href: () => "/moderation?tab=reports&reason=harassing_calls" },
+  privacy_request_received: { label: "New privacy request", href: () => "/privacy" },
+  privacy_request_due_soon: { label: "Privacy request due in 2 days", href: () => "/privacy" },
+  privacy_request_overdue: { label: "Privacy request overdue", href: () => "/privacy" },
+  account_deletion_requested: { label: "Member asked to delete their account", href: () => "/deletions" },
+  subscription_refunded: { label: "Premium refunded", href: () => "/subscriptions" },
+  call_pack_refunded: { label: "Minute pack refunded", href: (id) => (id ? `/calls?tab=member&member=${id}` : "/calls") },
+  call_pack_unclaimed: { label: "Paid pack waiting for a member", href: () => "/calls?tab=packs" },
+  system_health_alert: { label: "System alert", href: () => "/system" },
+};
+
+export function inboxType(type: string, userId: string | null) {
+  const known = inboxTypes[type];
+  return { label: known?.label ?? fallback(type), href: known?.href(userId) ?? null };
+}

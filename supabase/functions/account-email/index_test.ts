@@ -1,5 +1,5 @@
 import { assert, assertEquals, assertStringIncludes } from "@std/assert";
-import { renderAccountEmail } from "./index.ts";
+import { renderAccountEmail, renderPrivacyEmail } from "./index.ts";
 
 const now = new Date("2026-11-14T06:00:00Z");
 
@@ -66,4 +66,50 @@ Deno.test("names are escaped in the email body", () => {
   }, now);
   assert(!email.html.includes("<script>"));
   assertStringIncludes(email.html, "&lt;script&gt;");
+});
+
+Deno.test("privacy confirmation gives the reference, type and response date", () => {
+  const email = renderPrivacyEmail({
+    email_id: "p1",
+    email_event: "received",
+    recipient: "member@example.com",
+    first_name: "Ayesha",
+    request_id: "6f1c2a9e-0000-4000-8000-000000000001",
+    request_kind: "erasure",
+    due_at: "2026-12-05T09:32:30Z",
+  });
+  assertEquals(email.subject, "We received your privacy request");
+  assertStringIncludes(email.text, "we will respond by 5 December 2026");
+  assertStringIncludes(email.text, "Reference: 6f1c2a9e-0000-4000-8000-000000000001");
+  assertStringIncludes(email.text, "Type: Erasure of your data");
+  assertStringIncludes(email.html, "Assalamu alaikum Ayesha,");
+});
+
+Deno.test("privacy answer email points to the app, not the response text", () => {
+  const email = renderPrivacyEmail({
+    email_id: "p2",
+    email_event: "resolved",
+    recipient: "member@example.com",
+    first_name: null,
+    request_id: "6f1c2a9e-0000-4000-8000-000000000002",
+    request_kind: "access",
+    due_at: "2026-12-05T09:32:30Z",
+  });
+  assertEquals(email.subject, "We have answered your privacy request");
+  assertStringIncludes(email.text, "Settings > Privacy requests");
+  assertStringIncludes(email.text, "Reference: 6f1c2a9e-0000-4000-8000-000000000002");
+});
+
+Deno.test("privacy email escapes the member's name", () => {
+  const email = renderPrivacyEmail({
+    email_id: "p3",
+    email_event: "received",
+    recipient: "member@example.com",
+    first_name: "<b>x</b>",
+    request_id: "r",
+    request_kind: "unknown_kind",
+    due_at: "2026-12-05T09:32:30Z",
+  });
+  assert(!email.html.includes("<b>x</b>"));
+  assertStringIncludes(email.text, "Type: Privacy request");
 });

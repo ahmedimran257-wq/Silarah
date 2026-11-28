@@ -16,6 +16,37 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY") ?? "";
 const ADMIN_URL = "https://admin.silarah.com/system";
+const ADMIN_BASE = "https://admin.silarah.com";
+
+/** Subject and the admin page that resolves the alert (keys from 283 and 340). */
+export function alertTarget(key: string): { subject: string; label: string; url: string } {
+  if (/_(70|85)$/.test(key)) {
+    const level = key.endsWith("_85") ? "85%" : "70%";
+    return { subject: `Silarah: free-plan limit at ${level}`, label: "Open System health", url: ADMIN_URL };
+  }
+  if (key === "privacy_request_received") {
+    return { subject: "Silarah: new privacy request", label: "Open Member rights", url: `${ADMIN_BASE}/privacy` };
+  }
+  if (key === "privacy_request_due_soon") {
+    return { subject: "Silarah: privacy request due in 2 days", label: "Open Member rights", url: `${ADMIN_BASE}/privacy` };
+  }
+  if (key === "privacy_request_overdue") {
+    return { subject: "Silarah: privacy request OVERDUE", label: "Open Member rights", url: `${ADMIN_BASE}/privacy` };
+  }
+  if (key === "photo_checks_due") {
+    return { subject: "Silarah: photo checks near their deadline", label: "Open Photo checks", url: `${ADMIN_BASE}/photo-verification` };
+  }
+  if (key === "reports_waiting_24h") {
+    return { subject: "Silarah: reports waiting over a day", label: "Open Moderation", url: `${ADMIN_BASE}/moderation?tab=reports` };
+  }
+  if (key.startsWith("account_purge_")) {
+    return { subject: "Silarah: account deletions not completing", label: "Open Deletions", url: `${ADMIN_BASE}/deletions` };
+  }
+  if (key.startsWith("voice_call") || key.startsWith("call_")) {
+    return { subject: "Silarah: voice calling alert", label: "Open Voice calls", url: `${ADMIN_BASE}/calls` };
+  }
+  return { subject: "Silarah: system alert", label: "Open System health", url: ADMIN_URL };
+}
 
 interface QueuedAlert {
   id: number;
@@ -25,7 +56,7 @@ interface QueuedAlert {
   recipients: string[];
 }
 
-Deno.serve(async (req: Request) => {
+if (import.meta.main) Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -100,11 +131,7 @@ function escapeHtml(value: string): string {
 }
 
 async function sendAlert(alert: QueuedAlert, recipients: string[]) {
-  const isLimit = /_(70|85)$/.test(alert.alert_key);
-  const level = alert.alert_key.endsWith("_85") ? "85%" : "70%";
-  const subject = isLimit
-    ? `Silarah: free-plan limit at ${level}`
-    : "Silarah: system alert";
+  const { subject, label, url } = alertTarget(alert.alert_key);
   const when = new Date(alert.created_at).toUTCString();
   const html =
     `<!doctype html><html><body style="margin:0;padding:24px;background:#F7F3EA;font-family:Arial,sans-serif;color:#1E2B26">
@@ -117,9 +144,9 @@ async function sendAlert(alert: QueuedAlert, recipients: string[]) {
 <p style="margin:0 0 16px;font-size:13px;color:#6B6458">Raised ${
       escapeHtml(when)
     }.</p>
-<p style="margin:0"><a href="${ADMIN_URL}" style="color:#175C45;font-weight:bold">Open System health</a></p>
+<p style="margin:0"><a href="${url}" style="color:#175C45;font-weight:bold">${escapeHtml(label)}</a></p>
 </div>
-<p style="max-width:560px;margin:12px auto 0;font-size:12px;color:#8A8274">You receive this because you are active Silarah staff. One email is sent when an alert first fires.</p>
+<p style="max-width:560px;margin:12px auto 0;font-size:12px;color:#8A8274">You receive this because you are active Silarah staff. One email is sent when an alert first fires, and for each privacy-request deadline.</p>
 </body></html>`;
   const text = [
     subject,
@@ -127,7 +154,7 @@ async function sendAlert(alert: QueuedAlert, recipients: string[]) {
     alert.message,
     "",
     `Raised ${when}.`,
-    `System health: ${ADMIN_URL}`,
+    `${label}: ${url}`,
     "",
     "You receive this because you are active Silarah staff.",
   ].join("\n");
