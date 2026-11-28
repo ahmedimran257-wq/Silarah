@@ -1,11 +1,13 @@
-import { ArrowLeft, BadgeCheck, Camera, Flag, ShieldAlert, UserRoundSearch } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Camera, Flag, Phone, ShieldAlert, UserRoundSearch } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SubmitButton } from "@/components/client-ui";
+import { MemberCallHistoryTable, MemberCallWalletCard } from "@/components/member-calls";
 import { EmptyState, NoAccess, PageHeader, StatusPill, formatDate, formatDateTime, relativeTime } from "@/components/ui";
 import { can } from "@/lib/access";
 import { requireArea } from "@/lib/auth";
-import { getMemberAccountState, getMemberNotes, getMemberReview, getReportCallContext, type MemberAccountState, type MemberNote, type MemberReview, type MemberReviewPhoto, type ReportCallContext } from "@/lib/operations";
+import { callResult, reportReason, talkTime } from "@/lib/labels";
+import { getMemberAccountState, getMemberCallHistory, getMemberCallWallet, getMemberNotes, getMemberReview, getReportCallContext, type MemberAccountState, type MemberCallRow, type MemberCallWallet, type MemberNote, type MemberReview, type MemberReviewPhoto, type ReportCallContext } from "@/lib/operations";
 import { accountAction, addMemberNote, cancelAccountDeletion, grantTestPremium, removeGuardianLink, removeMemberPhoto, resolveReport, revokeTestPremium, scheduleAccountDeletion, sendMemberMessage } from "../../actions";
 
 export const metadata = { title: "Member review" };
@@ -63,10 +65,13 @@ export default async function MemberReviewPage({
   if (!uuid.test(userId)) notFound();
   const reportId = report && uuid.test(report) ? report : null;
 
-  const [review, accountState, notes] = await Promise.all([
+  const viewCalls = can(admin.role, "viewCallHistory");
+  const [review, accountState, notes, callWallet, callHistory] = await Promise.all([
     getMemberReview(userId, reportId),
     getMemberAccountState(userId).catch((): MemberAccountState | null => null),
     getMemberNotes(userId).catch((): MemberNote[] | null => null),
+    viewCalls ? getMemberCallWallet(userId).catch((): MemberCallWallet | null => null) : Promise.resolve(undefined),
+    viewCalls ? getMemberCallHistory(userId).catch((): MemberCallRow[] | null => null) : Promise.resolve(undefined),
   ]);
   if (!review) {
     return (
@@ -111,11 +116,17 @@ export default async function MemberReviewPage({
           </div>
           <div className="card-body stack">
             <div className="row">
-              <StatusPill status="pending" label={activeReport.reason.replaceAll("_", " ")} />
+              <StatusPill status="pending" label={reportReason(activeReport.reason)} />
               <span className="muted">filed {formatDateTime(activeReport.created_at)}</span>
               {activeReport.reporterTrust !== null ? <span className="muted">reporter trust {activeReport.reporterTrust}</span> : null}
             </div>
             {activeReport.description ? <p className="quote">{activeReport.description}</p> : <p className="muted">The reporter gave no details. Judge from the photos and profile below.</p>}
+            {activeReport.reason === "harassing_calls" && callContext && callContext.calls.length === 0 ? (
+              <p className="notice info"><Phone size={14} /><span>No calls between them in the last 90 days. Older call records are deleted; check the description and the chat.</span></p>
+            ) : null}
+            {activeReport.reason === "harassing_calls" && callContext === null ? (
+              <p className="notice danger"><span>The calls between them could not load. Refresh before deciding.</span></p>
+            ) : null}
             {callContext && callContext.calls.length > 0 ? (
               <div className="stack">
                 <p className="muted">
@@ -130,8 +141,8 @@ export default async function MemberReviewPage({
                         <tr key={`${call.created_at}-${call.from}`}>
                           <td>{formatDateTime(call.created_at)}</td>
                           <td>{call.from === "reported" ? "This member" : "Reporter"}</td>
-                          <td>{call.status}{call.reason ? ` · ${call.reason.replaceAll("_", " ")}` : ""}</td>
-                          <td>{call.connected_seconds ? `${Math.floor(call.connected_seconds / 60)}:${String(call.connected_seconds % 60).padStart(2, "0")}` : "—"}</td>
+                          <td>{callResult(call.status, call.reason)}</td>
+                          <td>{talkTime(call.connected_seconds)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -248,7 +259,7 @@ export default async function MemberReviewPage({
                   {review.reportsAgainst.map((item) => (
                     <div className="list-item" key={item.id}>
                       <div>
-                        <h3>{item.reason.replaceAll("_", " ")} <StatusPill status={item.status} /></h3>
+                        <h3>{reportReason(item.reason)} <StatusPill status={item.status} /></h3>
                         {item.description ? <p className="muted">{item.description}</p> : null}
                         <div className="meta"><span>{formatDateTime(item.created_at)}</span>{item.id === reportId ? <span className="pill gold plain">this report</span> : null}</div>
                       </div>
@@ -258,6 +269,20 @@ export default async function MemberReviewPage({
               ) : null}
             </div>
           </section>
+
+          {callWallet !== undefined ? <MemberCallWalletCard wallet={callWallet} userId={review.userId} /> : null}
+
+          {callHistory !== undefined ? (
+            <section className="card">
+              <div className="card-head"><h2><Phone size={16} /> Calls</h2><span className="muted">Newest 100 · times and results only, never audio</span></div>
+              <div className="card-body">
+                <MemberCallHistoryTable history={callHistory ? callHistory.slice(0, 10) : null} />
+                {callHistory && callHistory.length > 10 ? (
+                  <p className="faint"><Link href={`/calls?tab=member&member=${review.userId}`} prefetch={false} className="link">All {callHistory.length} calls on the Calls page</Link></p>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
 
           {accountState ? (
             <section className="card">

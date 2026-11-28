@@ -2,7 +2,8 @@ import { Bell, CheckCheck, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { SubmitButton } from "@/components/client-ui";
 import { EmptyState, PageHeader, formatDateTime } from "@/components/ui";
-import { formatCount } from "@/lib/access";
+import { canAccess, formatCount } from "@/lib/access";
+import { inboxType } from "@/lib/labels";
 import { requireAdmin } from "@/lib/auth";
 import { encodeCursor, getAdminInbox, parseCursor } from "@/lib/operations";
 import { markAdminNotificationRead, markAllAdminNotificationsRead } from "../actions";
@@ -31,7 +32,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
       <PageHeader
         eyebrow="Today"
         title="Inbox"
-        lede="Alerts raised by moderation, trust scoring and operational rules. Newest first."
+        lede="Reports, privacy requests and their deadlines, refunds, deletion requests and system alerts. Newest first; each opens the page that handles it."
         actions={
           <form action={markAllAdminNotificationsRead}>
             <input type="hidden" name="returnTo" value={href(view)} />
@@ -58,17 +59,24 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
           </EmptyState>
         ) : (
           <div className="list">
-            {page.rows.map((item) => (
+            {page.rows.map((item) => {
+              const kind = inboxType(item.type, item.related_user_id);
+              return (
               <article className={`list-item${item.is_read ? "" : " is-unread"}`} key={item.notification_id}>
                 <div>
-                  <h3>{item.type.replaceAll("_", " ")}</h3>
+                  <h3>{kind.label}</h3>
                   <p>{item.message}</p>
                   <div className="meta">
                     <span>{formatDateTime(item.created_at)}</span>
-                    {item.related_user_id ? <span className="mono">member {item.related_user_id.slice(0, 8)}</span> : null}
+                    {item.related_user_id ? (
+                      canAccess(admin.role, "memberReview")
+                        ? <Link href={`/users/${item.related_user_id}`} prefetch={false} className="mono">member {item.related_user_id.slice(0, 8)}</Link>
+                        : <span className="mono">member {item.related_user_id.slice(0, 8)}</span>
+                    ) : null}
                   </div>
                 </div>
                 <div className="aside">
+                  {kind.href ? <Link href={kind.href} prefetch={false} className="btn btn-sm">Open</Link> : null}
                   {item.is_read ? <span className="pill plain">Read</span> : (
                     <form action={markAdminNotificationRead}>
                       <input type="hidden" name="notificationId" value={item.notification_id} />
@@ -78,7 +86,8 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
                   )}
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         )}
         {(cursor || page.next) ? (

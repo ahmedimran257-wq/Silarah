@@ -1,7 +1,7 @@
-import { Activity, Gauge, Languages } from "lucide-react";
+import { Activity, BellRing, Clock, Gauge, Languages } from "lucide-react";
 import { EmptyState, PageHeader, Stat, formatDateTime } from "@/components/ui";
 import { requireAdmin } from "@/lib/auth";
-import { getLocalizationOverview, getSystemHealth } from "@/lib/operations";
+import { getLocalizationOverview, getScheduledJobs, getSystemHealth, type ScheduledJobs } from "@/lib/operations";
 
 export const metadata = { title: "System health" };
 
@@ -109,7 +109,11 @@ function FreePlanLimits({ plan }: { plan: FreePlan }) {
 
 export default async function SystemPage() {
   await requireAdmin();
-  const [health, locales] = await Promise.all([getSystemHealth(), getLocalizationOverview()]);
+  const [health, locales, scheduled] = await Promise.all([
+    getSystemHealth(),
+    getLocalizationOverview(),
+    getScheduledJobs().catch((): ScheduledJobs | null => null),
+  ]);
   const h = health ?? {};
   const freePlan = (h as Record<string, unknown>).freePlan as FreePlan | undefined;
 
@@ -134,6 +138,9 @@ export default async function SystemPage() {
         </section>
       ))}
 
+      <ActiveAlerts scheduled={scheduled} />
+      <ScheduledJobsCard scheduled={scheduled} />
+
       <section className="card">
         <div className="card-head"><h2><Languages size={16} /> Content by language</h2></div>
         {locales.length === 0 ? (
@@ -157,5 +164,76 @@ export default async function SystemPage() {
         )}
       </section>
     </div>
+  );
+}
+
+const alertLabels: Record<string, string> = {
+  photo_checks_due: "Photo checks near the 48-hour deadline",
+  reports_waiting_24h: "Reports waiting over a day",
+  account_purge_overdue: "Accounts past their deletion date",
+  account_purge_stuck: "Account purges not finishing",
+  member_emails_failing: "Member emails not going out",
+  staff_alert_emails_failing: "Staff alert emails not going out",
+  scheduled_jobs_failing: "Scheduled jobs failing",
+  call_pack_refunds_waiting: "Pack refunds waiting for their purchase",
+  voice_call_worker_dead_job: "Voice-call job failed for good",
+  voice_call_minutes_70: "Call minutes at 70% of the brake",
+  voice_call_minutes_90: "Call minutes at 90% of the brake",
+};
+
+function ActiveAlerts({ scheduled }: { scheduled: ScheduledJobs | null }) {
+  if (!scheduled) return null;
+  return (
+    <section className="card">
+      <div className="card-head">
+        <h2><BellRing size={16} /> Alerts in force</h2>
+        <span className="muted">Each one is in the Inbox and was emailed to staff when it first fired</span>
+      </div>
+      <div className="card-body">
+        {scheduled.active_alerts.length === 0 ? (
+          <p className="faint">No alert is active. Deadlines, failed jobs and stuck emails are checked every 15 minutes.</p>
+        ) : (
+          <ul className="plain-list">
+            {scheduled.active_alerts.map((alert) => (
+              <li key={alert.key}>
+                <strong>{alertLabels[alert.key] ?? alert.key.replaceAll("_", " ")}</strong>
+                {alert.value !== null ? ` · ${alert.value}` : ""}
+                {alert.since ? <span className="faint"> · since {formatDateTime(alert.since)}</span> : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ScheduledJobsCard({ scheduled }: { scheduled: ScheduledJobs | null }) {
+  return (
+    <section className="card">
+      <div className="card-head"><h2><Clock size={16} /> Scheduled jobs</h2><span className="muted">Last run of every database job · failures in 24 h first</span></div>
+      {scheduled === null ? (
+        <div className="card-body"><p className="notice danger"><span>Scheduled jobs could not load.</span></p></div>
+      ) : (
+        <div className="table-wrap">
+          <table className="table">
+            <thead><tr><th>Job</th><th>Schedule</th><th>Last run</th><th className="right">Failed · 24 h</th></tr></thead>
+            <tbody>
+              {scheduled.jobs.map((job) => (
+                <tr key={job.name}>
+                  <td className="mono">{job.name}{job.active ? null : <span className="cell-sub">paused</span>}</td>
+                  <td className="mono">{job.schedule}</td>
+                  <td>
+                    {job.last_run_at ? formatDateTime(job.last_run_at) : "Not run recently"}
+                    {job.last_status && job.last_status !== "succeeded" ? <span className="cell-sub">{job.last_status}{job.last_error ? `: ${job.last_error}` : ""}</span> : null}
+                  </td>
+                  <td className="right num">{job.failures_24h > 0 ? <span className="pill danger">{job.failures_24h}</span> : "0"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }

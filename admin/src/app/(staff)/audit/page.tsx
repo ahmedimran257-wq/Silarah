@@ -15,6 +15,12 @@ const knownActions = [
   "admin_work_item_claimed",
   "admin_notification_read",
   "admin_notifications_read_all",
+  "voice_calls_switched",
+  "voice_call_settings_changed",
+  "voice_call_job_retried",
+  "voice_call_minutes_adjusted",
+  "privacy_request_reviewed",
+  "privacy_request_hold_set",
 ];
 
 function href(action: string, after?: string) {

@@ -5,11 +5,17 @@
 // (private.account_emails) and wakes this worker through pg_net; an hourly
 // cron retries anything left behind. The completion notice is released only
 // after the member's data is gone, and its address is erased once sent.
+//
+// Since migration 340 it also confirms privacy-rights requests (received,
+// with the reference and the response date; answered) from their own queue,
+// private.privacy_request_emails, claimed separately so an older deployment
+// of this worker never sees them.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { corsHeaders } from "../_shared/cors.ts";
 import { isAuthorizedCronRequest } from "../_shared/cron_auth.ts";
 import {
   button,
+  detailList,
   escapeHtml,
   greeting,
   HELP_URL,
@@ -221,6 +227,174 @@ export function renderAccountEmail(
   };
 }
 
+export interface QueuedPrivacyEmail {
+  email_id: string;
+  email_event: "received" | "resolved";
+  recipient: string | null;
+  first_name: string | null;
+  request_id: string;
+  request_kind: string;
+  due_at: string;
+}
+
+const PRIVACY_KINDS: Record<string, string> = {
+  access: "Access to your data",
+  correction: "Correction of your data",
+  erasure: "Erasure of your data",
+  withdrawal: "Withdrawal of consent",
+  nomination: "Nomination",
+  grievance: "Grievance",
+};
+
+const PRIVACY_REASON =
+  "You are receiving this because you made a privacy request in Silarah. It is a service message, not marketing.";
+
+function longDate(value: string): string {
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  }).format(new Date(value));
+}
+
+export function renderPrivacyEmail(
+  row: QueuedPrivacyEmail,
+): RenderedTransactionalEmail {
+  const name = row.first_name?.trim();
+  const helloText = name ? `Assalamu alaikum ${name},` : "Assalamu alaikum,";
+  const hello = greeting(
+    name ? `Assalamu alaikum ${escapeHtml(name)},` : "Assalamu alaikum,",
+  );
+  const kind = PRIVACY_KINDS[row.request_kind] ?? "Privacy request";
+  const where = "Silarah > Settings > Privacy requests";
+
+  if (row.email_event === "received") {
+    const due = longDate(row.due_at);
+    const subject = "We received your privacy request";
+    const body = [
+      hello,
+      paragraph(
+        `Thank you. Your request is with our team and we will respond by <strong>${
+          escapeHtml(due)
+        }</strong>.`,
+      ),
+      detailList("Your request", [
+        ["Type", escapeHtml(kind)],
+        ["Reference", escapeHtml(row.request_id)],
+        ["Response by", escapeHtml(due)],
+      ]),
+      paragraph(
+        `You can follow it in ${escapeHtml(where)}. Keep the reference if you write to us at <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.`,
+      ),
+      signOff("The Silarah team"),
+    ].join("\n");
+    return {
+      subject,
+      html: renderEmailLayout({
+        title: subject,
+        preheader: `We will respond by ${due}. Reference ${row.request_id}.`,
+        eyebrow: "Privacy request",
+        heading: "Your request is in",
+        body,
+        reason: escapeHtml(PRIVACY_REASON),
+      }),
+      text: [
+        helloText,
+        "",
+        `Thank you. Your request is with our team and we will respond by ${due}.`,
+        "",
+        `Type: ${kind}`,
+        `Reference: ${row.request_id}`,
+        `Response by: ${due}`,
+        "",
+        `You can follow it in ${where}. Keep the reference if you write to us at ${SUPPORT_EMAIL}.`,
+        "",
+        "The Silarah team",
+        "",
+        PRIVACY_REASON,
+      ].join("\n"),
+    };
+  }
+
+  const subject = "We have answered your privacy request";
+  const body = [
+    hello,
+    paragraph(
+      `We have answered your request (${escapeHtml(kind.toLowerCase())}). Open ${
+        escapeHtml(where)
+      } to read our response.`,
+    ),
+    detailList("Your request", [["Reference", escapeHtml(row.request_id)]]),
+    paragraph(
+      `If anything is unclear, reply to us at <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a> with the reference.`,
+    ),
+    signOff("The Silarah team"),
+  ].join("\n");
+  return {
+    subject,
+    html: renderEmailLayout({
+      title: subject,
+      preheader: "Open the app to read our response.",
+      eyebrow: "Privacy request",
+      heading: "Your request has an answer",
+      body,
+      reason: escapeHtml(PRIVACY_REASON),
+    }),
+    text: [
+      helloText,
+      "",
+      `We have answered your request (${kind.toLowerCase()}). Open ${where} to read our response.`,
+      `Reference: ${row.request_id}`,
+      "",
+      `If anything is unclear, reply to us at ${SUPPORT_EMAIL} with the reference.`,
+      "",
+      "The Silarah team",
+      "",
+      PRIVACY_REASON,
+    ].join("\n"),
+  };
+}
+
+async function sendPrivacyEmails(supabase: SupabaseClient): Promise<{ claimed: number; sent: number }> {
+  const { data, error } = await supabase.rpc("claim_privacy_request_emails", {
+    p_limit: 10,
+  });
+  if (error) {
+    // Before migration 340 the RPC does not exist; account emails still go out.
+    console.error("[account-email] Could not claim privacy emails:", error.message);
+    return { claimed: 0, sent: 0 };
+  }
+  const rows = (data ?? []) as QueuedPrivacyEmail[];
+  let sent = 0;
+  for (const row of rows) {
+    const done = (success: boolean, message: string | null) =>
+      supabase.rpc("complete_privacy_request_email", {
+        p_email_id: row.email_id,
+        p_success: success,
+        p_error: message,
+      });
+    if (!row.recipient) {
+      await done(false, "no_recipient");
+      continue;
+    }
+    try {
+      await sendBrevoTransactionalEmail({
+        apiKey: BREVO_API_KEY,
+        to: row.recipient,
+        email: renderPrivacyEmail(row),
+        dedupeKey: `privacy:${row.email_id}`,
+        tags: ["transactional", "privacy"],
+      });
+      await done(true, null);
+      sent += 1;
+    } catch (sendError) {
+      await done(false, sendError instanceof Error ? sendError.message : "send_failed");
+    }
+  }
+  return { claimed: rows.length, sent };
+}
+
 async function complete(
   supabase: SupabaseClient,
   id: string,
@@ -283,7 +457,8 @@ if (import.meta.main) {
         );
       }
     }
-    return new Response(JSON.stringify({ claimed: rows.length, sent }), {
+    const privacy = await sendPrivacyEmails(supabase);
+    return new Response(JSON.stringify({ claimed: rows.length, sent, privacy }), {
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "no-store",

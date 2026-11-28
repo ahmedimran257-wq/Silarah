@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select extensions.plan(57);
+select extensions.plan(58);
 
 select extensions.ok(
   not has_table_privilege('authenticated', 'public.users', 'INSERT,UPDATE,DELETE'),
@@ -153,7 +153,7 @@ select extensions.ok(
 select extensions.ok(
   not has_function_privilege(
     'public',
-    'public.finalize_profile_photo_upload(uuid,text,text,integer,text,numeric)',
+    'public.finalize_profile_photo_upload(uuid,text,text,integer,text,numeric,boolean)',
     'EXECUTE'
   ),
   'photo finalization is not public'
@@ -161,7 +161,7 @@ select extensions.ok(
 select extensions.ok(
   has_function_privilege(
     'service_role',
-    'public.finalize_profile_photo_upload(uuid,text,text,integer,text,numeric)',
+    'public.finalize_profile_photo_upload(uuid,text,text,integer,text,numeric,boolean)',
     'EXECUTE'
   ),
   'service photo finalization is available'
@@ -186,8 +186,14 @@ select extensions.ok(
 select extensions.ok(
   to_regprocedure(
     'public.apply_revenuecat_subscription_event(uuid,text,text,bigint,text,timestamptz,text,text,numeric,timestamptz)'
+  ) is null,
+  'pre-plan-change RevenueCat overload is removed (314)'
+);
+select extensions.ok(
+  to_regprocedure(
+    'public.apply_revenuecat_subscription_event(uuid,text,text,bigint,text,timestamptz,text,text,numeric,timestamptz,text)'
   ) is not null,
-  'provider-ID RevenueCat RPC exists'
+  'provider-ID RevenueCat RPC with the plan-change argument exists'
 );
 select extensions.ok(
   exists (

@@ -561,6 +561,15 @@ const accountErrors = [
   "Enter the full email address",
   "received date must be within",
   "Only a super admin can delete immediately",
+  // Voice calling settings and jobs (migration 339).
+  "must be between",
+  "cannot be changed here",
+  "must be a whole number",
+  "Nothing changed",
+  "plan reminder must not",
+  "not waiting for a retry",
+  "Notification jobs are not retried",
+  "already queued again",
 ];
 
 async function runAccountRpc<T>(name: string, values: Record<string, unknown>) {
@@ -867,5 +876,59 @@ export async function adjustCallMinutes(formData: FormData) {
       p_reason: parsed.reason,
     });
     return `Pack minutes adjusted. New balance: ${balance}.`;
+  }, "Saved.", formData);
+}
+
+const callSettingKeys = [
+  "monthly_cap_minutes", "included_minutes", "max_hold_minutes", "unanswered_call_limit",
+  "ring_timeout_seconds", "join_timeout_seconds", "connect_allowance_seconds",
+  "plan_min_lead_minutes", "plan_max_days_ahead", "plan_window_minutes",
+  "plan_reminder_minutes", "plan_max_open", "plan_max_per_chat_day",
+] as const;
+
+const callSettingsSchema = z.object({
+  values: z.record(z.enum(callSettingKeys), z.coerce.number().int("Use whole numbers.").min(0).max(1_000_000)),
+  reason: z.string().trim().min(6, "Give a reason of at least 6 characters for the audit log.").max(500),
+});
+
+/**
+ * Super admin only. The form sends every value; only the ones that differ
+ * from the current setting are sent, and admin_update_call_settings checks
+ * the bounds and writes the audit log entry.
+ */
+export async function updateCallSettings(formData: FormData) {
+  await guardedAction("/calls", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "tuneCalls");
+    const changed: Record<string, string> = {};
+    for (const key of callSettingKeys) {
+      const raw = formString(formData, key).trim();
+      if (raw === "") continue;
+      if (raw !== formString(formData, `current_${key}`).trim()) changed[key] = raw;
+    }
+    const parsed = callSettingsSchema.parse({ values: changed, reason: formData.get("reason") ?? "" });
+    if (Object.keys(parsed.values).length === 0) {
+      throw new UserFacingError("Nothing changed: every value is already in force.");
+    }
+    const result = await runAccountRpc<{ changed?: Record<string, unknown> }>("admin_update_call_settings", {
+      p_changes: parsed.values,
+      p_reason: parsed.reason,
+    });
+    const count = Object.keys(result?.changed ?? {}).length;
+    return `${count} calling ${count === 1 ? "setting" : "settings"} changed. Members see the new rules on their next refresh.`;
+  }, "Saved.", formData);
+}
+
+/** Super admin only: re-run one failed calling job; audited in the database. */
+export async function retryCallJob(formData: FormData) {
+  await guardedAction("/calls", async () => {
+    const admin = await requireAdmin();
+    assertCan(admin, "retryCallJobs");
+    const parsed = z.object({
+      jobId: z.coerce.number().int().positive(),
+      reason: z.string().trim().min(6, "Give a reason of at least 6 characters for the audit log.").max(500),
+    }).parse({ jobId: formData.get("jobId"), reason: formData.get("reason") ?? "" });
+    await runAccountRpc("admin_retry_call_job", { p_job_id: parsed.jobId, p_reason: parsed.reason });
+    return "Job queued again. The call worker picks it up within seconds.";
   }, "Saved.", formData);
 }
